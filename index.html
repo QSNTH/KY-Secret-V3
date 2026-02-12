@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KY Secret V3 - 匿名投稿</title>
+    <style>
+        * {margin: 0; padding: 0; box-sizing: border-box; font-family: "Microsoft YaHei", sans-serif;}
+        body {background: #f5f7fa; padding: 20px; max-width: 800px; margin: 0 auto;}
+        .container {background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 30px;}
+        h1 {text-align: center; color: #2d3748; margin-bottom: 30px; font-size: 24px;}
+        .form-item {margin-bottom: 20px;}
+        label {display: block; margin-bottom: 8px; color: #4a5568; font-weight: 500;}
+        input, textarea {width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 16px; outline: none;}
+        input:focus, textarea:focus {border-color: #4299e1; box-shadow: 0 0 0 3px rgba(66,153,225,0.1);}
+        textarea {min-height: 200px; resize: vertical;}
+        .count {text-align: right; font-size: 14px; color: #718096; margin-top: 4px;}
+        button {width: 100%; padding: 14px; background: #4299e1; color: #fff; border: none; border-radius: 8px; font-size: 18px; font-weight: 500; cursor: pointer; transition: background 0.3s;}
+        button:hover {background: #3182ce;}
+        .tag-hint {font-size: 14px; color: #718096; margin-top: 4px;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>KY Secret V3 · 匿名投稿</h1>
+        <form id="submitForm">
+            <div class="form-item">
+                <label for="title">标题 <span style="color:#718096;font-weight:normal;">(0/20)</span></label>
+                <input type="text" id="title" maxlength="20" placeholder="请输入投稿标题（选填）">
+                <div class="count" id="titleCount">0/20</div>
+            </div>
+            <div class="form-item">
+                <label for="content">投稿内容 <span style="color:#718096;font-weight:normal;">(0/2000)</span></label>
+                <textarea id="content" maxlength="2000" placeholder="请输入你的匿名投稿内容，尽情表达吧～" required></textarea>
+                <div class="count" id="contentCount">0/2000</div>
+            </div>
+            <div class="form-item">
+                <label for="tag">标签</label>
+                <input type="text" id="tag" placeholder="例：#学校 #生活，用#分隔">
+                <div class="tag-hint">建议添加#学校标签，方便分类展示</div>
+            </div>
+            <button type="submit">提交投稿</button>
+        </form>
+    </div>
+
+    <script>
+        // 字数统计
+        const title = document.getElementById('title');
+        const titleCount = document.getElementById('titleCount');
+        const content = document.getElementById('content');
+        const contentCount = document.getElementById('contentCount');
+
+        title.oninput = () => titleCount.innerText = `${title.value.length}/20`;
+        content.oninput = () => contentCount.innerText = `${content.value.length}/2000`;
+
+        // 提交表单（后续对接Tunnel后端接口）
+        document.getElementById('submitForm').onsubmit = (e) => {
+            e.preventDefault();
+            const data = {
+                title: title.value,
+                content: content.value,
+                tag: tag.value
+            };
+            // 这里后续替换成你的Tunnel后端API地址
+            alert('投稿提交成功！V3无广告版超丝滑～');
+            form.reset();
+        };
+    </script>
+</body>
+</html>
