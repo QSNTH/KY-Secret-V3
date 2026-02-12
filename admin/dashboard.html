@@ -1,193 +1,306 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KY Secret Admin Dashboard</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: system-ui, -apple-system, "Microsoft YaHei", sans-serif;
-        }
-        body {
-            background: #0f172a;
-            color: #f1f5f9;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-        h1 {
-            font-size: 24px;
-            color: #f1f5f9;
-        }
-        button {
-            background: #e94560;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        button:hover {
-            background: #d6336c;
-        }
-        .status-card {
-            background: #1e293b;
-            padding: 24px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        }
-        .status-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-        .status-label {
-            font-size: 16px;
-            color: #cbd5e1;
-        }
-        .status-value {
-            font-size: 16px;
-            font-weight: 600;
-        }
-        .error-text {
-            color: #ef4444;
-        }
-        .section-title {
-            font-size: 18px;
-            margin: 32px 0 16px;
-            color: #cbd5e1;
-        }
-        /* 长条时间轴样式 */
-        .timeline-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 12px 0;
-        }
-        .timeline-label {
-            width: 160px;
-            font-size: 14px;
-            color: #94a3b8;
-        }
-        .timeline-bars {
-            display: flex;
-            gap: 2px;
-            flex: 1;
-            height: 16px;
-        }
-        .timeline-block {
-            flex: 1;
-            min-width: 4px;
-            height: 100%;
-            border-radius: 1px;
-            background: #334155;
-        }
-        .timeline-block.ok { background: #10b981; }
-        .timeline-block.down { background: #ef4444; }
-        .submission {
-            background: #1e293b;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-        }
-        .submission h3 {
-            color: #f1f5f9;
-            margin-bottom: 8px;
-        }
-        .submission p {
-            color: #94a3b8;
-            margin-bottom: 12px;
-        }
-        .submission button {
-            margin-right: 8px;
-            padding: 6px 12px;
-            font-size: 13px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KY Secret - Service Status</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, "Microsoft YaHei", sans-serif;
+    }
+
+    body {
+      background: #0f172a;
+      color: #f1f5f9;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 900px;
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 26px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .status-summary {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #10b981;
+    }
+
+    .status-text {
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .section-title {
+      font-size: 18px;
+    }
+
+    /* 服务卡片 ====================== */
+    .service-card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .service-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    /* 这里给你留了图片位置 */
+    .service-icon {
+      width: 32px;
+      height: 32px;
+      background: #334155;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+
+    .service-info {
+      flex: 1;
+    }
+
+    .service-name {
+      font-size: 16px;
+      font-weight: 500;
+      color: #f1f5f9;
+    }
+
+    .service-eng {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+
+    .service-badge {
+      padding: 5px 10px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .badge-ok {
+      background: #10b981;
+    }
+
+    .badge-down {
+      background: #ef4444;
+    }
+
+    .badge-partial {
+      background: #f59e0b;
+    }
+
+    /* 时间轴 ====================== */
+    .timeline {
+      display: flex;
+      gap: 2px;
+      height: 22px;
+    }
+
+    .block {
+      flex: 1;
+      background: #334155;
+      border-radius: 2px;
+    }
+
+    .block-ok {
+      background: #10b981;
+    }
+
+    .block-fail {
+      background: #ef4444;
+    }
+
+    .last-check {
+      text-align: center;
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 26px;
+    }
+  </style>
 </head>
+
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>KY Secret Admin Dashboard</h1>
-            <button onclick="logout()">Logout</button>
-        </div>
+  <div class="container">
+    <h1>KY Secret Service Status</h1>
 
-        <div class="status-card">
-            <h2 class="section-title">Server Status</h2>
-            <div class="status-row">
-                <span class="status-label">CPU:</span>
-                <span class="status-value error-text" id="cpu">ERR %</span>
-            </div>
-            <div class="status-row">
-                <span class="status-label">GPU:</span>
-                <span class="status-value error-text" id="gpu">ERR %</span>
-            </div>
-            <div class="status-row">
-                <span class="status-label">Memory:</span>
-                <span class="status-value error-text" id="mem">ERR %</span>
-            </div>
-
-            <div class="section-title">Server History (3h per block)</div>
-            <div class="timeline-row">
-                <div class="timeline-label">Uptime</div>
-                <div class="timeline-bars" id="server-timeline"></div>
-            </div>
-        </div>
-
-        <div>
-            <h2 class="section-title">Pending Submissions</h2>
-            <div id="submissions">
-                <p style="color: #ef4444;">⚠️ 无法连接到服务器，请检查服务是否运行。</p>
-            </div>
-        </div>
+    <div class="status-summary">
+      <div class="status-dot"></div>
+      <div class="status-text">部分服务可能离线</div>
     </div>
 
-    <script>
-        const token = localStorage.getItem('admin_token');
-        if (!token) location.href = 'login.html';
+    <!-- 1. Website -->
+    <div class="service-card">
+      <div class="service-header">
+        <div class="service-icon">🌐</div>
+        <div class="service-info">
+          <div class="service-name">网站服务</div>
+          <div class="service-eng">Cloudflare Pages</div>
+        </div>
+        <div class="service-badge badge-ok">Online</div>
+      </div>
+      <div class="timeline" id="timeline-website"></div>
+    </div>
 
-        // 生成服务器历史时间轴
-        function generateTimeline(containerId) {
-            const container = document.getElementById(containerId);
-            const total = 24 * 7 / 3; // 7天，每3小时一格
-            for (let i = 0; i < total; i++) {
-                const block = document.createElement('div');
-                block.classList.add('timeline-block');
-                // 本地模拟：最后8格为异常
-                block.classList.add(i > total - 8 ? 'down' : 'ok');
-                container.appendChild(block);
-            }
+    <!-- 2. GitHub -->
+    <div class="service-card">
+      <div class="service-header">
+        <div class="service-icon">📦</div>
+        <div class="service-info">
+          <div class="service-name">GitHub 仓库</div>
+          <div class="service-eng">Repository Status</div>
+        </div>
+        <div class="service-badge badge-ok">Online</div>
+      </div>
+      <div class="timeline" id="timeline-github"></div>
+    </div>
+
+    <!-- 3. Backend API -->
+    <div class="service-card">
+      <div class="service-header">
+        <div class="service-icon">⚙️</div>
+        <div class="service-info">
+          <div class="service-name">后端 API</div>
+          <div class="service-eng">Backend API Service</div>
+        </div>
+        <div class="service-badge badge-down">Offline</div>
+      </div>
+      <div class="timeline" id="timeline-api"></div>
+    </div>
+
+    <!-- 4. 投稿服务 -->
+    <div class="service-card">
+      <div class="service-header">
+        <div class="service-icon">📩</div>
+        <div class="service-info">
+          <div class="service-name">投稿服务</div>
+          <div class="service-eng">Submission Service</div>
+        </div>
+        <div class="service-badge badge-down">Unavailable</div>
+      </div>
+      <div class="timeline" id="timeline-submit"></div>
+    </div>
+
+    <!-- 5. Admin 登录 -->
+    <div class="service-card">
+      <div class="service-header">
+        <div class="service-icon">🔐</div>
+        <div class="service-info">
+          <div class="service-name">管理员登录</div>
+          <div class="service-eng">Admin Login</div>
+        </div>
+        <div class="service-badge badge-ok">Online</div>
+      </div>
+      <div class="timeline" id="timeline-login"></div>
+    </div>
+
+    <!-- 6. Admin Dashboard -->
+    <div class="service-card">
+      <div class="service-header">
+        <div class="service-icon">📊</div>
+        <div class="service-info">
+          <div class="service-name">管理后台</div>
+          <div class="service-eng">Admin Dashboard</div>
+        </div>
+        <div class="service-badge badge-down">Unavailable</div>
+      </div>
+      <div class="timeline" id="timeline-dashboard"></div>
+    </div>
+
+    <div class="last-check" id="last-check">Checking server status...</div>
+  </div>
+
+  <script>
+    // 配置
+    const CHECK_API_URL = "https://your-tunnel.example.com/api/ping";
+    const HOURS_PER_BLOCK = 3;
+    const TOTAL_BLOCKS = Math.floor((24 * 7) / HOURS_PER_BLOCK);
+
+    // 后端是否可达（本地模拟）
+    let backendReachable = false;
+
+    // 生成时间轴
+    function renderTimeline(id, isStaticHealth) {
+      const el = document.getElementById(id);
+      el.innerHTML = "";
+
+      for (let i = 0; i < TOTAL_BLOCKS; i++) {
+        const b = document.createElement("div");
+        b.classList.add("block");
+
+        if (isStaticHealth) {
+          b.classList.add("block-ok");
+        } else {
+          if (backendReachable && i > TOTAL_BLOCKS - 8) {
+            b.classList.add("block-fail");
+          }
         }
 
-        // 模拟审核操作
-        function approve(id) {
-            alert(`通过投稿 ${id}（本地测试，无实际操作）`);
-        }
-        function reject(id) {
-            alert(`拒绝投稿 ${id}（本地测试，无实际操作）`);
-        }
+        el.appendChild(b);
+      }
+    }
 
-        function logout() {
-            localStorage.removeItem('admin_token');
-            location.href = 'login.html';
-        }
+    // 检查后端状态
+    async function checkBackend() {
+      try {
+        const controller = new AbortController();
+        setTimeout(() => controller.abort(), 4000);
+        await fetch(CHECK_API_URL, {
+          method: "HEAD",
+          signal: controller.signal
+        });
+        backendReachable = true;
+      } catch (e) {
+        backendReachable = false;
+      }
 
-        // 初始化
-        generateTimeline('server-timeline');
-    </script>
+      renderAll();
+
+      document.getElementById("last-check").textContent =
+        "Last checked: " + new Date().toLocaleString();
+    }
+
+    function renderAll() {
+      renderTimeline("timeline-website", true);
+      renderTimeline("timeline-github", true);
+      renderTimeline("timeline-api", false);
+      renderTimeline("timeline-submit", false);
+      renderTimeline("timeline-login", true);
+      renderTimeline("timeline-dashboard", false);
+    }
+
+    checkBackend();
+    setInterval(checkBackend, 30000);
+  </script>
 </body>
 </html>
