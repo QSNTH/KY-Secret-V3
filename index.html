@@ -18,21 +18,36 @@
         button {width: 100%; padding: 14px; background: #4299e1; color: #fff; border: none; border-radius: 8px; font-size: 18px; font-weight: 500; cursor: pointer; transition: background 0.3s;}
         button:hover {background: #3182ce;}
         .tag-hint {font-size: 14px; color: #718096; margin-top: 4px;}
+        .image-preview {margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;}
+        .image-preview img {max-width: 100px; max-height: 100px; border-radius: 8px; object-fit: cover;}
+        .image-upload {display: flex; align-items: center; gap: 10px;}
+        .image-upload input[type="file"] {display: none;}
+        .image-upload label {cursor: pointer; padding: 10px 16px; background: #e2e8f0; border-radius: 8px; color: #4a5568;}
+        .image-upload label:hover {background: #cbd5e0;}
     </style>
 </head>
 <body>
     <div class="container">
         <h1>KY Secret V3 · 匿名投稿</h1>
-        <form id="submitForm">
+        <form id="submitForm" enctype="multipart/form-data">
+            <div class="form-item">
+                <label for="content">匿名投稿内容 <span style="color:#718096;font-weight:normal;">(0/2000)</span></label>
+                <textarea id="content" maxlength="2000" placeholder="请输入你的匿名投稿内容，尽情表达吧～"></textarea>
+                <div class="count" id="contentCount">0/2000</div>
+            </div>
             <div class="form-item">
                 <label for="title">标题 <span style="color:#718096;font-weight:normal;">(0/20)</span></label>
                 <input type="text" id="title" maxlength="20" placeholder="请输入投稿标题（选填）">
                 <div class="count" id="titleCount">0/20</div>
             </div>
             <div class="form-item">
-                <label for="content">投稿内容 <span style="color:#718096;font-weight:normal;">(0/2000)</span></label>
-                <textarea id="content" maxlength="2000" placeholder="请输入你的匿名投稿内容，尽情表达吧～" required></textarea>
-                <div class="count" id="contentCount">0/2000</div>
+                <label>上传图片（选填）</label>
+                <div class="image-upload">
+                    <label for="image">选择图片</label>
+                    <input type="file" id="image" accept="image/*" multiple>
+                    <span id="imageName" style="color: #718096;">未选择任何文件</span>
+                </div>
+                <div class="image-preview" id="imagePreview"></div>
             </div>
             <div class="form-item">
                 <label for="tag">标签</label>
@@ -44,26 +59,75 @@
     </div>
 
     <script>
-        // 字数统计
         const title = document.getElementById('title');
         const titleCount = document.getElementById('titleCount');
         const content = document.getElementById('content');
         const contentCount = document.getElementById('contentCount');
+        const imageInput = document.getElementById('image');
+        const imageName = document.getElementById('imageName');
+        const imagePreview = document.getElementById('imagePreview');
+        const form = document.getElementById('submitForm');
 
+        // 字数统计
         title.oninput = () => titleCount.innerText = `${title.value.length}/20`;
         content.oninput = () => contentCount.innerText = `${content.value.length}/2000`;
 
-        // 提交表单（后续对接Tunnel后端接口）
-        document.getElementById('submitForm').onsubmit = (e) => {
+        // 图片上传预览
+        imageInput.onchange = () => {
+            const files = imageInput.files;
+            imageName.innerText = files.length > 0 ? `${files.length} 个文件已选择` : '未选择任何文件';
+            imagePreview.innerHTML = '';
+            for (const file of files) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    imagePreview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        // 提交表单（对接Tunnel后端）
+        form.onsubmit = (e) => {
             e.preventDefault();
-            const data = {
-                title: title.value,
-                content: content.value,
-                tag: tag.value
-            };
-            // 这里后续替换成你的Tunnel后端API地址
-            alert('投稿提交成功！V3无广告版超丝滑～');
-            form.reset();
+            const contentValue = content.value.trim();
+            const titleValue = title.value.trim();
+            const hasContent = contentValue.length > 0;
+            const hasTitle = titleValue.length > 0;
+            const hasImage = imageInput.files.length > 0;
+
+            if (!hasContent && !hasTitle && !hasImage) {
+                alert('请至少填写匿名投稿内容、标题或上传一张图片');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('title', titleValue);
+            formData.append('content', contentValue);
+            formData.append('tag', document.getElementById('tag').value);
+            for (const file of imageInput.files) {
+                formData.append('images', file);
+            }
+
+            // 替换为你的Tunnel后端API地址，例如: https://api.ky-secret-v3.pages.dev/submit
+            fetch('https://你的隧道域名/submit', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert('投稿提交成功！');
+                form.reset();
+                imagePreview.innerHTML = '';
+                imageName.innerText = '未选择任何文件';
+                titleCount.innerText = '0/20';
+                contentCount.innerText = '0/2000';
+            })
+            .catch(err => {
+                console.error('提交失败:', err);
+                alert('投稿提交失败，请稍后重试');
+            });
         };
     </script>
 </body>
