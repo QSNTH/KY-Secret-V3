@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KY Secret Admin Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: #0f172a;
+            color: #f1f5f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .login-box {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #e94560;
+            font-size: 24px;
+        }
+        input {
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            background: #334155;
+            color: #f1f5f9;
+            font-size: 16px;
+        }
+        input::placeholder {
+            color: #94a3b8;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #e94560;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #d6336c;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h1>Admin Login</h1>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <script>
+        async function login() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+
+            // 本地测试：直接模拟登录成功，跳转到 dashboard
+            // 等后端好了，再换成真实的 API 请求
+            if (user && pass) {
+                localStorage.setItem('admin_token', 'mock_token_' + Date.now());
+                location.href = 'dashboard.html';
+            } else {
+                alert('请输入账号和密码');
+            }
+        }
+    </script>
+</body>
+</html>
