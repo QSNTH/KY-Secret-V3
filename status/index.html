@@ -16,22 +16,22 @@
       background: #ffffff;
       color: #333333;
       line-height: 1.6;
+      -webkit-text-size-adjust: 100%;
     }
 
     .container {
       max-width: 900px;
       margin: 0 auto;
-      padding: 2rem 1rem;
+      padding: 1.5rem 0.8rem;
     }
 
-    /* 顶部 Logo 和总览 */
     .header {
       text-align: center;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
     }
 
     .logo {
-      font-size: 2.5rem;
+      font-size: 2rem;
       font-weight: 900;
       color: #000000;
       margin-bottom: 1rem;
@@ -40,18 +40,18 @@
     .status-banner {
       background-color: #10b981;
       color: white;
-      padding: 0.75rem 1.5rem;
+      padding: 0.75rem 1rem;
       border-radius: 6px;
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
+      gap: 0.5rem;
       align-items: center;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-weight: 600;
     }
 
-    /* 服务分类和列表 */
     .section {
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
       border: 1px solid #e5e7eb;
       border-radius: 6px;
       overflow: hidden;
@@ -65,6 +65,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      font-size: 0.9rem;
     }
 
     .section-header::after {
@@ -75,50 +76,77 @@
 
     .service-item {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.5rem 1rem;
+      flex-direction: column;
+      gap: 0.3rem;
+      padding: 0.75rem 1rem;
       border-top: 1px solid #e5e7eb;
       font-size: 0.85rem;
     }
 
+    @media (min-width: 640px) {
+      .service-item {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+
     .service-name {
       color: #4b5563;
+      word-break: break-word;
     }
 
     .service-status {
       font-weight: 600;
       font-size: 0.8rem;
+      align-self: flex-start;
     }
+
+    @media (min-width: 640px) {
+      .service-status {
+        align-self: center;
+      }
+    }
+
     .status-operational { color: #10b981; }
     .status-down { color: #ef4444; }
     .status-degraded { color: #f59e0b; }
 
-    /* 长条时间轴 */
     .timeline-container {
       margin-top: 0.5rem;
       padding: 0 1rem 0.75rem;
+      overflow-x: auto;
     }
+
     .timeline {
       display: flex;
-      gap: 2px;
-      height: 16px;
+      gap: 1px;
+      height: 12px;
+      min-width: 600px;
     }
+
+    @media (min-width: 640px) {
+      .timeline {
+        height: 16px;
+        min-width: auto;
+      }
+    }
+
     .timeline-block {
       flex: 1;
       background-color: #d1d5db;
-      border-radius: 2px;
+      border-radius: 1px;
     }
+
     .timeline-block.ok { background-color: #10b981; }
     .timeline-block.fail { background-color: #ef4444; }
 
-    /* 历史故障记录 */
     .history-section {
-      margin-top: 3rem;
+      margin-top: 2rem;
     }
 
     .history-title {
-      font-size: 1.1rem;
+      font-size: 1rem;
       color: #6b7280;
       margin-bottom: 1rem;
     }
@@ -135,28 +163,46 @@
       color: white;
       font-weight: 600;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.9rem;
+      flex-direction: column;
+      gap: 0.3rem;
+      font-size: 0.85rem;
     }
+
+    @media (min-width: 640px) {
+      .incident-header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+
     .incident-operational { background-color: #10b981; }
     .incident-degraded { background-color: #f59e0b; }
     .incident-maintenance { background-color: #3b82f6; }
 
     .incident-body {
       padding: 1rem;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: #4b5563;
     }
 
     .incident-detail {
       margin-bottom: 0.75rem;
       display: flex;
-      gap: 0.5rem;
+      flex-direction: column;
+      gap: 0.3rem;
     }
+
+    @media (min-width: 640px) {
+      .incident-detail {
+        flex-direction: row;
+        gap: 0.5rem;
+      }
+    }
+
     .incident-detail-label {
       font-weight: 600;
-      min-width: 120px;
+      min-width: 100px;
       color: #6b7280;
     }
 
@@ -165,32 +211,46 @@
       padding-top: 1rem;
       border-top: 1px solid #e5e7eb;
     }
+
     .incident-event {
       margin-bottom: 0.75rem;
       display: flex;
-      gap: 1rem;
-      font-size: 0.8rem;
+      flex-direction: column;
+      gap: 0.3rem;
+      font-size: 0.75rem;
     }
+
+    @media (min-width: 640px) {
+      .incident-event {
+        flex-direction: row;
+        gap: 1rem;
+      }
+    }
+
     .event-time {
       color: #6b7280;
-      min-width: 180px;
+      min-width: 160px;
+      word-break: break-word;
     }
+
     .event-status {
       font-weight: 600;
-      min-width: 100px;
+      min-width: 90px;
     }
+
     .status-identified { color: #10b981; }
     .status-investigating { color: #f59e0b; }
     .status-resolved { color: #10b981; }
     .status-update { color: #3b82f6; }
+    .status-monitoring { color: #10b981; }
 
-    /* 底部导航 */
     .footer-nav {
-      margin-top: 2rem;
+      margin-top: 1.5rem;
       text-align: center;
       font-size: 0.8rem;
       color: #6b7280;
     }
+
     .footer-nav a {
       color: #3b82f6;
       text-decoration: none;
@@ -198,6 +258,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <div class="header">
@@ -208,7 +269,6 @@
       </div>
     </div>
 
-    <!-- 服务状态列表 -->
     <div class="section">
       <div class="section-header">Frontend</div>
       <div class="service-item">
@@ -263,7 +323,6 @@
       </div>
     </div>
 
-    <!-- 历史故障记录 -->
     <div class="history-section">
       <div class="history-title">History (Last 30 days)</div>
 
@@ -341,15 +400,18 @@
   </div>
 
   <script>
-    const TOTAL_BLOCKS = 56; // 7天，每3小时一格
+    const TOTAL_BLOCKS = 56;
     let backendReachable = false;
 
     function generateTimeline(id) {
       const el = document.getElementById(id);
       el.innerHTML = '';
+      const blocks = [];
+
       for (let i = 0; i < TOTAL_BLOCKS; i++) {
         const block = document.createElement('div');
         block.classList.add('timeline-block');
+
         if (id === 'timeline-pages' || id === 'timeline-github' || id === 'timeline-login') {
           block.classList.add('ok');
         } else {
@@ -357,8 +419,11 @@
             block.classList.add('fail');
           }
         }
-        el.appendChild(block);
+        blocks.push(block);
       }
+
+      // 反转：最右边 = 最新
+      blocks.reverse().forEach(b => el.appendChild(b));
     }
 
     async function checkBackend() {
