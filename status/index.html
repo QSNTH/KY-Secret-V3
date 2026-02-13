@@ -37,6 +37,28 @@
 	  margin-bottom: 1rem;
 	}
 
+    .nav-buttons {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .nav-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      background: #f9fafb;
+      color: #333;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .nav-btn.active {
+      background: #3b82f6;
+      color: #fff;
+      border-color: #3b82f6;
+    }
+
 	.status-banner {
 	  background-color: #10b981;
 	  color: white;
@@ -264,9 +286,12 @@
   <div class="container">
 	<div class="header">
 	  <div class="logo">KYSECRET</div>
+            <div class="nav-buttons">
+        <a href="./index.html" class="nav-btn">Status</a>
+        <a href="./history.html" class="nav-btn active">History</a>
+      </div>
 	  <div class="status-banner">
-		<span>部分服务可能离线</span>
-		<span>Updated a few seconds ago</span>
+		部分服务可能离线或不稳定 Updated a few seconds ago
 	  </div>
 	</div>
 
