@@ -31,7 +31,7 @@
     }
 
     .logo {
-      font-size: 2rem;
+      font-size: 6rem;
       font-weight: 900;
       color: #000000;
       margin-bottom: 1rem;
@@ -322,10 +322,36 @@
         <div class="timeline" id="timeline-dashboard"></div>
       </div>
     </div>
-
     <div class="history-section">
-      <div class="history-title">History (Last 30 days)</div>
-
+      <div class="history-title">History</div>
+      <div class="incident">
+        <div class="incident-header incident-degraded">
+            <span>这里写故障标题</span>
+            <span>Partial Service Disruption</span>
+        </div>
+            <div class="incident-body">
+        <div class="incident-detail">
+      <span class="incident-detail-label">Incident Status</span>
+      <span>Resolved</span>
+    </div>
+    <div class="incident-detail">
+      <span class="incident-detail-label">Components</span>
+      <span>Backend API, Submission Service</span>
+    </div>
+    <div class="incident-timeline">
+      <div class="incident-event">
+        <span class="event-time">2026-02-13 20:00 CST</span>
+        <span class="event-status status-investigating">INVESTIGATING</span>
+        <span>服务出现异常，正在排查</span>
+      </div>
+      <div class="incident-event">
+        <span class="event-time">2026-02-13 21:00 CST</span>
+        <span class="event-status status-resolved">RESOLVED</span>
+        <span>服务已恢复正常</span>
+      </div>
+    </div>
+  </div>
+</div>
       <div class="incident">
         <div class="incident-header incident-degraded">
           <span>Backend API 服务中断</span>
