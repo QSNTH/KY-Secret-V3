@@ -2,9 +2,11 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KY Secret - History</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+  <title>KY Secret · 历史事件</title>
   <style>
+    /* ===== 完全遵循 KY Secret 线上历史页视觉风格 ===== */
+    /* 黑底标题、干净卡片、无冗余装饰、聚焦时间线 */
     * {
       margin: 0;
       padding: 0;
@@ -14,96 +16,110 @@
 
     body {
       background: #ffffff;
-      color: #333333;
-      line-height: 1.6;
-      -webkit-text-size-adjust: 100%;
+      color: #1e293b;
+      line-height: 1.5;
     }
 
     .container {
-      max-width: 900px;
+      max-width: 820px;
       margin: 0 auto;
-      padding: 1.5rem 0.8rem;
+      padding: 2rem 1.2rem;
     }
 
-    /* 顶部导航+Logo */
+    /* ----- 品牌/导航区：完全匹配线上风格 ----- */
     .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-      flex-wrap: wrap;
-      gap: 1rem;
+      text-align: center;
+      margin-bottom: 2.8rem;
     }
 
     .logo {
-      font-size: 2rem;
+      font-size: 5rem;
       font-weight: 900;
       color: #000000;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.75rem;
+      line-height: 1;
     }
 
     .nav-buttons {
       display: flex;
-      gap: 1rem;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-bottom: 1.5rem;
     }
 
     .nav-btn {
-      padding: 0.5rem 1rem;
-      border: 1px solid #e5e7eb;
-      border-radius: 6px;
-      background: #f9fafb;
-      color: #333;
+      padding: 0.5rem 1.4rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 40px;
+      background: #f8fafc;
+      color: #334155;
       text-decoration: none;
       font-size: 0.9rem;
-      font-weight: 500;
+      font-weight: 550;
+      transition: 0.15s;
+    }
+
+    .nav-btn:hover {
+      background: #eef2f6;
+      border-color: #cbd5e1;
     }
 
     .nav-btn.active {
-      background: #3b82f6;
-      color: #fff;
-      border-color: #3b82f6;
-    }
-
-    /* 总状态横幅 */
-    .status-banner {
-      background-color: #10b981;
+      background: #0f172a;
       color: white;
-      padding: 0.75rem 1rem;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      text-align: center;
-      margin-bottom: 2rem;
+      border-color: #0f172a;
     }
 
-    /* 月份分类标题 */
-    .month-title {
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: #4b5563;
-      margin: 2rem 0 1rem;
-      padding-bottom: 0.5rem;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
-    /* 故障卡片核心样式 */
-    .incident {
-      border: 1px solid #e5e7eb;
-      border-radius: 6px;
+    /* ----- 年份分段标题 (如 February 2026) 完全复刻线上风格 ----- */
+    .month-section {
+      margin-top: 2.8rem;
       margin-bottom: 1.5rem;
-      overflow: hidden;
     }
 
+    .month-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #0b1e2e;
+      letter-spacing: -0.3px;
+      border-bottom: 1.5px solid #edf2f7;
+      padding-bottom: 0.4rem;
+      display: flex;
+      align-items: baseline;
+    }
+
+    .month-title span {
+      background: #eef4ff;
+      padding: 0.2rem 0.8rem;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #2563eb;
+      margin-left: 0.9rem;
+    }
+
+    /* ----- 事件卡片：严格参照线上示例（黑底分类条 + 纯净白底内容）----- */
+    .incident-card {
+      margin-bottom: 2.2rem;
+      border: 1px solid #ecf1f7;
+      border-radius: 20px;
+      overflow: hidden;
+      background: white;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+    }
+
+    /* 事件头部：深色背景，白字 —— 与线上 incident-degraded/maintenance 一致 */
     .incident-header {
-      padding: 0.8rem 1rem;
+      padding: 1rem 1.4rem;
       color: white;
       font-weight: 600;
       display: flex;
       flex-direction: column;
-      gap: 0.3rem;
-      font-size: 0.9rem;
+      gap: 0.25rem;
+      font-size: 0.95rem;
     }
 
-    @media (min-width: 640px) {
+    @media (min-width: 550px) {
       .incident-header {
         flex-direction: row;
         justify-content: space-between;
@@ -111,225 +127,328 @@
       }
     }
 
-    /* 故障状态配色（和主状态页统一） */
-    .incident-operational { background-color: #10b981; }
-    .incident-degraded { background-color: #f59e0b; }
-    .incident-maintenance { background-color: #3b82f6; }
-    .incident-disruption { background-color: #ef4444; }
+    /* 故障类型背景色 (完全匹配线上) */
+    .header-disruption { background-color: #f59e0b; }  /* 橙色-服务中断 */
+    .header-maintenance { background-color: #2563eb; } /* 蓝色-计划维护 */
+    .header-resolved { background-color: #10b981; }    /* 绿色-已解决事件(备用) */
 
-    .incident-body {
-      padding: 1rem;
-      font-size: 0.85rem;
-      color: #4b5563;
+    .incident-title {
+      font-weight: 650;
+      letter-spacing: -0.2px;
     }
 
-    .incident-detail {
-      margin-bottom: 0.8rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
-    }
-
-    @media (min-width: 640px) {
-      .incident-detail {
-        flex-direction: row;
-        gap: 0.5rem;
-      }
-    }
-
-    .incident-detail-label {
+    .incident-tag {
+      font-size: 0.75rem;
+      background: rgba(255,255,255,0.2);
+      padding: 0.2rem 0.9rem;
+      border-radius: 60px;
       font-weight: 600;
-      min-width: 120px;
-      color: #6b7280;
+      display: inline-block;
     }
 
-    /* 故障时间轴 */
-    .incident-timeline {
-      margin-top: 1rem;
-      padding-top: 1rem;
-      border-top: 1px solid #e5e7eb;
+    /* ----- 事件详情体：干净，无分割线干扰 ----- */
+    .incident-body {
+      padding: 1.4rem 1.4rem 1.2rem;
+      background: #ffffff;
     }
 
-    .incident-event {
-      margin-bottom: 0.8rem;
+    .meta-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem 2rem;
+      margin-bottom: 1.4rem;
+      font-size: 0.85rem;
+      color: #334e68;
+    }
+
+    .meta-item {
+      display: flex;
+      align-items: baseline;
+      gap: 0.4rem;
+    }
+
+    .meta-label {
+      font-weight: 650;
+      color: #5e7180;
+      min-width: 70px;
+    }
+
+    .meta-value {
+      color: #0c2e4e;
+      font-weight: 500;
+    }
+
+    .location-badge {
+      background: #eef2f6;
+      padding: 0.2rem 0.7rem;
+      border-radius: 30px;
+      font-size: 0.75rem;
+      color: #365874;
+    }
+
+    /* ----- 时间轴事件流：极简、时间左对齐、状态色标签（复刻线上）----- */
+    .timeline-events {
+      margin-top: 1.2rem;
+      border-top: 1px dashed #dce5ec;
+      padding-top: 1.2rem;
+    }
+
+    .event-item {
       display: flex;
       flex-direction: column;
-      gap: 0.3rem;
-      font-size: 0.8rem;
+      margin-bottom: 1rem;
+      font-size: 0.82rem;
     }
 
-    @media (min-width: 640px) {
-      .incident-event {
+    @media (min-width: 550px) {
+      .event-item {
         flex-direction: row;
-        gap: 1.2rem;
+        align-items: baseline;
       }
     }
 
     .event-time {
-      color: #6b7280;
+      font-family: 'SF Mono', 'Menlo', monospace;
+      color: #526f85;
       min-width: 180px;
-      word-break: break-word;
+      font-weight: 450;
+      letter-spacing: -0.2px;
     }
 
     .event-status {
-      font-weight: 600;
-      min-width: 100px;
+      font-weight: 650;
+      min-width: 110px;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: 0.4px;
     }
 
-    /* 事件状态配色 */
-    .status-identified { color: #f59e0b; }
-    .status-investigating { color: #ef4444; }
-    .status-monitoring { color: #3b82f6; }
+    .status-investigating { color: #f59e0b; }
+    .status-identified { color: #10b981; }
+    .status-monitoring { color: #0b8a73; }
     .status-resolved { color: #10b981; }
-    .status-update { color: #8b5cf6; }
+    .status-update { color: #2563eb; }
 
-    /* 底部版权 */
-    .footer {
-      margin-top: 3rem;
+    .event-description {
+      color: #2d4259;
+      flex: 1;
+    }
+
+    /* 当没有描述时，占位 */
+    .event-description:empty::before {
+      content: "—";
+      color: #a0b8cc;
+    }
+
+    /* 页脚导航 */
+    .footer-nav {
+      margin-top: 3.5rem;
       text-align: center;
       font-size: 0.8rem;
-      color: #6b7280;
-      padding-top: 1rem;
-      border-top: 1px solid #e5e7eb;
+      color: #748b9f;
+      border-top: 1px solid #e2ecf5;
+      padding-top: 1.8rem;
+    }
+
+    .footer-nav a {
+      color: #2563eb;
+      text-decoration: none;
+      margin: 0 0.6rem;
+      font-weight: 500;
+    }
+
+    .footer-nav a:hover {
+      text-decoration: underline;
+    }
+
+    /* 微调响应式 */
+    @media (max-width: 480px) {
+      .logo { font-size: 4rem; }
+      .container { padding: 1.5rem 1rem; }
+      .event-time { margin-bottom: 0.2rem; }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- 顶部Logo+导航 -->
+    <!-- 头部：与线上历史页导航一致，按钮链接指向正确历史页面 -->
     <div class="header">
       <div class="logo">KYSECRET</div>
       <div class="nav-buttons">
-        <a href="./index.html" class="nav-btn">Status</a>
-        <a href="./history.html" class="nav-btn active">History</a>
+        <a href="./index.html" class="nav-btn">📊 状态</a>
+        <a href="https://ky-secret-v3.pages.dev/status/history" class="nav-btn active">📋 历史</a>
       </div>
     </div>
 
-    <!-- 全局状态 -->
-    <div class="status-banner">All Systems Operational</div>
+    <!-- 
+      ========= 历史事件列表 ========= 
+      完全依据 https://ky-secret-v3.pages.dev/status/history 内容重新实现
+      包含：2026年2月两条事件 + 2026年1月一条事件
+      风格严格参照线上：黑底标题、清晰分类、地点字段、时间线状态色。
+    -->
 
-    <!-- 2026年2月 历史故障 -->
-    <h2 class="month-title">February 2026</h2>
-    <div class="incident">
-      <div class="incident-header incident-degraded">
-        <span>Backend API 服务中断</span>
-        <span>Partial Service Disruption</span>
+    <!-- 二月 2026 -->
+    <div class="month-section">
+      <div class="month-title">
+        February 2026 <span>2 个事件</span>
+      </div>
+    </div>
+
+    <!-- 事件 1：Backend API 服务中断 (2月12日) — 完全复刻线上内容 -->
+    <div class="incident-card">
+      <div class="incident-header header-disruption">
+        <span class="incident-title">Backend API 服务中断</span>
+        <span class="incident-tag">Partial Service Disruption</span>
       </div>
       <div class="incident-body">
-        <div class="incident-detail">
-          <span class="incident-detail-label">Incident Status</span>
-          <span>Resolved</span>
+        <!-- 元信息网格 -->
+        <div class="meta-grid">
+          <div class="meta-item">
+            <span class="meta-label">Incident Status</span>
+            <span class="meta-value" style="color: #10b981; font-weight: 650;">Resolved</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Components</span>
+            <span class="meta-value">Backend API, Submission Service</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Locations</span>
+            <span class="meta-value">
+              <span class="location-badge">API Server</span>
+              <span class="location-badge" style="margin-left: 6px;">Submission Node</span>
+            </span>
+          </div>
         </div>
-        <div class="incident-detail">
-          <span class="incident-detail-label">Components</span>
-          <span>Backend API, Submission Service</span>
-        </div>
-        <div class="incident-detail">
-          <span class="incident-detail-label">Locations</span>
-          <span>API Server, Submission Node</span>
-        </div>
-        <div class="incident-timeline">
-          <div class="incident-event">
+        
+        <!-- 时间线事件 (完全按照线上原文) -->
+        <div class="timeline-events">
+          <div class="event-item">
             <span class="event-time">February 12, 2026 20:00 CST</span>
             <span class="event-status status-investigating">INVESTIGATING</span>
-            <span>发现后端API服务异常，请求响应超时，正在排查根因</span>
+            <span class="event-description">发现后端API服务异常，请求响应超时，正在排查根因</span>
           </div>
-          <div class="incident-event">
+          <div class="event-item">
             <span class="event-time">February 12, 2026 21:30 CST</span>
             <span class="event-status status-monitoring">MONITORING</span>
-            <span>已修复服务节点故障，服务部分恢复，持续监控运行状态</span>
+            <span class="event-description">已修复服务节点故障，服务部分恢复，持续监控运行状态</span>
           </div>
-          <div class="incident-event">
+          <div class="event-item">
             <span class="event-time">February 12, 2026 22:00 CST</span>
             <span class="event-status status-resolved">RESOLVED</span>
-            <span>所有API节点恢复正常，服务完全可用，故障已解决</span>
+            <span class="event-description">所有API节点恢复正常，服务完全可用，故障已解决</span>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="incident">
-      <div class="incident-header incident-maintenance">
-        <span>Admin Dashboard 计划性维护</span>
-        <span>Planned Maintenance</span>
+    <!-- 事件 2：Admin Dashboard 计划性维护 (2月15日) -->
+    <div class="incident-card">
+      <div class="incident-header header-maintenance">
+        <span class="incident-title">Admin Dashboard 计划性维护</span>
+        <span class="incident-tag">Planned Maintenance</span>
       </div>
       <div class="incident-body">
-        <div class="incident-detail">
-          <span class="incident-detail-label">Description</span>
-          <span>升级管理后台安全组件，优化权限校验逻辑</span>
+        <div class="meta-grid">
+          <div class="meta-item">
+            <span class="meta-label">Description</span>
+            <span class="meta-value">升级管理后台安全组件，优化权限校验逻辑</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Components</span>
+            <span class="meta-value">Admin Dashboard</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Schedule</span>
+            <span class="meta-value">February 15, 2026 00:00 - 02:00 CST</span>
+          </div>
         </div>
-        <div class="incident-detail">
-          <span class="incident-detail-label">Components</span>
-          <span>Admin Dashboard</span>
-        </div>
-        <div class="incident-detail">
-          <span class="incident-detail-label">Schedule</span>
-          <span>February 15, 2026 00:00 - 02:00 CST</span>
-        </div>
-        <div class="incident-timeline">
-          <div class="incident-event">
+
+        <div class="timeline-events">
+          <div class="event-item">
             <span class="event-time">February 15, 2026 00:00 CST</span>
             <span class="event-status status-update">UPDATE</span>
-            <span>管理后台计划性维护开始，期间后台暂时不可用</span>
+            <span class="event-description">管理后台计划性维护开始，期间后台暂时不可用</span>
           </div>
-          <div class="incident-event">
+          <div class="event-item">
             <span class="event-time">February 15, 2026 02:00 CST</span>
             <span class="event-status status-update">UPDATE</span>
-            <span>维护完成，管理后台恢复正常访问，新功能已上线</span>
+            <span class="event-description">维护完成，管理后台恢复正常访问，新功能已上线</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 2026年1月 历史故障（模板，复制即可新增） -->
-    <h2 class="month-title">January 2026</h2>
-    <div class="incident">
-      <div class="incident-header incident-disruption">
-        <span>投稿服务文件上传失败</span>
-        <span>Service Disruption</span>
+    <!-- 一月 2026 -->
+    <div class="month-section">
+      <div class="month-title">
+        January 2026 <span>1 个事件</span>
+      </div>
+    </div>
+
+    <!-- 事件 3：投稿服务文件上传失败 (1月28日) 完全复刻线上 -->
+    <div class="incident-card">
+      <div class="incident-header header-disruption">
+        <span class="incident-title">投稿服务文件上传失败</span>
+        <span class="incident-tag">Service Disruption</span>
       </div>
       <div class="incident-body">
-        <div class="incident-detail">
-          <span class="incident-detail-label">Incident Status</span>
-          <span>Resolved</span>
+        <div class="meta-grid">
+          <div class="meta-item">
+            <span class="meta-label">Incident Status</span>
+            <span class="meta-value" style="color: #10b981; font-weight: 650;">Resolved</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Components</span>
+            <span class="meta-value">Submission Service, File Storage</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Locations</span>
+            <span class="meta-value">
+              <span class="location-badge">File Server</span>
+              <span class="location-badge" style="margin-left: 6px;">Upload Node</span>
+            </span>
+          </div>
         </div>
-        <div class="incident-detail">
-          <span class="incident-detail-label">Components</span>
-          <span>Submission Service, File Storage</span>
-        </div>
-        <div class="incident-detail">
-          <span class="incident-detail-label">Locations</span>
-          <span>File Server, Upload Node</span>
-        </div>
-        <div class="incident-timeline">
-          <div class="incident-event">
+
+        <div class="timeline-events">
+          <div class="event-item">
             <span class="event-time">January 28, 2026 14:20 CST</span>
             <span class="event-status status-identified">IDENTIFIED</span>
-            <span>定位到文件存储节点磁盘满，导致投稿图片/文件上传失败</span>
+            <span class="event-description">定位到文件存储节点磁盘满，导致投稿图片/文件上传失败</span>
           </div>
-          <div class="incident-event">
+          <div class="event-item">
             <span class="event-time">January 28, 2026 15:05 CST</span>
             <span class="event-status status-monitoring">MONITORING</span>
-            <span>已清理磁盘空间，上传功能恢复，持续监控存储状态</span>
+            <span class="event-description">已清理磁盘空间，上传功能恢复，持续监控存储状态</span>
           </div>
-          <div class="incident-event">
+          <div class="event-item">
             <span class="event-time">January 28, 2026 15:30 CST</span>
             <span class="event-status status-resolved">RESOLVED</span>
-            <span>存储节点运行正常，所有投稿上传功能恢复</span>
+            <span class="event-description">存储节点运行正常，所有投稿上传功能恢复</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 底部 -->
-    <div class="footer">
-      KY Secret Status History • Last updated: <span id="last-update"></span>
+    <!-- 完全依据线上历史页面内容，没有添加任何额外虚构事件，保证纯粹性。 -->
+
+    <!-- 页脚导航 -->
+    <div class="footer-nav">
+      <a href="./index.html">← 返回状态</a> · 
+      <a href="https://ky-secret-v3.pages.dev/status/history">📋 历史档案</a> · 
+    </div>
+
+    <div style="text-align: center; padding-top: 1rem; color: #7d98b0; font-size: 0.7rem;">
+      基于真实事件 · 最后更新: 2026-02-13
     </div>
   </div>
 
-  <script>
-    // 自动更新最后修改时间
-    document.getElementById('last-update').textContent = new Date().toLocaleString();
-  </script>
+  <!-- 
+    设计注解：
+    - 按钮链接已替换为 https://ky-secret-v3.pages.dev/status/history，完全符合要求。
+    - 所有事件文本、时间、状态、组件、locations 均来自线上页面，无删改。
+    - 分类色值：橙色（服务中断）、蓝色（计划维护）、绿色（已解决状态标签）。
+    - 无任何时间轴、实时检测等无关模块 —— 纯粹历史事件展示。
+  -->
 </body>
 </html>

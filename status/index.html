@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KY Secret · 历史状态</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+  <title>KY Secret · 实时服务状态</title>
   <style>
-    /* 全局重置与字体 — 延续极简风格，强化可读性 */
+    /* 极简 · 纯状态监控 — 无时间轴、无历史包袱 */
     * {
       margin: 0;
       padding: 0;
@@ -14,30 +14,29 @@
     }
 
     body {
-      background: #ffffff;
-      color: #1e293b;
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
+      background: #f9fcff;
+      color: #152b42;
+      line-height: 1.5;
     }
 
     .container {
-      max-width: 900px;
+      max-width: 780px;
       margin: 0 auto;
-      padding: 1.5rem 1rem;
+      padding: 2rem 1.2rem;
     }
 
-    /* 头部 —— 克制的存在感 */
+    /* 品牌区 —— 安静有力 */
     .header {
       text-align: center;
-      margin-bottom: 2rem;
+      margin-bottom: 2.5rem;
     }
 
     .logo {
-      font-size: 5.5rem;
+      font-size: 5rem;
       font-weight: 900;
-      color: #000000;
+      color: #0a1c2f;
       letter-spacing: -0.02em;
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.5rem;
       line-height: 1;
     }
 
@@ -45,672 +44,641 @@
       display: flex;
       gap: 0.75rem;
       justify-content: center;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.75rem;
     }
 
     .nav-btn {
-      padding: 0.5rem 1.25rem;
-      border: 1px solid #e2e8f0;
-      border-radius: 40px;
-      background: #f8fafc;
-      color: #334155;
+      padding: 0.5rem 1.4rem;
+      border: 1px solid #dae2ed;
+      border-radius: 100px;
+      background: #ffffff;
+      color: #2c4763;
       text-decoration: none;
       font-size: 0.9rem;
-      font-weight: 550;
-      transition: all 0.15s;
-    }
-
-    .nav-btn:hover {
-      background: #eef2f6;
-      border-color: #cbd5e1;
+      font-weight: 540;
+      transition: all 0.2s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
     }
 
     .nav-btn.active {
-      background: #0f172a;
+      background: #0f2b3f;
       color: white;
-      border-color: #0f172a;
+      border-color: #0f2b3f;
     }
 
-    .status-banner {
-      background-color: #f59e0b;    /* 琥珀色——提示部分服务不稳定，与当前实际匹配 */
-      color: white;
-      padding: 0.85rem 1.25rem;
-      border-radius: 40px;
-      display: inline-block;
-      margin: 0 auto;
-      font-size: 0.85rem;
-      font-weight: 600;
-      letter-spacing: 0.3px;
-      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+    .nav-btn:hover {
+      background: #ecf3fa;
     }
 
-    /* 服务摘要卡片 —— 干净利落 */
+    .nav-btn.active:hover {
+      background: #1c405a;
+    }
+
+    /* 实时状态大横幅 —— 一目了然 */
+    .global-status-banner {
+      background: #f1f7fd;
+      border-radius: 60px;
+      padding: 0.9rem 1.5rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      margin: 0 auto 0.5rem;
+      font-size: 0.9rem;
+      font-weight: 550;
+      color: #1e3f5c;
+      border: 1px solid #dde9f5;
+      backdrop-filter: blur(4px);
+    }
+
+    .global-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 12px;
+      background: #94a3b8;
+    }
+
+    .global-dot.ok { background: #0f7b4b; }
+    .global-dot.degraded { background: #e68a2e; }
+    .global-dot.down { background: #c62a2a; }
+
+    /* 服务卡片 —— 干净无冗余 */
     .section {
-      margin-bottom: 1.8rem;
-      border: 1px solid #edf2f7;
-      border-radius: 20px;
-      overflow: hidden;
       background: white;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      border-radius: 28px;
+      margin-bottom: 1.8rem;
+      border: 1px solid #e6eff8;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 20, 40, 0.02);
     }
 
     .section-header {
-      background-color: #fafcfe;
-      padding: 1rem 1.25rem;
-      font-weight: 650;
-      cursor: pointer;
+      padding: 1.2rem 1.5rem 0.5rem 1.5rem;
+      font-size: 1.05rem;
+      font-weight: 680;
+      color: #173246;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      font-size: 0.95rem;
-      color: #0a1e2f;
-      border-bottom: 1px solid #ecf1f7;
+      letter-spacing: -0.2px;
     }
 
-    .section-header::after {
-      content: "▼";
-      font-size: 0.75rem;
-      color: #7c8b9c;
-      transition: transform 0.2s;
+    .section-header span {
+      background: #ecf3fa;
+      padding: 0.2rem 0.8rem;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #2a5779;
+      margin-left: 0.7rem;
     }
 
-    .section-header.collapsed::after {
-      transform: rotate(-90deg);
+    /* 服务项 —— 纯粹状态 + 服务名 + 实时检测 */
+    .service-list {
+      padding: 0.2rem 0.2rem 0.8rem 0.2rem;
     }
 
-    /* 服务条目 —— 移动优先 */
     .service-item {
       display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-      padding: 1rem 1.25rem;
-      border-top: 1px solid #f1f5f9;
-      background: white;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.5rem;
+      margin: 0.2rem 0.4rem;
+      border-radius: 18px;
+      background: #ffffff;
+      transition: background 0.15s;
     }
 
-    @media (min-width: 640px) {
-      .service-item {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-      }
+    /* 轻微斑马线，易读 */
+    .service-item:nth-child(even) {
+      background: #fafdff;
     }
 
-    .service-name {
-      color: #1e3a5f;
-      font-weight: 500;
-      word-break: break-word;
-    }
-
-    .service-status {
-      font-weight: 650;
-      font-size: 0.8rem;
-      padding: 0.25rem 0.8rem;
-      border-radius: 100px;
-      display: inline-block;
-      background: #f1f5f9;
-    }
-
-    .status-operational { 
-      color: #0b6e4f; 
-      background: #e0f2e6; 
-    }
-    .status-down { 
-      color: #b91c1c; 
-      background: #fee2e2; 
-    }
-    .status-degraded { 
-      color: #b45309; 
-      background: #ffedd5; 
-    }
-
-    /* 时间轴 —— 默认隐藏，点击展开 */
-    .timeline-container {
-      display: none;
-      padding: 0 1.25rem 1rem 1.25rem;
-      overflow-x: auto;
-    }
-
-    .timeline {
-      display: flex;
-      gap: 2px;
-      height: 12px;
-      min-width: 560px;
-      border-radius: 6px;
-      overflow: hidden;
-    }
-
-    @media (min-width: 640px) {
-      .timeline {
-        height: 16px;
-        min-width: auto;
-      }
-    }
-
-    .timeline-block {
-      flex: 1;
-      background-color: #e2e8f0;
-      height: 100%;
-    }
-
-    .timeline-block.ok { background-color: #10b981; }
-    .timeline-block.fail { background-color: #ef4444; }
-
-    /* 历史事故 —— 强调时间轴与细节 */
-    .history-section {
-      margin-top: 2.5rem;
-    }
-
-    .history-title {
-      font-size: 1.15rem;
-      font-weight: 650;
-      color: #0f172a;
-      margin-bottom: 1.5rem;
-      letter-spacing: -0.3px;
+    .service-left {
       display: flex;
       align-items: center;
-    }
-    .history-title::before {
-      content: "⌛";
-      margin-right: 8px;
-      font-size: 1.3rem;
+      gap: 0.9rem;
+      flex-wrap: wrap;
     }
 
-    .incident {
-      border: 1px solid #e9edf2;
-      border-radius: 20px;
-      margin-bottom: 1.5rem;
-      overflow: hidden;
-      background: white;
-      transition: box-shadow 0.15s;
+    .status-indicator {
+      width: 14px;
+      height: 14px;
+      border-radius: 14px;
+      background: #cbd5e1;
+      transition: background 0.2s ease;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.8);
     }
 
-    .incident:hover {
-      box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+    /* 状态颜色 —— 直观清晰 */
+    .status-indicator.operational { background: #0a8f5a; box-shadow: 0 0 0 2px rgba(10,143,90,0.1); }
+    .status-indicator.degraded { background: #e68a2e; box-shadow: 0 0 0 2px rgba(230,138,46,0.1); }
+    .status-indicator.down { background: #cd3c30; box-shadow: 0 0 0 2px rgba(205,60,48,0.1); }
+    .status-indicator.unknown { background: #94a3b8; }
+
+    .service-name {
+      font-weight: 570;
+      color: #0e2f44;
+      font-size: 0.98rem;
     }
 
-    .incident-header {
-      padding: 1rem 1.25rem;
-      color: white;
-      font-weight: 600;
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
-      font-size: 0.9rem;
-    }
-
-    @media (min-width: 640px) {
-      .incident-header {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-      }
-    }
-
-    .incident-operational { background-color: #10b981; }
-    .incident-degraded { background-color: #f59e0b; }
-    .incident-maintenance { background-color: #2563eb; }
-
-    .incident-body {
-      padding: 1.25rem;
-      font-size: 0.85rem;
-      color: #2c3e50;
-      background: #ffffff;
-    }
-
-    .incident-detail {
-      margin-bottom: 0.9rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.2rem;
-    }
-
-    @media (min-width: 640px) {
-      .incident-detail {
-        flex-direction: row;
-        gap: 1rem;
-      }
-    }
-
-    .incident-detail-label {
-      font-weight: 650;
-      min-width: 110px;
-      color: #4b6584;
-    }
-
-    .incident-timeline {
-      margin-top: 1.2rem;
-      padding-top: 1rem;
-      border-top: 1px dashed #dce5ec;
-    }
-
-    .incident-event {
-      margin-bottom: 0.9rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.2rem;
-      font-size: 0.8rem;
-    }
-
-    @media (min-width: 640px) {
-      .incident-event {
-        flex-direction: row;
-        gap: 1.2rem;
-      }
-    }
-
-    .event-time {
-      color: #5e6f7e;
-      min-width: 170px;
-      font-weight: 450;
+    .service-endpoint {
+      font-size: 0.7rem;
+      color: #607b96;
+      background: #eef4fa;
+      padding: 0.2rem 0.7rem;
+      border-radius: 40px;
       font-family: monospace;
     }
 
-    .event-status {
+    .status-text {
+      font-weight: 640;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .status-badge {
+      padding: 0.3rem 0.9rem;
+      border-radius: 100px;
+      font-size: 0.75rem;
       font-weight: 650;
-      min-width: 105px;
+      text-transform: uppercase;
       letter-spacing: 0.3px;
     }
 
-    .status-identified { color: #10b981; }
-    .status-investigating { color: #f59e0b; }
-    .status-resolved { color: #10b981; }
-    .status-update { color: #2563eb; }
-    .status-monitoring { color: #0b8a73; }
-
-    /* 页脚导航 */
-    .footer-nav {
-      margin-top: 2.5rem;
-      text-align: center;
-      font-size: 0.8rem;
-      color: #7e8c9e;
-      border-top: 1px solid #ecf1f7;
-      padding-top: 1.8rem;
+    .badge-operational {
+      background: #e1f7ed;
+      color: #0a6d47;
     }
 
-    .footer-nav a {
-      color: #2c5282;
-      text-decoration: none;
-      margin: 0 0.5rem;
-      font-weight: 500;
+    .badge-degraded {
+      background: #ffeed9;
+      color: #a3500a;
     }
 
-    .footer-nav a:hover {
-      text-decoration: underline;
+    .badge-down {
+      background: #ffe6e5;
+      color: #b11f1a;
     }
 
-    /* 修复第一个故障示例的中文占位 */
-    .incident-header span:first-child {
-      word-break: break-word;
+    .badge-unknown {
+      background: #edf2f7;
+      color: #4a627a;
     }
 
-    /* 当下无数据时 */
-    .no-incidents {
-      text-align: center;
-      color: #8b9aab;
-      padding: 2rem;
-      background: #fbfdff;
-      border-radius: 20px;
-      border: 1px dashed #d2dce6;
+    /* 检测时间 & 刷新控件 */
+    .check-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.8rem;
+      padding: 1rem 1.5rem 1.2rem 1.5rem;
+      border-top: 1px solid #e6edf4;
+      color: #5a7188;
+      font-size: 0.78rem;
+      flex-wrap: wrap;
     }
+
+    .last-check {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .refresh-btn {
+      background: white;
+      border: 1px solid #cde0ed;
+      padding: 0.4rem 1.1rem;
+      border-radius: 60px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #1c4e6e;
+      cursor: pointer;
+      transition: 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .refresh-btn:hover {
+      background: #e7f0f9;
+      border-color: #95b3cc;
+    }
+
+    .refresh-btn:active {
+      background: #d0e2f0;
+    }
+
+    /* 离线诊断提示 —— 轻量 */
+    .degraded-hint {
+      font-size: 0.7rem;
+      color: #b76a1a;
+      background: #fff1e0;
+      padding: 0.2rem 0.8rem;
+      border-radius: 30px;
+      margin-left: 0.6rem;
+    }
+
+    /* 移动调整 */
+    @media (max-width: 550px) {
+      .container { padding: 1.5rem 1rem; }
+      .logo { font-size: 4rem; }
+      .service-item { flex-wrap: wrap; gap: 0.6rem; }
+      .status-text { width: 100%; margin-left: 1.8rem; }
+    }
+
+    /* 纯粹状态页 — 无时间轴，无历史卡片，只做实时检测 */
   </style>
 </head>
-
 <body>
   <div class="container">
-    <!-- 头部区域: logo + 双页导航，明确当前为历史页 -->
+    <!-- 头部 —— 历史按钮保留但非激活，当前为状态页 -->
     <div class="header">
       <div class="logo">KYSECRET</div>
       <div class="nav-buttons">
-        <a href="./index.html" class="nav-btn">状态</a>
-        <a href="./history.html" class="nav-btn active">历史</a>
+        <a href="./index.html" class="nav-btn active">📊 状态</a>
+        <a href="./history.html" class="nav-btn">📋 历史</a>
       </div>
-      <!-- 横幅状态: 与当前服务离线/部分故障匹配，文案更清晰 -->
-      <div class="status-banner">
-        ⚠️ 后端离线 · 部分服务不可用 ｜ 最后更新: 几秒前
+
+      <!-- 全局健康状态动态显示 (通过js更新) -->
+      <div id="globalBanner" class="global-status-banner">
+        <span id="globalDot" class="global-dot"></span>
+        <span id="globalMessage">正在检测服务状态...</span>
       </div>
     </div>
 
-    <!-- 实时服务状态卡片 —— 保留折叠时间轴功能，历史页面也需要快速总览 -->
+    <!-- ========= 前端服务组 ========= -->
     <div class="section">
-      <div class="section-header" id="frontend-header">前端托管</div>
-      <div class="service-item">
-        <span class="service-name">Cloudflare Pages</span>
-        <span class="service-status status-operational">正常</span>
+      <div class="section-header">
+        🌐 前端托管
+        <span id="frontend-count">2 服务</span>
       </div>
-      <div class="timeline-container" id="timeline-pages-wrap">
-        <div class="timeline" id="timeline-pages"></div>
-      </div>
-      <div class="service-item">
-        <span class="service-name">GitHub 仓库</span>
-        <span class="service-status status-operational">正常</span>
-      </div>
-      <div class="timeline-container" id="timeline-github-wrap">
-        <div class="timeline" id="timeline-github"></div>
+      <div class="service-list">
+        <!-- Cloudflare Pages -->
+        <div class="service-item" id="service-cf">
+          <div class="service-left">
+            <span class="status-indicator" id="indicator-cf"></span>
+            <span class="service-name">Cloudflare Pages</span>
+            <span class="service-endpoint">pages.kysecret.dev</span>
+          </div>
+          <div class="status-text">
+            <span id="status-badge-cf" class="status-badge badge-operational">检测中...</span>
+          </div>
+        </div>
+        <!-- GitHub 仓库 · 静态资源 -->
+        <div class="service-item" id="service-gh">
+          <div class="service-left">
+            <span class="status-indicator" id="indicator-gh"></span>
+            <span class="service-name">GitHub 仓库</span>
+            <span class="service-endpoint">github.com/kysecret/web</span>
+          </div>
+          <div class="status-text">
+            <span id="status-badge-gh" class="status-badge badge-operational">检测中...</span>
+          </div>
+        </div>
       </div>
     </div>
 
+    <!-- ========= 后端核心 ========= -->
     <div class="section">
-      <div class="section-header" id="backend-header">后端核心</div>
-      <div class="service-item">
-        <span class="service-name">Backend API</span>
-        <span class="service-status status-down">离线</span>
+      <div class="section-header">
+        ⚙️ 后端核心
+        <span id="backend-count">2 服务</span>
       </div>
-      <div class="timeline-container" id="timeline-api-wrap">
-        <div class="timeline" id="timeline-api"></div>
-      </div>
-      <div class="service-item">
-        <span class="service-name">提交服务 (Submission)</span>
-        <span class="service-status status-down">不可用</span>
-      </div>
-      <div class="timeline-container" id="timeline-submit-wrap">
-        <div class="timeline" id="timeline-submit"></div>
+      <div class="service-list">
+        <!-- Backend API -->
+        <div class="service-item" id="service-api">
+          <div class="service-left">
+            <span class="status-indicator" id="indicator-api"></span>
+            <span class="service-name">Backend API</span>
+            <span class="service-endpoint">api.kysecret.com/v1</span>
+          </div>
+          <div class="status-text">
+            <span id="status-badge-api" class="status-badge badge-down">离线</span>
+            <span class="degraded-hint" id="hint-api"></span>
+          </div>
+        </div>
+        <!-- 提交服务 Submission -->
+        <div class="service-item" id="service-sub">
+          <div class="service-left">
+            <span class="status-indicator" id="indicator-sub"></span>
+            <span class="service-name">提交服务 (Submission)</span>
+            <span class="service-endpoint">submit.kysecret.com</span>
+          </div>
+          <div class="status-text">
+            <span id="status-badge-sub" class="status-badge badge-down">离线</span>
+            <span class="degraded-hint" id="hint-sub"></span>
+          </div>
+        </div>
       </div>
     </div>
 
+    <!-- ========= 管理后台 ========= -->
     <div class="section">
-      <div class="section-header" id="admin-header">管理后台</div>
-      <div class="service-item">
-        <span class="service-name">Admin 登录</span>
-        <span class="service-status status-operational">正常</span>
+      <div class="section-header">
+        🔐 管理后台
+        <span id="admin-count">2 服务</span>
       </div>
-      <div class="timeline-container" id="timeline-login-wrap">
-        <div class="timeline" id="timeline-login"></div>
-      </div>
-      <div class="service-item">
-        <span class="service-name">Admin 仪表板</span>
-        <span class="service-status status-down">不可用</span>
-      </div>
-      <div class="timeline-container" id="timeline-dashboard-wrap">
-        <div class="timeline" id="timeline-dashboard"></div>
-      </div>
-    </div>
-
-    <!-- ========= 历史事故区域 ========= -->
-    <!-- 强化：完全中文本地化、信息清晰、增加真实感，补全占位示例，删除重复的空白占位 -->
-    <div class="history-section">
-      <div class="history-title">近期事件与维护记录</div>
-
-      <!-- 故障1：2026-02-13 后端中断 —— 完善标题与细节，更专业 -->
-      <div class="incident">
-        <div class="incident-header incident-degraded">
-          <span>🔥 Backend API 服务中断 (2026-02-13)</span>
-          <span>部分服务降级</span>
+      <div class="service-list">
+        <!-- Admin Login -->
+        <div class="service-item" id="service-login">
+          <div class="service-left">
+            <span class="status-indicator" id="indicator-login"></span>
+            <span class="service-name">Admin 登录</span>
+            <span class="service-endpoint">admin.kysecret.com/login</span>
+          </div>
+          <div class="status-text">
+            <span id="status-badge-login" class="status-badge badge-operational">正常</span>
+          </div>
         </div>
-        <div class="incident-body">
-          <div class="incident-detail">
-            <span class="incident-detail-label">事件状态</span>
-            <span><strong style="color: #10b981;">已解决</strong> (服务已恢复)</span>
+        <!-- Admin Dashboard -->
+        <div class="service-item" id="service-dash">
+          <div class="service-left">
+            <span class="status-indicator" id="indicator-dash"></span>
+            <span class="service-name">Admin 仪表板</span>
+            <span class="service-endpoint">admin.kysecret.com/dash</span>
           </div>
-          <div class="incident-detail">
-            <span class="incident-detail-label">影响组件</span>
-            <span>Backend API · 提交服务</span>
-          </div>
-          <div class="incident-detail">
-            <span class="incident-detail-label">起因</span>
-            <span>上游数据库连接池泄漏，导致API超时</span>
-          </div>
-          <div class="incident-timeline">
-            <div class="incident-event">
-              <span class="event-time">2026-02-13 20:00 CST</span>
-              <span class="event-status status-investigating">⚙️ 调查中</span>
-              <span>监控告警触发，API错误率激增，团队开始排查</span>
-            </div>
-            <div class="incident-event">
-              <span class="event-time">2026-02-13 20:38 CST</span>
-              <span class="event-status status-identified">🔍 已定位</span>
-              <span>确定为连接池配置错误，紧急扩容并重启</span>
-            </div>
-            <div class="incident-event">
-              <span class="event-time">2026-02-13 21:15 CST</span>
-              <span class="event-status status-monitoring">📡 监控中</span>
-              <span>API 恢复响应，流量逐步回切，观察稳定性</span>
-            </div>
-            <div class="incident-event">
-              <span class="event-time">2026-02-13 21:50 CST</span>
-              <span class="event-status status-resolved">✅ 已解决</span>
-              <span>所有服务恢复正常，后续将优化连接池参数</span>
-            </div>
+          <div class="status-text">
+            <span id="status-badge-dash" class="status-badge badge-down">不可用</span>
+            <span class="degraded-hint" id="hint-dash"></span>
           </div>
         </div>
       </div>
 
-      <!-- 故障2：之前的典型事故 —— 让“这里写故障标题”具象化，替换为真实信息 -->
-      <div class="incident">
-        <div class="incident-header incident-degraded">
-          <span>📦 Admin Dashboard 依赖故障</span>
-          <span>部分功能受限</span>
+      <!-- 检测信息栏 —— 实时刷新，无时间轴，无历史包袱 -->
+      <div class="check-footer">
+        <div class="last-check">
+          <span>🕒 最后检测: </span>
+          <span id="lastCheckTime">刚刚</span>
         </div>
-        <div class="incident-body">
-          <div class="incident-detail">
-            <span class="incident-detail-label">事件状态</span>
-            <span><strong style="color: #10b981;">已解决</strong></span>
-          </div>
-          <div class="incident-detail">
-            <span class="incident-detail-label">影响组件</span>
-            <span>Admin Dashboard · 图表渲染</span>
-          </div>
-          <div class="incident-detail">
-            <span class="incident-detail-label">描述</span>
-            <span>前端CDN资源被运营商劫持，导致图表库加载失败</span>
-          </div>
-          <div class="incident-timeline">
-            <div class="incident-event">
-              <span class="event-time">2026-02-10 14:30 CST</span>
-              <span class="event-status status-investigating">调查中</span>
-              <span>用户反馈仪表板白屏，内部复现</span>
-            </div>
-            <div class="incident-event">
-              <span class="event-time">2026-02-10 15:20 CST</span>
-              <span class="event-status status-identified">已定位</span>
-              <span>资源URL被篡改，切换至备源并预热</span>
-            </div>
-            <div class="incident-event">
-              <span class="event-time">2026-02-10 16:10 CST</span>
-              <span class="event-status status-resolved">已解决</span>
-              <span>Dashboard 完全恢复，增加Subresource Integrity</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 维护事件: 计划内维护 -->
-      <div class="incident">
-        <div class="incident-header incident-maintenance">
-          <span>🧹 计划维护 · Admin 面板升级</span>
-          <span>计划内维护</span>
-        </div>
-        <div class="incident-body">
-          <div class="incident-detail">
-            <span class="incident-detail-label">说明</span>
-            <span>为提升安全性与响应速度，对Admin Dashboard进行架构升级，期间短暂不可用。</span>
-          </div>
-          <div class="incident-detail">
-            <span class="incident-detail-label">影响组件</span>
-            <span>Admin Dashboard · 管理API</span>
-          </div>
-          <div class="incident-detail">
-            <span class="incident-detail-label">维护时间</span>
-            <span>2026-02-15 00:00 — 02:00 CST</span>
-          </div>
-          <div class="incident-timeline">
-            <div class="incident-event">
-              <span class="event-time">2026-02-15 00:00 CST</span>
-              <span class="event-status status-update">开始</span>
-              <span>维护窗口开启，服务切换为维护页</span>
-            </div>
-            <div class="incident-event">
-              <span class="event-time">2026-02-15 01:45 CST</span>
-              <span class="event-status status-update">更新</span>
-              <span>升级完成，内部验证通过</span>
-            </div>
-            <div class="incident-event">
-              <span class="event-time">2026-02-15 02:00 CST</span>
-              <span class="event-status status-resolved">完成</span>
-              <span>维护结束，所有功能正常</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 额外增加一个较早的稳定性事件，展示历史记录丰富性，同时去掉原占位示例 -->
-      <div class="incident">
-        <div class="incident-header incident-operational" style="background-color: #3b82f6;">
-          <span>⚡ Cloudflare Pages 全球网络抖动</span>
-          <span>第三方故障</span>
-        </div>
-        <div class="incident-body">
-          <div class="incident-detail">
-            <span class="incident-detail-label">事件状态</span>
-            <span>已解决 (由Cloudflare 基础设施导致)</span>
-          </div>
-          <div class="incident-detail">
-            <span class="incident-detail-label">影响组件</span>
-            <span>前端静态资源访问</span>
-          </div>
-          <div class="incident-timeline">
-            <div class="incident-event">
-              <span class="event-time">2026-02-05 09:10 CST</span>
-              <span class="event-status status-investigating">调查中</span>
-              <span>部分区域访问 KY Secret 出现 522 错误</span>
-            </div>
-            <div class="incident-event">
-              <span class="event-time">2026-02-05 09:50 CST</span>
-              <span class="event-status status-monitoring">监控中</span>
-              <span>Cloudflare 回源链路恢复，服务正常</span>
-            </div>
-          </div>
+        <div id="manualRefreshBtn" class="refresh-btn">
+          <span>⟳</span> 立即检测
         </div>
       </div>
     </div>
 
-    <!-- 页脚导航，与头部呼应 -->
-    <div class="footer-nav">
-      <a href="./index.html">◀ 返回当前状态</a> ｜ 
-      <a href="./history.html">📋 历史事件</a> ｜ 
-      <a href="#">订阅状态</a>
+    <!-- 极简脚注 -->
+    <div style="text-align: center; padding: 1.8rem 0 0.2rem; color: #6e889c; font-size: 0.75rem; border-top: 1px solid #dfecf5; margin-top: 1rem;">
+      KY Secret · 实时状态检测 (每60秒自动刷新) · 模拟故障注入已启用
     </div>
   </div>
 
-  <!-- 交互 & 动态时间轴模拟 (改进：后端探针使用占位，不实际发请求，保留逻辑但无报错) -->
   <script>
     (function() {
       "use strict";
 
-      // ---------- 常量 & 状态 ----------
-      const TOTAL_BLOCKS = 56;          // 展示过去约2.3小时（每块2.5分钟）
-      let backendReachable = false;     // 默认离线，与当前status-down 匹配
+      // ------------------------------------------------------------
+      // KY Secret 实时状态检测 JS — 纯前端模拟 + 真实探测骨架
+      // 设计目标：只显示当前状态，无时间轴。可通过fetch真实检测，现为模拟。
+      // 但保留真实检测能力：只需替换模拟部分即可接入真实健康检查。
+      // ------------------------------------------------------------
 
-      // ---------- 生成模拟时间轴 (离线服务尾部部分块为红色) ----------
-      function generateTimeline(id, isAlwaysOk = false) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.innerHTML = '';
-        const fragment = document.createDocumentFragment();
-        const blocks = [];
+      // ---------- 服务配置 ----------
+      const SERVICES = [
+        { id: 'cf', name: 'Cloudflare Pages', endpoint: 'https://pages.kysecret.dev/health', normal: true, type: 'frontend' },
+        { id: 'gh', name: 'GitHub 仓库', endpoint: 'https://raw.githubusercontent.com/kysecret/web/readme', normal: true, type: 'frontend' },
+        { id: 'api', name: 'Backend API', endpoint: 'https://api.kysecret.com/v1/ping', normal: false, type: 'backend' },
+        { id: 'sub', name: '提交服务', endpoint: 'https://submit.kysecret.com/status', normal: false, type: 'backend' },
+        { id: 'login', name: 'Admin 登录', endpoint: 'https://admin.kysecret.com/login/health', normal: true, type: 'admin' },
+        { id: 'dash', name: 'Admin 仪表板', endpoint: 'https://admin.kysecret.com/dash/api/health', normal: false, type: 'admin' }
+      ];
 
-        for (let i = 0; i < TOTAL_BLOCKS; i++) {
-          const block = document.createElement('div');
-          block.classList.add('timeline-block');
+      // 状态枚举
+      const STATUS = {
+        OPERATIONAL: 'operational',
+        DEGRADED: 'degraded',
+        DOWN: 'down',
+        UNKNOWN: 'unknown'
+      };
 
-          // 前端/登录相关永远正常
-          if (id === 'timeline-pages' || id === 'timeline-github' || id === 'timeline-login') {
-            block.classList.add('ok');
-          } 
-          // admin dashboard 和服务一致：离线服务展示fail块
-          else if (id === 'timeline-api' || id === 'timeline-submit' || id === 'timeline-dashboard') {
-            // 模拟最近10个块为故障（最新在右侧，反转后最后10个显示红色）
-            if (i >= TOTAL_BLOCKS - 12) {   // 约30分钟故障
-              block.classList.add('fail');
-            } else {
-              block.classList.add('ok');     // 更早之前正常
-            }
-          } 
-          else {
-            // fallback (极少情况)
-            block.classList.add('ok');
+      // 当前检测结果存储
+      let currentStatus = {
+        cf: STATUS.OPERATIONAL,
+        gh: STATUS.OPERATIONAL,
+        api: STATUS.DOWN,
+        sub: STATUS.DOWN,
+        login: STATUS.OPERATIONAL,
+        dash: STATUS.DOWN
+      };
+
+      // 附加消息 (如延迟/错误详情)
+      let statusMessages = {
+        api: '连接超时',
+        sub: '5xx 错误',
+        dash: '服务未响应',
+        cf: '',
+        gh: '',
+        login: ''
+      };
+
+      // 最后一次检测时间
+      let lastCheckTimestamp = Date.now();
+
+      // ---------- UI 更新函数 ----------
+      function updateAllUI() {
+        // 更新每个服务的指示器 + 徽章 + 提示
+        SERVICES.forEach(service => {
+          const id = service.id;
+          const state = currentStatus[id] || STATUS.UNKNOWN;
+          const msg = statusMessages[id] || '';
+
+          // 状态指示点
+          const indicator = document.getElementById(`indicator-${id}`);
+          if (indicator) {
+            indicator.className = 'status-indicator'; // reset
+            indicator.classList.add(state);
           }
 
-          blocks.push(block);
+          // 状态徽章
+          const badge = document.getElementById(`status-badge-${id}`);
+          if (badge) {
+            let text = '';
+            let badgeClass = '';
+            switch (state) {
+              case STATUS.OPERATIONAL:
+                text = '正常';
+                badgeClass = 'badge-operational';
+                break;
+              case STATUS.DEGRADED:
+                text = '降级';
+                badgeClass = 'badge-degraded';
+                break;
+              case STATUS.DOWN:
+                text = '离线';
+                badgeClass = 'badge-down';
+                break;
+              default:
+                text = '未知';
+                badgeClass = 'badge-unknown';
+            }
+            badge.innerText = text;
+            badge.className = 'status-badge ' + badgeClass;
+          }
+
+          // 额外提示（错误信息/降级原因）
+          const hintEl = document.getElementById(`hint-${id}`);
+          if (hintEl) {
+            hintEl.innerText = msg || '';
+            if (!msg) hintEl.style.display = 'none';
+            else hintEl.style.display = 'inline-block';
+          }
+        });
+
+        // 更新全局横幅
+        updateGlobalBanner();
+
+        // 更新时间戳
+        const lastTimeEl = document.getElementById('lastCheckTime');
+        if (lastTimeEl) {
+          const date = new Date(lastCheckTimestamp);
+          const timeStr = `${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}:${date.getSeconds().toString().padStart(2,'0')}`;
+          lastTimeEl.innerText = timeStr;
         }
-
-        // 反转使右侧为最新 (时间轴从左到右: 过去→现在)
-        blocks.reverse().forEach(b => fragment.appendChild(b));
-        el.appendChild(fragment);
       }
 
-      // ---------- 渲染全部时间轴 ----------
-      function renderAllTimelines() {
-        generateTimeline('timeline-pages');
-        generateTimeline('timeline-github');
-        generateTimeline('timeline-api');
-        generateTimeline('timeline-submit');
-        generateTimeline('timeline-login');
-        generateTimeline('timeline-dashboard');
+      // 全局概览状态
+      function updateGlobalBanner() {
+        const dot = document.getElementById('globalDot');
+        const msg = document.getElementById('globalMessage');
+
+        // 计算全局：只要有一个down => 总体离线；有degraded无down => 降级；全operational => 正常
+        let hasDown = false, hasDegraded = false, hasUnknown = false;
+        SERVICES.forEach(s => {
+          const state = currentStatus[s.id] || STATUS.UNKNOWN;
+          if (state === STATUS.DOWN) hasDown = true;
+          else if (state === STATUS.DEGRADED) hasDegraded = true;
+          else if (state === STATUS.UNKNOWN) hasUnknown = true;
+        });
+
+        if (hasDown) {
+          dot.className = 'global-dot down';
+          msg.innerText = '部分服务离线 · 实时状态';
+        } else if (hasDegraded) {
+          dot.className = 'global-dot degraded';
+          msg.innerText = '服务降级 · 性能下降';
+        } else if (hasUnknown) {
+          dot.className = 'global-dot unknown';
+          msg.innerText = '部分状态未知';
+        } else {
+          dot.className = 'global-dot ok';
+          msg.innerText = '所有系统正常 · 运行中';
+        }
       }
 
-      // 模拟后端探针 —— 因为实际环境中your-tunnel.example.com不可用，我们设置固定为false，保持离线状态
-      // 完全去掉真实fetch，静态演示更干净，同时维持offline的视觉效果。
-      function mockBackendStatus() {
-        // 始终保持离线，因为目前服务确实是down (与实际status-down一致)
-        backendReachable = false;  
-        renderAllTimelines();
-      }
+      // ---------- 核心检测逻辑 ----------
+      // 纯前端模拟: 真实情况下，替换此函数为真实fetch即可。
+      // 我们保留模拟的故障状态: 后端api/sub/dash离线，前端和管理员登录正常。
+      // 同时可随机产生降级/离线（演示动态检测）
+      function performHealthCheck() {
+        // 模拟检测过程
+        return new Promise((resolve) => {
+          // 模拟网络延迟 200~400ms
+          setTimeout(() => {
+            // 基础状态 —— 大部分与预设一致，但加入一些动态变化以体现检测效果
+            // 比如: 偶尔让 Cloudflare Pages 变成降级 (5%概率)，但为了清晰演示，我们设定稳定状态，但保留变化可能性。
+            
+            // 稳定状态: 与我们视觉初始一致；但手动刷新时可以看到“检测中”的变化
+            // 为了让演示更有趣，每次检测有一定概率改变 admin dashboard 为降级/离线
+            const random = Math.random();
+            
+            // 核心状态: 后端离线，admin dashboard 离线，但随机注入变化
+            currentStatus = {
+              cf: STATUS.OPERATIONAL,   // 前端永远正常
+              gh: STATUS.OPERATIONAL,
+              api: STATUS.DOWN,         // 保持离线 (真实环境离线)
+              sub: STATUS.DOWN,
+              login: STATUS.OPERATIONAL,
+              dash: STATUS.DOWN         // 默认离线，但随机可能变成降级
+            };
 
-      // ---------- 折叠交互: 点击section-header展开/收起时间轴 ----------
-      function initCollapse() {
-        const headers = document.querySelectorAll('.section-header');
-        headers.forEach((header, index) => {
-          // 找到所属section
-          const section = header.closest('.section');
-          if (!section) return;
+            // 演示动态检测效果: Admin Dashboard 有时变为降级，有时还是离线 (更有实时感)
+            if (random < 0.3) {
+              currentStatus.dash = STATUS.DEGRADED;
+              statusMessages.dash = '高延迟 (280ms)';
+            } else if (random < 0.65) {
+              currentStatus.dash = STATUS.DOWN;
+              statusMessages.dash = '连接失败';
+            } else {
+              currentStatus.dash = STATUS.DOWN;  // 保持离线
+              statusMessages.dash = '5xx 错误';
+            }
 
-          // 获取该section下所有的timeline-container
-          const timelineWrappers = section.querySelectorAll('.timeline-container');
+            // 后端 API 偶尔也变为降级 (概率小) — 但大部分离线
+            if (Math.random() < 0.2) {
+              currentStatus.api = STATUS.DEGRADED;
+              statusMessages.api = '响应缓慢';
+            } else {
+              currentStatus.api = STATUS.DOWN;
+              statusMessages.api = '超时/不可达';
+            }
 
-          // 默认全部收起 (隐藏)
-          timelineWrappers.forEach(wrap => { wrap.style.display = 'none'; });
+            // 提交服务：有时降级
+            if (Math.random() < 0.25) {
+              currentStatus.sub = STATUS.DEGRADED;
+              statusMessages.sub = '部分失败';
+            } else {
+              currentStatus.sub = STATUS.DOWN;
+              statusMessages.sub = '无法连接';
+            }
 
-          // 绑定点击事件
-          header.addEventListener('click', function(e) {
-            // 防止点击内部干扰
-            e.stopPropagation();
-            // 切换当前section下的所有timeline-container
-            timelineWrappers.forEach(wrap => {
-              if (wrap.style.display === 'none') {
-                wrap.style.display = 'block';
-              } else {
-                wrap.style.display = 'none';
-              }
-            });
-            // 旋转箭头（通过类）
-            this.classList.toggle('collapsed');
-          });
+            // 前端服务固定正常
+            statusMessages.cf = '';
+            statusMessages.gh = '';
+            statusMessages.login = '';
+
+            // 更新时间戳
+            lastCheckTimestamp = Date.now();
+            
+            resolve();
+          }, 280); // 模拟检测耗时
         });
       }
 
-      // 初始执行
-      mockBackendStatus();
-      initCollapse();
+      // 刷新所有状态并更新UI
+      async function refreshAllStatus() {
+        // 检测前可将部分徽章置为“检测中”
+        SERVICES.forEach(s => {
+          const badge = document.getElementById(`status-badge-${s.id}`);
+          if (badge) badge.innerText = '检测中...';
+        });
+        
+        await performHealthCheck();
+        updateAllUI();
+      }
 
-      // 可选：每30秒刷新时间轴（但保持离线模拟）
-      setInterval(() => {
-        // 不改变backendReachable，保持离线故障样式
-        renderAllTimelines();
-      }, 30000);
+      // 初始化 & 绑定事件
+      async function init() {
+        // 首次执行检测
+        await refreshAllStatus();
 
+        // 绑定手动刷新按钮
+        const refreshBtn = document.getElementById('manualRefreshBtn');
+        if (refreshBtn) {
+          refreshBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            await refreshAllStatus();
+          });
+        }
+
+        // 自动间隔: 每60秒检测一次 (保持状态实时)
+        setInterval(async () => {
+          await refreshAllStatus();
+        }, 60000); // 60,000 ms = 1分钟
+      }
+
+      init();
     })();
   </script>
 
   <!-- 
-    改进说明：
-    1. 彻底移除原有的模糊占位「这里写故障标题」，全部替换为具体、真实感强的事件。
-    2. 历史记录完全中文本地化，时间格式统一为 ISO 风格+ CST。
-    3. 保留了状态卡片与时间轴，但默认折叠，页面打开更清爽（历史页聚焦事件）。
-    4. 修正了原示例中第二个incident内容与第一个几乎一致的问题，丰富多样性。
-    5. 品牌色、圆角、字体细节优化，更现代。
-    6. 后端探针改为模拟静态，不再请求不可达URL，避免控制台报错。
-    7. 移动端适配、hover效果增强。
+    设计说明:
+    - 完全移除时间轴(timeline)相关HTML、CSS、JS代码。无历史事件占位。
+    - 只保留状态卡片、状态指示点、检测时间、手动刷新。
+    - 6个服务，均有真实端点占位，通过JS模拟检测(但完全可替换为fetch)。
+    - 全局横幅反映整体健康度。
+    - 实时检测: 每次刷新(手动/自动)都会改变部分状态(如dashboard降级/离线概率)，体现“实时监测”。
+    - 零历史记录、零时间轴、零冗余折叠。简洁，聚焦当前是否挂掉。
   -->
 </body>
 </html>
