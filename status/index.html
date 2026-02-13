@@ -5,479 +5,480 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KY Secret - Service Status</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    }
+	* {
+	  margin: 0;
+	  padding: 0;
+	  box-sizing: border-box;
+	  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	}
 
-    body {
-      background: #ffffff;
-      color: #333333;
-      line-height: 1.6;
-      -webkit-text-size-adjust: 100%;
-    }
+	body {
+	  background: #ffffff;
+	  color: #333333;
+	  line-height: 1.6;
+	  -webkit-text-size-adjust: 100%;
+	}
 
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 1.5rem 0.8rem;
-    }
+	.container {
+	  max-width: 900px;
+	  margin: 0 auto;
+	  padding: 1.5rem 0.8rem;
+	}
 
-    .header {
-      text-align: center;
-      margin-bottom: 1.5rem;
-    }
+	.header {
+	  text-align: center;
+	  margin-bottom: 1.5rem;
+	}
 
-    .logo {
-      font-size: 6rem;
-      font-weight: 900;
-      color: #000000;
-      margin-bottom: 1rem;
-    }
+	.logo {
+	  font-size: 6rem;
+	  font-weight: 900;
+	  color: #000000;
+	  margin-bottom: 1rem;
+	}
 
-    .status-banner {
-      background-color: #10b981;
-      color: white;
-      padding: 0.75rem 1rem;
-      border-radius: 6px;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      align-items: center;
-      font-size: 0.85rem;
-      font-weight: 600;
-    }
+	.status-banner {
+	  background-color: #10b981;
+	  color: white;
+	  padding: 0.75rem 1rem;
+	  border-radius: 6px;
+	  display: flex;
+	  flex-direction: column;
+	  gap: 0.5rem;
+	  align-items: center;
+	  font-size: 0.85rem;
+	  font-weight: 600;
+	}
 
-    .section {
-      margin-bottom: 1.5rem;
-      border: 1px solid #e5e7eb;
-      border-radius: 6px;
-      overflow: hidden;
-    }
+	.section {
+	  margin-bottom: 1.5rem;
+	  border: 1px solid #e5e7eb;
+	  border-radius: 6px;
+	  overflow: hidden;
+	}
 
-    .section-header {
-      background-color: #f9fafb;
-      padding: 0.75rem 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.9rem;
-    }
+	.section-header {
+	  background-color: #f9fafb;
+	  padding: 0.75rem 1rem;
+	  font-weight: 600;
+	  cursor: pointer;
+	  display: flex;
+	  justify-content: space-between;
+	  align-items: center;
+	  font-size: 0.9rem;
+	}
 
-    .section-header::after {
-      content: "▼";
-      font-size: 0.8rem;
-      color: #6b7280;
-    }
+	.section-header::after {
+	  content: "▼";
+	  font-size: 0.8rem;
+	  color: #6b7280;
+	}
 
-    .service-item {
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
-      padding: 0.75rem 1rem;
-      border-top: 1px solid #e5e7eb;
-      font-size: 0.85rem;
-    }
+	.service-item {
+	  display: flex;
+	  flex-direction: column;
+	  gap: 0.3rem;
+	  padding: 0.75rem 1rem;
+	  border-top: 1px solid #e5e7eb;
+	  font-size: 0.85rem;
+	}
 
-    @media (min-width: 640px) {
-      .service-item {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-      }
-    }
+	@media (min-width: 640px) {
+	  .service-item {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+	  }
+	}
 
-    .service-name {
-      color: #4b5563;
-      word-break: break-word;
-    }
+	.service-name {
+	  color: #4b5563;
+	  word-break: break-word;
+	}
 
-    .service-status {
-      font-weight: 600;
-      font-size: 0.8rem;
-      align-self: flex-start;
-    }
+	.service-status {
+	  font-weight: 600;
+	  font-size: 0.8rem;
+	  align-self: flex-start;
+	}
 
-    @media (min-width: 640px) {
-      .service-status {
-        align-self: center;
-      }
-    }
+	@media (min-width: 640px) {
+	  .service-status {
+		align-self: center;
+	  }
+	}
 
-    .status-operational { color: #10b981; }
-    .status-down { color: #ef4444; }
-    .status-degraded { color: #f59e0b; }
+	.status-operational { color: #10b981; }
+	.status-down { color: #ef4444; }
+	.status-degraded { color: #f59e0b; }
 
-    .timeline-container {
-      margin-top: 0.5rem;
-      padding: 0 1rem 0.75rem;
-      overflow-x: auto;
-    }
+	.timeline-container {
+		display:none;
+	  margin-top: 0.5rem;
+	  padding: 0 1rem 0.75rem;
+	  overflow-x: auto;
+	}
 
-    .timeline {
-      display: flex;
-      gap: 1px;
-      height: 12px;
-      min-width: 600px;
-    }
+	.timeline {
+	  display: flex;
+	  gap: 1px;
+	  height: 12px;
+	  min-width: 600px;
+	}
 
-    @media (min-width: 640px) {
-      .timeline {
-        height: 16px;
-        min-width: auto;
-      }
-    }
+	@media (min-width: 640px) {
+	  .timeline {
+		height: 16px;
+		min-width: auto;
+	  }
+	}
 
-    .timeline-block {
-      flex: 1;
-      background-color: #d1d5db;
-      border-radius: 1px;
-    }
+	.timeline-block {
+	  flex: 1;
+	  background-color: #d1d5db;
+	  border-radius: 1px;
+	}
 
-    .timeline-block.ok { background-color: #10b981; }
-    .timeline-block.fail { background-color: #ef4444; }
+	.timeline-block.ok { background-color: #10b981; }
+	.timeline-block.fail { background-color: #ef4444; }
 
-    .history-section {
-      margin-top: 2rem;
-    }
+	.history-section {
+	  margin-top: 2rem;
+	}
 
-    .history-title {
-      font-size: 1rem;
-      color: #6b7280;
-      margin-bottom: 1rem;
-    }
+	.history-title {
+	  font-size: 1rem;
+	  color: #6b7280;
+	  margin-bottom: 1rem;
+	}
 
-    .incident {
-      border: 1px solid #e5e7eb;
-      border-radius: 6px;
-      margin-bottom: 1rem;
-      overflow: hidden;
-    }
+	.incident {
+	  border: 1px solid #e5e7eb;
+	  border-radius: 6px;
+	  margin-bottom: 1rem;
+	  overflow: hidden;
+	}
 
-    .incident-header {
-      padding: 0.75rem 1rem;
-      color: white;
-      font-weight: 600;
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
-      font-size: 0.85rem;
-    }
+	.incident-header {
+	  padding: 0.75rem 1rem;
+	  color: white;
+	  font-weight: 600;
+	  display: flex;
+	  flex-direction: column;
+	  gap: 0.3rem;
+	  font-size: 0.85rem;
+	}
 
-    @media (min-width: 640px) {
-      .incident-header {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-      }
-    }
+	@media (min-width: 640px) {
+	  .incident-header {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+	  }
+	}
 
-    .incident-operational { background-color: #10b981; }
-    .incident-degraded { background-color: #f59e0b; }
-    .incident-maintenance { background-color: #3b82f6; }
+	.incident-operational { background-color: #10b981; }
+	.incident-degraded { background-color: #f59e0b; }
+	.incident-maintenance { background-color: #3b82f6; }
 
-    .incident-body {
-      padding: 1rem;
-      font-size: 0.8rem;
-      color: #4b5563;
-    }
+	.incident-body {
+	  padding: 1rem;
+	  font-size: 0.8rem;
+	  color: #4b5563;
+	}
 
-    .incident-detail {
-      margin-bottom: 0.75rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
-    }
+	.incident-detail {
+	  margin-bottom: 0.75rem;
+	  display: flex;
+	  flex-direction: column;
+	  gap: 0.3rem;
+	}
 
-    @media (min-width: 640px) {
-      .incident-detail {
-        flex-direction: row;
-        gap: 0.5rem;
-      }
-    }
+	@media (min-width: 640px) {
+	  .incident-detail {
+		flex-direction: row;
+		gap: 0.5rem;
+	  }
+	}
 
-    .incident-detail-label {
-      font-weight: 600;
-      min-width: 100px;
-      color: #6b7280;
-    }
+	.incident-detail-label {
+	  font-weight: 600;
+	  min-width: 100px;
+	  color: #6b7280;
+	}
 
-    .incident-timeline {
-      margin-top: 1rem;
-      padding-top: 1rem;
-      border-top: 1px solid #e5e7eb;
-    }
+	.incident-timeline {
+	  margin-top: 1rem;
+	  padding-top: 1rem;
+	  border-top: 1px solid #e5e7eb;
+	}
 
-    .incident-event {
-      margin-bottom: 0.75rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
-      font-size: 0.75rem;
-    }
+	.incident-event {
+	  margin-bottom: 0.75rem;
+	  display: flex;
+	  flex-direction: column;
+	  gap: 0.3rem;
+	  font-size: 0.75rem;
+	}
 
-    @media (min-width: 640px) {
-      .incident-event {
-        flex-direction: row;
-        gap: 1rem;
-      }
-    }
+	@media (min-width: 640px) {
+	  .incident-event {
+		flex-direction: row;
+		gap: 1rem;
+	  }
+	}
 
-    .event-time {
-      color: #6b7280;
-      min-width: 160px;
-      word-break: break-word;
-    }
+	.event-time {
+	  color: #6b7280;
+	  min-width: 160px;
+	  word-break: break-word;
+	}
 
-    .event-status {
-      font-weight: 600;
-      min-width: 90px;
-    }
+	.event-status {
+	  font-weight: 600;
+	  min-width: 90px;
+	}
 
-    .status-identified { color: #10b981; }
-    .status-investigating { color: #f59e0b; }
-    .status-resolved { color: #10b981; }
-    .status-update { color: #3b82f6; }
-    .status-monitoring { color: #10b981; }
+	.status-identified { color: #10b981; }
+	.status-investigating { color: #f59e0b; }
+	.status-resolved { color: #10b981; }
+	.status-update { color: #3b82f6; }
+	.status-monitoring { color: #10b981; }
 
-    .footer-nav {
-      margin-top: 1.5rem;
-      text-align: center;
-      font-size: 0.8rem;
-      color: #6b7280;
-    }
+	.footer-nav {
+	  margin-top: 1.5rem;
+	  text-align: center;
+	  font-size: 0.8rem;
+	  color: #6b7280;
+	}
 
-    .footer-nav a {
-      color: #3b82f6;
-      text-decoration: none;
-      margin: 0 0.5rem;
-    }
+	.footer-nav a {
+	  color: #3b82f6;
+	  text-decoration: none;
+	  margin: 0 0.5rem;
+	}
   </style>
 </head>
 
 <body>
   <div class="container">
-    <div class="header">
-      <div class="logo">KYSECRET</div>
-      <div class="status-banner">
-        <span>部分服务可能离线</span>
-        <span>Updated a few seconds ago</span>
-      </div>
-    </div>
+	<div class="header">
+	  <div class="logo">KYSECRET</div>
+	  <div class="status-banner">
+		<span>部分服务可能离线</span>
+		<span>Updated a few seconds ago</span>
+	  </div>
+	</div>
 
-    <div class="section">
-      <div class="section-header">Frontend</div>
-      <div class="service-item">
-        <div class="service-name">Cloudflare Pages</div>
-        <div class="service-status status-operational">Operational</div>
-      </div>
-      <div class="timeline-container">
-        <div class="timeline" id="timeline-pages"></div>
-      </div>
-      <div class="service-item">
-        <div class="service-name">GitHub Repository</div>
-        <div class="service-status status-operational">Operational</div>
-      </div>
-      <div class="timeline-container">
-        <div class="timeline" id="timeline-github"></div>
-      </div>
-    </div>
+	<div class="section">
+	  <div class="section-header">Frontend</div>
+	  <div class="service-item">
+		<div class="service-name">Cloudflare Pages</div>
+		<div class="service-status status-operational">Operational</div>
+	  </div>
+	  <div class="timeline-container">
+		<div class="timeline" id="timeline-pages"></div>
+	  </div>
+	  <div class="service-item">
+		<div class="service-name">GitHub Repository</div>
+		<div class="service-status status-operational">Operational</div>
+	  </div>
+	  <div class="timeline-container">
+		<div class="timeline" id="timeline-github"></div>
+	  </div>
+	</div>
 
-    <div class="section">
-      <div class="section-header">Backend</div>
-      <div class="service-item">
-        <div class="service-name">Backend API Service</div>
-        <div class="service-status status-down">Offline</div>
-      </div>
-      <div class="timeline-container">
-        <div class="timeline" id="timeline-api"></div>
-      </div>
-      <div class="service-item">
-        <div class="service-name">Submission Service</div>
-        <div class="service-status status-down">Unavailable</div>
-      </div>
-      <div class="timeline-container">
-        <div class="timeline" id="timeline-submit"></div>
-      </div>
-    </div>
+	<div class="section">
+	  <div class="section-header">Backend</div>
+	  <div class="service-item">
+		<div class="service-name">Backend API Service</div>
+		<div class="service-status status-down">Offline</div>
+	  </div>
+	  <div class="timeline-container">
+		<div class="timeline" id="timeline-api"></div>
+	  </div>
+	  <div class="service-item">
+		<div class="service-name">Submission Service</div>
+		<div class="service-status status-down">Unavailable</div>
+	  </div>
+	  <div class="timeline-container">
+		<div class="timeline" id="timeline-submit"></div>
+	  </div>
+	</div>
 
-    <div class="section">
-      <div class="section-header">Admin</div>
-      <div class="service-item">
-        <div class="service-name">Admin Login</div>
-        <div class="service-status status-operational">Operational</div>
-      </div>
-      <div class="timeline-container">
-        <div class="timeline" id="timeline-login"></div>
-      </div>
-      <div class="service-item">
-        <div class="service-name">Admin Dashboard</div>
-        <div class="service-status status-down">Unavailable</div>
-      </div>
-      <div class="timeline-container">
-        <div class="timeline" id="timeline-dashboard"></div>
-      </div>
-    </div>
-    <div class="history-section">
-      <div class="history-title">History</div>
-      <div class="incident">
-        <div class="incident-header incident-degraded">
-            <span>这里写故障标题</span>
-            <span>Partial Service Disruption</span>
-        </div>
-            <div class="incident-body">
-        <div class="incident-detail">
-      <span class="incident-detail-label">Incident Status</span>
-      <span>Resolved</span>
-    </div>
-    <div class="incident-detail">
-      <span class="incident-detail-label">Components</span>
-      <span>Backend API, Submission Service</span>
-    </div>
-    <div class="incident-timeline">
-      <div class="incident-event">
-        <span class="event-time">2026-02-13 20:00 CST</span>
-        <span class="event-status status-investigating">INVESTIGATING</span>
-        <span>服务出现异常，正在排查</span>
-      </div>
-      <div class="incident-event">
-        <span class="event-time">2026-02-13 21:00 CST</span>
-        <span class="event-status status-resolved">RESOLVED</span>
-        <span>服务已恢复正常</span>
-      </div>
-    </div>
+	<div class="section">
+	  <div class="section-header">Admin</div>
+	  <div class="service-item">
+		<div class="service-name">Admin Login</div>
+		<div class="service-status status-operational">Operational</div>
+	  </div>
+	  <div class="timeline-container">
+		<div class="timeline" id="timeline-login"></div>
+	  </div>
+	  <div class="service-item">
+		<div class="service-name">Admin Dashboard</div>
+		<div class="service-status status-down">Unavailable</div>
+	  </div>
+	  <div class="timeline-container">
+		<div class="timeline" id="timeline-dashboard"></div>
+	  </div>
+	</div>
+	<div class="history-section">
+	  <div class="history-title">History</div>
+	  <div class="incident">
+		<div class="incident-header incident-degraded">
+			<span>这里写故障标题</span>
+			<span>Partial Service Disruption</span>
+		</div>
+			<div class="incident-body">
+		<div class="incident-detail">
+	  <span class="incident-detail-label">Incident Status</span>
+	  <span>Resolved</span>
+	</div>
+	<div class="incident-detail">
+	  <span class="incident-detail-label">Components</span>
+	  <span>Backend API, Submission Service</span>
+	</div>
+	<div class="incident-timeline">
+	  <div class="incident-event">
+		<span class="event-time">2026-02-13 20:00 CST</span>
+		<span class="event-status status-investigating">INVESTIGATING</span>
+		<span>服务出现异常，正在排查</span>
+	  </div>
+	  <div class="incident-event">
+		<span class="event-time">2026-02-13 21:00 CST</span>
+		<span class="event-status status-resolved">RESOLVED</span>
+		<span>服务已恢复正常</span>
+	  </div>
+	</div>
   </div>
 </div>
-      <div class="incident">
-        <div class="incident-header incident-degraded">
-          <span>Backend API 服务中断</span>
-          <span>Partial Service Disruption</span>
-        </div>
-        <div class="incident-body">
-          <div class="incident-detail">
-            <span class="incident-detail-label">Incident Status</span>
-            <span>Resolved</span>
-          </div>
-          <div class="incident-detail">
-            <span class="incident-detail-label">Components</span>
-            <span>Backend API, Submission Service</span>
-          </div>
-          <div class="incident-timeline">
-            <div class="incident-event">
-              <span class="event-time">February 12, 2026 20:00 CST</span>
-              <span class="event-status status-investigating">INVESTIGATING</span>
-              <span>We have identified an issue affecting the backend services.</span>
-            </div>
-            <div class="incident-event">
-              <span class="event-time">February 12, 2026 21:30 CST</span>
-              <span class="event-status status-monitoring">MONITORING</span>
-              <span>Services are partially restored. We are monitoring the situation.</span>
-            </div>
-            <div class="incident-event">
-              <span class="event-time">February 12, 2026 22:00 CST</span>
-              <span class="event-status status-resolved">RESOLVED</span>
-              <span>The issue has been resolved. All services are operational.</span>
-            </div>
-          </div>
-        </div>
-      </div>
+	  <div class="incident">
+		<div class="incident-header incident-degraded">
+		  <span>Backend API 服务中断</span>
+		  <span>Partial Service Disruption</span>
+		</div>
+		<div class="incident-body">
+		  <div class="incident-detail">
+			<span class="incident-detail-label">Incident Status</span>
+			<span>Resolved</span>
+		  </div>
+		  <div class="incident-detail">
+			<span class="incident-detail-label">Components</span>
+			<span>Backend API, Submission Service</span>
+		  </div>
+		  <div class="incident-timeline">
+			<div class="incident-event">
+			  <span class="event-time">February 12, 2026 20:00 CST</span>
+			  <span class="event-status status-investigating">INVESTIGATING</span>
+			  <span>We have identified an issue affecting the backend services.</span>
+			</div>
+			<div class="incident-event">
+			  <span class="event-time">February 12, 2026 21:30 CST</span>
+			  <span class="event-status status-monitoring">MONITORING</span>
+			  <span>Services are partially restored. We are monitoring the situation.</span>
+			</div>
+			<div class="incident-event">
+			  <span class="event-time">February 12, 2026 22:00 CST</span>
+			  <span class="event-status status-resolved">RESOLVED</span>
+			  <span>The issue has been resolved. All services are operational.</span>
+			</div>
+		  </div>
+		</div>
+	  </div>
 
-      <div class="incident">
-        <div class="incident-header incident-maintenance">
-          <span>Admin Dashboard 计划性维护</span>
-          <span>Planned Maintenance</span>
-        </div>
-        <div class="incident-body">
-          <div class="incident-detail">
-            <span class="incident-detail-label">Description</span>
-            <span>We will be performing maintenance on the Admin Dashboard to improve security features.</span>
-          </div>
-          <div class="incident-detail">
-            <span class="incident-detail-label">Components</span>
-            <span>Admin Dashboard</span>
-          </div>
-          <div class="incident-detail">
-            <span class="incident-detail-label">Schedule</span>
-            <span>February 15, 2026 00:00 - 02:00 CST</span>
-          </div>
-          <div class="incident-timeline">
-            <div class="incident-event">
-              <span class="event-time">February 15, 2026 00:00 CST</span>
-              <span class="event-status status-update">UPDATE</span>
-              <span>Maintenance has started.</span>
-            </div>
-            <div class="incident-event">
-              <span class="event-time">February 15, 2026 02:00 CST</span>
-              <span class="event-status status-update">UPDATE</span>
-              <span>Maintenance has been completed.</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+	  <div class="incident">
+		<div class="incident-header incident-maintenance">
+		  <span>Admin Dashboard 计划性维护</span>
+		  <span>Planned Maintenance</span>
+		</div>
+		<div class="incident-body">
+		  <div class="incident-detail">
+			<span class="incident-detail-label">Description</span>
+			<span>We will be performing maintenance on the Admin Dashboard to improve security features.</span>
+		  </div>
+		  <div class="incident-detail">
+			<span class="incident-detail-label">Components</span>
+			<span>Admin Dashboard</span>
+		  </div>
+		  <div class="incident-detail">
+			<span class="incident-detail-label">Schedule</span>
+			<span>February 15, 2026 00:00 - 02:00 CST</span>
+		  </div>
+		  <div class="incident-timeline">
+			<div class="incident-event">
+			  <span class="event-time">February 15, 2026 00:00 CST</span>
+			  <span class="event-status status-update">UPDATE</span>
+			  <span>Maintenance has started.</span>
+			</div>
+			<div class="incident-event">
+			  <span class="event-time">February 15, 2026 02:00 CST</span>
+			  <span class="event-status status-update">UPDATE</span>
+			  <span>Maintenance has been completed.</span>
+			</div>
+		  </div>
+		</div>
+	  </div>
+	</div>
 
-    <div class="footer-nav">
-      <a href="#">Status</a> | <a href="#">History</a>
-    </div>
+	<div class="footer-nav">
+	  <a href="#">Status</a> | <a href="#">History</a>
+	</div>
   </div>
 
   <script>
-    const TOTAL_BLOCKS = 56;
-    let backendReachable = false;
+	const TOTAL_BLOCKS = 56;
+	let backendReachable = false;
 
-    function generateTimeline(id) {
-      const el = document.getElementById(id);
-      el.innerHTML = '';
-      const blocks = [];
+	function generateTimeline(id) {
+		const el = document.getElementById(id);
+		el.innerHTML = '';
+		const blocks = [];
 
-      for (let i = 0; i < TOTAL_BLOCKS; i++) {
-        const block = document.createElement('div');
-        block.classList.add('timeline-block');
+		for (let i = 0; i < TOTAL_BLOCKS; i++) {
+			const block = document.createElement('div');
+			block.classList.add('timeline-block');
 
-        if (id === 'timeline-pages' || id === 'timeline-github' || id === 'timeline-login') {
-          block.classList.add('ok');
-        } else {
-          if (backendReachable && i > TOTAL_BLOCKS - 8) {
-            block.classList.add('fail');
-          }
-        }
-        blocks.push(block);
-      }
+		if (id === 'timeline-pages' || id === 'timeline-github' || id === 'timeline-login') {
+			block.classList.add('ok');
+		} else {
+		  if (backendReachable && i > TOTAL_BLOCKS - 8) {
+			block.classList.add('fail');
+		  }
+		}
+		blocks.push(block);
+	  }
 
-      // 反转：最右边 = 最新
-      blocks.reverse().forEach(b => el.appendChild(b));
-    }
+		// 反转：最右边 = 最新
+		blocks.reverse().forEach(b => el.appendChild(b));
+	}
 
-    async function checkBackend() {
-      try {
-        const controller = new AbortController();
-        setTimeout(() => controller.abort(), 4000);
-        await fetch('https://your-tunnel.example.com/api/ping', {
-          method: 'HEAD',
-          signal: controller.signal
-        });
-        backendReachable = true;
-      } catch (e) {
-        backendReachable = false;
-      }
-      renderAllTimelines();
-    }
+	async function checkBackend() {
+	  try {
+		const controller = new AbortController();
+		setTimeout(() => controller.abort(), 4000);
+		await fetch('https://your-tunnel.example.com/api/ping', {
+			method: 'HEAD',
+			signal: controller.signal
+		});
+		backendReachable = true;
+		} catch (e) {
+		backendReachable = false;
+		}
+		renderAllTimelines();
+	}
 
-    function renderAllTimelines() {
-      generateTimeline('timeline-pages');
-      generateTimeline('timeline-github');
-      generateTimeline('timeline-api');
-      generateTimeline('timeline-submit');
-      generateTimeline('timeline-login');
-      generateTimeline('timeline-dashboard');
-    }
+	function renderAllTimelines() {
+		generateTimeline('timeline-pages');
+		generateTimeline('timeline-github');
+		generateTimeline('timeline-api');
+		generateTimeline('timeline-submit');
+		generateTimeline('timeline-login');
+		generateTimeline('timeline-dashboard');
+	}
 
-    checkBackend();
-    setInterval(checkBackend, 30000);
+	checkBackend();
+	setInterval(checkBackend, 30000);
   </script>
 </body>
 </html>
