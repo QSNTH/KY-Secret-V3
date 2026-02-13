@@ -1,83 +1,727 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>投稿成功 - KY Secret V3</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: system-ui, -apple-system, sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <title>KY Secret · 投稿状态查询</title>
+    <style>
+        /* ===== KY Secret 全站视觉系统 V3 — 状态查询页 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
 
-    body {
-      background: #f8f8f8;
-      padding: 40px 20px;
-      display: flex;
-      justify-content: center;
-    }
+        body {
+            background: #f7fafc;
+            color: #0f2a40;
+            padding: 2rem 1rem;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
 
-    .container {
-      max-width: 500px;
-      width: 100%;
-    }
+        .ky-container {
+            max-width: 780px;
+            width: 100%;
+            margin: 0 auto;
+        }
 
-    .card {
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-      padding: 40px;
-      text-align: center;
-    }
+        /* ===== 全局导航 — 与全站100%一致 ===== */
+        .nav-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
 
-    h1 {
-      font-size: 22px;
-      margin-bottom: 12px;
-      color: #111;
-    }
+        .logo {
+            font-size: 5rem;
+            font-weight: 900;
+            color: #000000;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
 
-    p {
-      color: #666;
-      margin-bottom: 24px;
-    }
+        .nav-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-bottom: 1.2rem;
+            flex-wrap: wrap;
+        }
 
-    .content-box {
-      background: #444;
-      color: #fff;
-      padding: 16px;
-      border-radius: 8px;
-      margin: 20px 0;
-      text-align: left;
-    }
+        .nav-btn {
+            padding: 0.5rem 1.4rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 40px;
+            background: #ffffff;
+            color: #334155;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 550;
+            transition: 0.15s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
 
-    .btn {
-      display: inline-block;
-      padding: 12px 24px;
-      background: #e94560;
-      color: #fff;
-      border-radius: 10px;
-      text-decoration: none;
-    }
-  </style>
+        .nav-btn:hover {
+            background: #eef2f6;
+            border-color: #cbd5e1;
+        }
+
+        .nav-btn.active {
+            background: #0f172a;
+            color: white;
+            border-color: #0f172a;
+        }
+
+        /* ===== 状态查询卡片 ===== */
+        .query-card {
+            background: white;
+            border-radius: 28px;
+            border: 1px solid #ecf1f7;
+            box-shadow: 0 4px 14px rgba(0, 20, 40, 0.02);
+            padding: 2rem 2rem 2.2rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .card-header {
+            margin-bottom: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .card-header h1 {
+            font-size: 1.65rem;
+            font-weight: 700;
+            color: #0f2a40;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .card-header h1::before {
+            content: "🔍";
+            font-size: 1.8rem;
+        }
+
+        .status-badge {
+            background: #eef4ff;
+            padding: 0.35rem 1rem;
+            border-radius: 60px;
+            font-size: 0.75rem;
+            font-weight: 650;
+            color: #2563eb;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border: 1px solid #dbeafe;
+        }
+
+        /* 查询区域 */
+        .search-section {
+            background: #fafeff;
+            border: 1px solid #e2ecf5;
+            border-radius: 24px;
+            padding: 1.6rem 1.8rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .search-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1e3f5c;
+            margin-bottom: 1rem;
+        }
+
+        .search-input-group {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 240px;
+            padding: 0.9rem 1.2rem;
+            border: 1.5px solid #e2ecf5;
+            border-radius: 60px;
+            font-size: 0.95rem;
+            background: white;
+            transition: all 0.15s;
+            color: #1f3a57;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.08);
+        }
+
+        .search-input::placeholder {
+            color: #9bb1c4;
+        }
+
+        .search-btn {
+            background: #0f172a;
+            color: white;
+            border: none;
+            padding: 0.9rem 2rem;
+            border-radius: 60px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid #1e2a44;
+        }
+
+        .search-btn:hover {
+            background: #1e2f45;
+            transform: scale(1.01);
+        }
+
+        .search-hint {
+            margin-top: 0.8rem;
+            font-size: 0.72rem;
+            color: #6f8faa;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        /* ===== 结果展示卡片 — 审核状态 ===== */
+        .result-card {
+            background: white;
+            border-radius: 28px;
+            border: 1px solid #ecf1f7;
+            padding: 1.8rem 2rem;
+            margin-top: 1.2rem;
+            display: none; /* 默认隐藏，查询后显示 */
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.4rem;
+            flex-wrap: wrap;
+        }
+
+        .result-icon {
+            font-size: 2.2rem;
+        }
+
+        .result-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0f2a40;
+        }
+
+        /* 状态颜色标识 */
+        .status-pending {
+            background: #fff3e0;
+            color: #b45b0f;
+            padding: 0.4rem 1.2rem;
+            border-radius: 60px;
+            font-weight: 650;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .status-approved {
+            background: #e0f2e6;
+            color: #0b6e4f;
+            padding: 0.4rem 1.2rem;
+            border-radius: 60px;
+            font-weight: 650;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .status-rejected {
+            background: #ffe6e5;
+            color: #b11f1a;
+            padding: 0.4rem 1.2rem;
+            border-radius: 60px;
+            font-weight: 650;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .status-notfound {
+            background: #edf2f7;
+            color: #4a627a;
+            padding: 0.4rem 1.2rem;
+            border-radius: 60px;
+            font-weight: 650;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* 投稿信息卡片 */
+        .submission-detail {
+            background: #fafeff;
+            border: 1px solid #e2ecf5;
+            border-radius: 20px;
+            padding: 1.4rem 1.6rem;
+            margin: 1.2rem 0;
+        }
+
+        .detail-row {
+            display: flex;
+            margin-bottom: 0.8rem;
+        }
+
+        .detail-label {
+            min-width: 80px;
+            color: #657e96;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        .detail-value {
+            color: #0f2a40;
+            font-size: 0.95rem;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .divider {
+            border-top: 1px dashed #dce5ec;
+            margin: 1.2rem 0;
+        }
+
+        .visit-link {
+            background: #f1f7fd;
+            border-radius: 60px;
+            padding: 0.8rem 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-top: 0.8rem;
+        }
+
+        .visit-url {
+            color: #2563eb;
+            font-size: 0.85rem;
+            word-break: break-all;
+            font-family: monospace;
+        }
+
+        .copy-btn {
+            background: white;
+            border: 1px solid #cde0ed;
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #1c4e6e;
+            cursor: pointer;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .copy-btn:hover {
+            background: #e7f0f9;
+            border-color: #95b3cc;
+        }
+
+        /* 示例提示 */
+        .example-note {
+            background: #f4faff;
+            border-radius: 16px;
+            padding: 1rem 1.4rem;
+            font-size: 0.8rem;
+            color: #4e748b;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-top: 1.2rem;
+        }
+
+        /* 页脚 */
+        .footer-note {
+            text-align: center;
+            margin-top: 2.5rem;
+            font-size: 0.75rem;
+            color: #7996ae;
+            border-top: 1px solid #e2ecf5;
+            padding-top: 1.8rem;
+        }
+
+        .footer-note a {
+            color: #2c5282;
+            text-decoration: none;
+            font-weight: 500;
+            margin: 0 0.4rem;
+        }
+
+        /* 移动端优化 */
+        @media (max-width: 550px) {
+            .logo { font-size: 4rem; }
+            .query-card { padding: 1.5rem; }
+            .search-input-group { flex-direction: column; }
+            .search-btn { justify-content: center; }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="card">
-      <h1>✅ 投稿成功</h1>
-      <p>你的内容已收到，等待审核</p>
+    <div class="ky-container">
+        <!-- 全局导航 — 与全站统一 -->
+        <div class="nav-header">
+            <div class="logo">KYSECRET</div>
+            <div class="nav-buttons">
+                <a href="./index.html" class="nav-btn">📊 状态</a>
+                <a href="https://ky-secret-v3.pages.dev/status/history" class="nav-btn">📋 历史</a>
+                <a href="./submit.html" class="nav-btn">✉️ 投稿</a>
+                <a href="./admin.html" class="nav-btn">⚙️ 管理</a>
+                <a href="#" class="nav-btn active">🔍 查询</a>
+            </div>
+        </div>
 
-      <div class="content-box" id="content"></div>
+        <!-- 状态查询主卡片 -->
+        <div class="query-card">
+            <div class="card-header">
+                <h1>投稿状态查询</h1>
+                <span class="status-badge">RESULT</span>
+            </div>
 
-      <a href="index.html" class="btn">返回投稿</a>
+            <!-- 查询区域 -->
+            <div class="search-section">
+                <div class="search-label">
+                    <span>🔑</span> 输入你的投稿ID或访问密钥
+                </div>
+                <div class="search-input-group">
+                    <input type="text" id="postIdInput" class="search-input" placeholder="例如: #KY-2402 或 ky_abc123" value="#KY-2402">
+                    <button class="search-btn" id="queryBtn">
+                        <span>🔍</span> 查询状态
+                    </button>
+                </div>
+                <div class="search-hint">
+                    <span>💡</span> 投稿成功后，你会收到唯一的查询ID
+                </div>
+            </div>
+
+            <!-- ===== 结果展示区域 (动态显示) ===== -->
+            <div id="resultContainer" class="result-card">
+                <!-- 内容由 JavaScript 动态渲染 -->
+            </div>
+
+            <!-- 示例说明卡片 (静态提示) -->
+            <div class="example-note">
+                <span>🧪</span> 当前为演示模式 · 可用示例ID: <strong>#KY-2402</strong> (审核中) / <strong>#KY-2401</strong> (已通过) / <strong>#KY-2399</strong> (未找到)
+            </div>
+        </div>
+
+        <!-- 全站统一页脚 -->
+        <div class="footer-note">
+            <a href="./index.html">← 当前状态</a> · 
+            <a href="https://ky-secret-v3.pages.dev/status/history">📋 历史事件</a> · 
+            <a href="#">📡 订阅</a>
+        </div>
     </div>
-  </div>
 
-  <script>
-    const params = new URLSearchParams(location.search);
-    const content = params.get('content') || '（无内容）';
-    document.getElementById('content').textContent = content;
-  </script>
+    <script>
+        (function() {
+            "use strict";
+
+            // ========= KY Secret 投稿状态查询引擎 =========
+            // 功能：根据投稿ID/密钥，返回审核状态 + 访问链接
+            // 完全符合要求：审核中/通过/拒绝/未找到，通过则生成可访问URL
+            
+            // ---------- 模拟数据库 (实际应替换为API请求) ----------
+            const SUBMISSION_DB = {
+                // 审核中示例
+                "#KY-2402": {
+                    id: "#KY-2402",
+                    title: "图书馆闭馆音乐太早",
+                    content: "每天晚上9点就关灯放音乐，考研党真的需要多学一小时...",
+                    time: "2026-02-13 15:23 CST",
+                    tags: ["#学校", "#建议"],
+                    status: "pending",      // 审核中
+                    shareId: "ky_7f9a2b"
+                },
+                // 已通过示例
+                "#KY-2401": {
+                    id: "#KY-2401",
+                    title: "匿名表白计算机学院李老师",
+                    content: "李老师讲课真的太清晰了！虽然这门课很难，但您让我觉得编程很有意思。谢谢您！🌹",
+                    time: "2026-02-13 10:07 CST",
+                    tags: ["#校园", "#感谢"],
+                    status: "approved",     // 已通过
+                    shareId: "ky_4e8c1d",
+                    publishUrl: "https://ky-secret-v3.pages.dev/post/ky_4e8c1d"
+                },
+                // 已拒绝示例
+                "#KY-2388": {
+                    id: "#KY-2388",
+                    title: "测试投稿-含广告",
+                    content: "这是测试广告内容...",
+                    time: "2026-02-12 09:12 CST",
+                    tags: ["#测试"],
+                    status: "rejected",     // 已拒绝
+                    shareId: "ky_9x7y3z",
+                    reason: "包含推广信息"
+                }
+            };
+
+            // ---------- 查询主函数 ----------
+            function querySubmission(postId) {
+                // 模拟网络延迟
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        // 清理输入：去除空格，转为大写匹配格式
+                        const cleanId = postId.trim().toUpperCase();
+                        
+                        // 处理 #KY- 前缀
+                        let key = cleanId;
+                        if (!key.startsWith('#')) {
+                            key = `#${key}`;
+                        }
+                        
+                        const record = SUBMISSION_DB[key];
+                        
+                        if (record) {
+                            resolve({
+                                found: true,
+                                ...record
+                            });
+                        } else {
+                            // 尝试直接匹配 shareId
+                            const byShareId = Object.values(SUBMISSION_DB).find(r => r.shareId === postId.trim());
+                            if (byShareId) {
+                                resolve({
+                                    found: true,
+                                    ...byShareId
+                                });
+                            } else {
+                                resolve({ found: false, query: postId });
+                            }
+                        }
+                    }, 600); // 模拟查询延迟
+                });
+            }
+
+            // ---------- 渲染结果到界面 ----------
+            async function renderResult(postId) {
+                const container = document.getElementById('resultContainer');
+                
+                // 显示加载状态
+                container.style.display = 'block';
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 1.5rem; color: #657e96;">
+                        <span style="font-size: 2rem; display: block; margin-bottom: 0.8rem;">⏳</span>
+                        正在查询投稿状态...
+                    </div>
+                `;
+
+                // 执行查询
+                const result = await querySubmission(postId);
+
+                // 根据结果构建UI
+                let html = '';
+                
+                if (!result.found) {
+                    // ===== 未找到 =====
+                    html = `
+                        <div class="result-header">
+                            <span class="result-icon">❓</span>
+                            <span class="result-title">未找到投稿</span>
+                            <span class="status-notfound">NOT FOUND</span>
+                        </div>
+                        <div style="color: #4f6f8f; padding: 0.8rem 0;">
+                            没有找到与 <strong style="background: #edf2f7; padding: 0.2rem 0.6rem; border-radius: 30px;">${escapeHtml(postId)}</strong> 对应的投稿记录
+                        </div>
+                        <div class="divider"></div>
+                        <div style="color: #657e96; font-size: 0.85rem;">
+                            ⚠️ 请确认查询ID正确，投稿后通常需等待审核
+                        </div>
+                    `;
+                } else {
+                    // ===== 找到记录 =====
+                    let statusClass = '';
+                    let statusText = '';
+                    let statusIcon = '';
+                    
+                    switch(result.status) {
+                        case 'pending':
+                            statusClass = 'status-pending';
+                            statusText = '审核中';
+                            statusIcon = '⏳';
+                            break;
+                        case 'approved':
+                            statusClass = 'status-approved';
+                            statusText = '已通过';
+                            statusIcon = '✅';
+                            break;
+                        case 'rejected':
+                            statusClass = 'status-rejected';
+                            statusText = '未通过';
+                            statusIcon = '❌';
+                            break;
+                        default:
+                            statusClass = 'status-notfound';
+                            statusText = '未知';
+                            statusIcon = '⚠️';
+                    }
+
+                    html = `
+                        <div class="result-header">
+                            <span class="result-icon">📋</span>
+                            <span class="result-title">投稿状态</span>
+                            <span class="${statusClass}">
+                                ${statusIcon} ${statusText}
+                            </span>
+                        </div>
+
+                        <div class="submission-detail">
+                            <div class="detail-row">
+                                <span class="detail-label">投稿ID</span>
+                                <span class="detail-value">${escapeHtml(result.id)}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">标题</span>
+                                <span class="detail-value">${escapeHtml(result.title || '无标题')}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">时间</span>
+                                <span class="detail-value">${escapeHtml(result.time)}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">标签</span>
+                                <span class="detail-value">
+                                    ${result.tags ? result.tags.map(t => `<span style="background:#e2ecf5; padding:0.2rem 0.8rem; border-radius:60px; font-size:0.7rem; margin-right:0.4rem;">${escapeHtml(t)}</span>`).join('') : '—'}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+
+                    // ===== 关键部分：如果审核通过，展示访问链接 =====
+                    if (result.status === 'approved' && result.publishUrl) {
+                        html += `
+                            <div class="visit-link">
+                                <span style="font-size:0.8rem; color:#1e3f5c;">🔗 帖子访问地址</span>
+                                <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+                                    <span class="visit-url" id="publishUrl">${escapeHtml(result.publishUrl)}</span>
+                                    <button class="copy-btn" onclick="copyToClipboard('${escapeHtml(result.publishUrl)}')">
+                                        <span>📋</span> 复制
+                                    </button>
+                                </div>
+                            </div>
+                            <div style="margin-top: 1rem; font-size:0.8rem; color:#2c5282; background:#ebf5ff; padding:0.6rem 1.2rem; border-radius:60px;">
+                                ✅ 审核通过，你的投稿已公开发布
+                            </div>
+                        `;
+                    } else if (result.status === 'pending') {
+                        html += `
+                            <div style="margin-top: 1.2rem; background: #fff3e0; border-radius: 60px; padding: 0.8rem 1.2rem; color: #b45b0f; display: flex; align-items: center; gap: 0.6rem;">
+                                <span>⏳</span>
+                                <span style="font-weight: 500;">审核中，请耐心等待。通常会在24小时内完成审核。</span>
+                            </div>
+                        `;
+                    } else if (result.status === 'rejected') {
+                        html += `
+                            <div style="margin-top: 1.2rem; background: #ffe6e5; border-radius: 60px; padding: 0.8rem 1.2rem; color: #b11f1a; display: flex; align-items: center; gap: 0.6rem;">
+                                <span>❌</span>
+                                <span style="font-weight: 500;">未通过审核：${escapeHtml(result.reason || '不符合社区规范')}</span>
+                            </div>
+                        `;
+                    }
+                }
+
+                container.innerHTML = html;
+            }
+
+            // ---------- 辅助函数 ----------
+            function escapeHtml(text) {
+                if (!text) return '';
+                return String(text)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            // 全局复制函数
+            window.copyToClipboard = function(text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('链接已复制到剪贴板');
+                }).catch(() => {
+                    // 降级
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    alert('链接已复制');
+                });
+            };
+
+            // ---------- 绑定事件 ----------
+            function init() {
+                const queryBtn = document.getElementById('queryBtn');
+                const postIdInput = document.getElementById('postIdInput');
+
+                // 初始查询：展示示例
+                renderResult('#KY-2402');
+
+                // 点击查询按钮
+                queryBtn.addEventListener('click', () => {
+                    const postId = postIdInput.value.trim();
+                    if (postId === '') {
+                        alert('请输入投稿ID或密钥');
+                        return;
+                    }
+                    renderResult(postId);
+                });
+
+                // 回车查询
+                postIdInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        queryBtn.click();
+                    }
+                });
+
+                // 演示：预填示例
+                window.demoQuery = function(id) {
+                    postIdInput.value = id;
+                    renderResult(id);
+                };
+            }
+
+            init();
+        })();
+    </script>
+
+    <!-- 
+        设计说明：
+        1. 完全符合文件夹结构预期：此页面为 result.html
+        2. 核心流程：用户输入ID → 查询状态 → 审核中/通过/拒绝/未找到
+        3. 审核通过 → 显示可访问的帖子URL + 复制按钮
+        4. 审核中 → 显示“审核中”状态及提示
+        5. 视觉100%统一：导航、卡片、圆角、色彩均继承自状态/历史/投稿/管理页
+        6. 模拟数据库演示，真实使用需替换为API调用
+    -->
 </body>
 </html>
