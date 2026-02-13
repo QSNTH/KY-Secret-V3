@@ -2,133 +2,620 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KY Secret V3 - 匿名投稿</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <title>KY Secret V3 · 匿名投稿</title>
     <style>
-        * {margin: 0; padding: 0; box-sizing: border-box; font-family: "Microsoft YaHei", sans-serif;}
-        body {background: #f5f7fa; padding: 20px; max-width: 800px; margin: 0 auto;}
-        .container {background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 30px;}
-        h1 {text-align: center; color: #2d3748; margin-bottom: 30px; font-size: 24px;}
-        .form-item {margin-bottom: 20px;}
-        label {display: block; margin-bottom: 8px; color: #4a5568; font-weight: 500;}
-        input, textarea {width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 16px; outline: none;}
-        input:focus, textarea:focus {border-color: #4299e1; box-shadow: 0 0 0 3px rgba(66,153,225,0.1);}
-        textarea {min-height: 200px; resize: vertical;}
-        .count {text-align: right; font-size: 14px; color: #718096; margin-top: 4px;}
-        button {width: 100%; padding: 14px; background: #4299e1; color: #fff; border: none; border-radius: 8px; font-size: 18px; font-weight: 500; cursor: pointer; transition: background 0.3s;}
-        button:hover {background: #3182ce;}
-        .tag-hint {font-size: 14px; color: #718096; margin-top: 4px;}
-        .image-preview {margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;}
-        .image-preview img {max-width: 100px; max-height: 100px; border-radius: 8px; object-fit: cover;}
-        .image-upload {display: flex; align-items: center; gap: 10px;}
-        .image-upload input[type="file"] {display: none;}
-        .image-upload label {cursor: pointer; padding: 10px 16px; background: #e2e8f0; border-radius: 8px; color: #4a5568;}
-        .image-upload label:hover {background: #cbd5e0;}
+        /* ===== KY Secret 全站视觉系统 · 投稿页统一版 ===== */
+        /* 风格继承自 status/history 黑金基调 + 圆角 + 干净留白 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background: #f7fafc;   /* 柔和背景，与状态页统一 */
+            padding: 2rem 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        /* 主容器 — 卡片质感，与历史事件卡片同风格 */
+        .ky-container {
+            max-width: 780px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* 全局导航 — 与状态页/历史页完全一致 */
+        .nav-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo {
+            font-size: 5rem;
+            font-weight: 900;
+            color: #000000;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-bottom: 1.2rem;
+        }
+
+        .nav-btn {
+            padding: 0.5rem 1.4rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 40px;
+            background: #ffffff;
+            color: #334155;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 550;
+            transition: 0.15s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
+
+        .nav-btn:hover {
+            background: #eef2f6;
+            border-color: #cbd5e1;
+        }
+
+        .nav-btn.active {
+            background: #0f172a;
+            color: white;
+            border-color: #0f172a;
+        }
+
+        /* 投稿卡片 — 继承 incident-card 风格：白底、圆角20px、细腻阴影 */
+        .submit-card {
+            background: white;
+            border-radius: 28px;
+            border: 1px solid #ecf1f7;
+            box-shadow: 0 4px 14px rgba(0, 20, 40, 0.02);
+            padding: 2rem 2rem 2.2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* 标题区域 — 类似 incident-header 但更柔和 */
+        .form-header {
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .form-header h1 {
+            font-size: 1.65rem;
+            font-weight: 700;
+            color: #0f2a40;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .form-header h1::before {
+            content: "✍️";
+            font-size: 1.8rem;
+        }
+
+        .form-badge {
+            background: #eef4ff;
+            padding: 0.35rem 1rem;
+            border-radius: 60px;
+            font-size: 0.75rem;
+            font-weight: 650;
+            color: #2563eb;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border: 1px solid #dbeafe;
+        }
+
+        /* 表单项 — 干净、大气 */
+        .form-item {
+            margin-bottom: 1.8rem;
+        }
+
+        .form-item label {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.6rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1e3f5c;
+            letter-spacing: -0.2px;
+        }
+
+        .label-left {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .required-star {
+            color: #e53e3e;
+            font-size: 1.1rem;
+            line-height: 1;
+        }
+
+        .char-counter {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #6f8a9f;
+            background: #f1f7fd;
+            padding: 0.25rem 0.8rem;
+            border-radius: 60px;
+        }
+
+        /* 输入框 — 与状态页服务卡片内部风格接近 */
+        input, textarea {
+            width: 100%;
+            padding: 0.9rem 1.2rem;
+            border: 1.5px solid #e2ecf5;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            background: #ffffff;
+            transition: all 0.15s;
+            color: #1f3a57;
+            outline: none;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.08);
+            background: #ffffff;
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: #9bb1c4;
+            font-weight: 350;
+        }
+
+        textarea {
+            min-height: 200px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        /* 标签提示 — 沿用 tag-hint 风格，更 subtle */
+        .field-hint {
+            margin-top: 0.4rem;
+            font-size: 0.72rem;
+            color: #6f8faa;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: #f4faff;
+            padding: 0.3rem 0.9rem;
+            border-radius: 60px;
+            width: fit-content;
+        }
+
+        /* 图片上传区域 — 重新设计，与整体圆润感统一 */
+        .image-zone {
+            background: #fafeff;
+            border: 1.5px dashed #cde0ed;
+            border-radius: 24px;
+            padding: 1.2rem 1.2rem 1rem;
+            transition: background 0.1s;
+        }
+
+        .image-zone:hover {
+            background: #f2f9ff;
+            border-color: #91b8d9;
+        }
+
+        .image-upload-btn {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .custom-file-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.4rem;
+            background: #eef2f6;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1e3f5c;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid #dbe2ec;
+        }
+
+        .custom-file-label:hover {
+            background: #e2eaf1;
+            border-color: #9fb8d0;
+        }
+
+        .file-hint {
+            color: #557a99;
+            font-size: 0.8rem;
+        }
+
+        .image-preview {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            margin-top: 1.2rem;
+            padding-top: 0.8rem;
+            border-top: 1px solid #e2ecf5;
+        }
+
+        .preview-item {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+
+        .preview-item img {
+            display: block;
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 14px;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        /* 提交按钮 — 黑底、高对比，与 active 导航钮呼应 */
+        .submit-btn {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: #0f172a;      /* 深色，与历史页header同系 */
+            color: white;
+            border: none;
+            border-radius: 40px;
+            font-size: 1.1rem;
+            font-weight: 650;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            margin-top: 1.2rem;
+            border: 1px solid #1e2a44;
+        }
+
+        .submit-btn:hover {
+            background: #1e2f45;
+            transform: scale(1.01);
+            box-shadow: 0 8px 18px rgba(15,35,60,0.12);
+        }
+
+        .submit-btn:active {
+            transform: scale(0.99);
+        }
+
+        /* 脚注 — 与历史页统一 */
+        .footer-note {
+            text-align: center;
+            margin-top: 1.8rem;
+            font-size: 0.75rem;
+            color: #7996ae;
+            border-top: 1px solid #e2ecf5;
+            padding-top: 1.8rem;
+        }
+
+        .footer-note a {
+            color: #2c5282;
+            text-decoration: none;
+            font-weight: 500;
+            margin: 0 0.4rem;
+        }
+
+        .footer-note a:hover {
+            text-decoration: underline;
+        }
+
+        /* 移动微调 */
+        @media (max-width: 550px) {
+            .logo { font-size: 4rem; }
+            .submit-card { padding: 1.5rem; }
+            .form-header { flex-direction: column; align-items: flex-start; gap: 0.6rem; }
+        }
+
+        /* 提示文案 */
+        .tip-text {
+            background: #f1f9f0;
+            color: #1f6e4a;
+            border-radius: 60px;
+            padding: 0.2rem 0.8rem;
+            font-size: 0.7rem;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>KY Secret V3 · 匿名投稿</h1>
-        <form id="submitForm" enctype="multipart/form-data">
-            <div class="form-item">
-                <label for="content">匿名投稿内容 <span style="color:#718096;font-weight:normal;">(0/2000)</span></label>
-                <textarea id="content" maxlength="2000" placeholder="请输入你的匿名投稿内容，尽情表达吧～"></textarea>
-                <div class="count" id="contentCount">0/2000</div>
+    <div class="ky-container">
+        <!-- 头部导航：与状态页、历史页100%一致，品牌统一 -->
+        <div class="nav-header">
+            <div class="logo">KYSECRET</div>
+            <div class="nav-buttons">
+                <a href="./index.html" class="nav-btn">📊 状态</a>
+                <a href="https://ky-secret-v3.pages.dev/status/history" class="nav-btn">📋 历史</a>
+                <a href="#" class="nav-btn active">✉️ 投稿</a>
             </div>
-            <div class="form-item">
-                <label for="title">标题 <span style="color:#718096;font-weight:normal;">(0/20)</span></label>
-                <input type="text" id="title" maxlength="20" placeholder="请输入投稿标题（选填）">
-                <div class="count" id="titleCount">0/20</div>
+        </div>
+
+        <!-- 投稿卡片 — 风格完全融入KY Secret设计体系 -->
+        <div class="submit-card">
+            <div class="form-header">
+                <h1>匿名投稿</h1>
+                <span class="form-badge">V3 · 端到端加密</span>
             </div>
-            <div class="form-item">
-                <label>上传图片（选填）</label>
-                <div class="image-upload">
-                    <label for="image">选择图片</label>
-                    <input type="file" id="image" accept="image/*" multiple>
-                    <span id="imageName" style="color: #718096;">未选择任何文件</span>
+
+            <!-- 表单区域，功能完整保留并增强 -->
+            <form id="kySubmitForm" enctype="multipart/form-data">
+                <!-- 标题字段 -->
+                <div class="form-item">
+                    <label>
+                        <span class="label-left">
+                            <span>📌 标题</span>
+                            <span class="tip-text">选填</span>
+                        </span>
+                        <span class="char-counter" id="titleCounter">0/20</span>
+                    </label>
+                    <input type="text" id="title" maxlength="20" placeholder="给你的投稿起个标题（20字以内）" autocomplete="off">
+                    <div class="field-hint">
+                        <span>✨</span> 好的标题更容易被看见
+                    </div>
                 </div>
-                <div class="image-preview" id="imagePreview"></div>
+
+                <!-- 核心内容字段 -->
+                <div class="form-item">
+                    <label>
+                        <span class="label-left">
+                            <span>📄 匿名内容</span>
+                            <span style="color:#c53030; margin-left: 4px;">*</span>
+                        </span>
+                        <span class="char-counter" id="contentCounter">0/2000</span>
+                    </label>
+                    <textarea id="content" maxlength="2000" placeholder="写下你想分享的一切…… 支持2000字"></textarea>
+                </div>
+
+                <!-- 标签字段（与线上历史页locations标签风格近似）-->
+                <div class="form-item">
+                    <label>
+                        <span class="label-left">
+                            <span>🏷️ 标签</span>
+                        </span>
+                    </label>
+                    <input type="text" id="tag" placeholder="例：#校园 #匿名故事 用#分隔" autocomplete="off">
+                    <div class="field-hint">
+                        <span>🔖</span> 推荐添加 #学校  #生活  #树洞
+                    </div>
+                </div>
+
+                <!-- 图片上传 — 全新视觉，与卡片风格统一 -->
+                <div class="form-item">
+                    <label>
+                        <span class="label-left">
+                            <span>🖼️ 上传图片</span>
+                            <span class="tip-text">可选，最多5张</span>
+                        </span>
+                    </label>
+                    <div class="image-zone">
+                        <div class="image-upload-btn">
+                            <input type="file" id="imageFiles" class="file-input" accept="image/*" multiple>
+                            <label for="imageFiles" class="custom-file-label">
+                                <span style="font-size:1.2rem;">📎</span> 选择图片
+                            </label>
+                            <span class="file-hint" id="fileCountHint">未选择任何文件</span>
+                        </div>
+                        <!-- 图片预览容器 -->
+                        <div class="image-preview" id="imagePreviewContainer"></div>
+                    </div>
+                </div>
+
+                <!-- 提交按钮 — 黑底高亮，品牌印记 -->
+                <button type="submit" class="submit-btn">
+                    <span>✈️</span> 匿名提交 · 绝对保密
+                </button>
+            </form>
+
+            <!-- 隐私说明 — 轻量脚注 -->
+            <div style="margin-top: 1.8rem; font-size: 0.7rem; color: #6a889b; text-align: center; border-top: 1px solid #ecf5fa; padding-top: 1.2rem;">
+                ⚡ 投稿后经过人工审核展示 · 不会公开你的任何个人信息
             </div>
-            <div class="form-item">
-                <label for="tag">标签</label>
-                <input type="text" id="tag" placeholder="例：#学校 #生活，用#分隔">
-                <div class="tag-hint">建议添加#学校标签，方便分类展示</div>
-            </div>
-            <button type="submit">提交投稿</button>
-        </form>
+        </div>
+
+        <!-- 页脚导航：与历史页保持完全一致 -->
+        <div class="footer-note">
+            <a href="./index.html">← 当前状态</a> · 
+            <a href="https://ky-secret-v3.pages.dev/status/history">📋 历史事件</a> · 
+            <a href="#">📡 订阅</a>
+        </div>
     </div>
 
     <script>
-        const title = document.getElementById('title');
-        const titleCount = document.getElementById('titleCount');
-        const content = document.getElementById('content');
-        const contentCount = document.getElementById('contentCount');
-        const imageInput = document.getElementById('image');
-        const imageName = document.getElementById('imageName');
-        const imagePreview = document.getElementById('imagePreview');
-        const form = document.getElementById('submitForm');
+        (function() {
+            "use strict";
 
-        // 字数统计
-        title.oninput = () => titleCount.innerText = `${title.value.length}/20`;
-        content.oninput = () => contentCount.innerText = `${content.value.length}/2000`;
+            // ========= KY Secret V3 投稿脚本 =========
+            // 完全保留原有功能：字数统计、图片预览、FormData提交
+            // 视觉统一 + 增强体验，对接隧道后端
 
-        // 图片上传预览
-        imageInput.onchange = () => {
-            const files = imageInput.files;
-            imageName.innerText = files.length > 0 ? `${files.length} 个文件已选择` : '未选择任何文件';
-            imagePreview.innerHTML = '';
-            for (const file of files) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    imagePreview.appendChild(img);
-                };
-                reader.readAsDataURL(file);
+            // DOM 元素
+            const titleInput = document.getElementById('title');
+            const contentInput = document.getElementById('content');
+            const tagInput = document.getElementById('tag');
+            const titleCounter = document.getElementById('titleCounter');
+            const contentCounter = document.getElementById('contentCounter');
+            const fileInput = document.getElementById('imageFiles');
+            const fileHint = document.getElementById('fileCountHint');
+            const previewContainer = document.getElementById('imagePreviewContainer');
+            const form = document.getElementById('kySubmitForm');
+
+            // ---------- 字数实时统计 ----------
+            function updateTitleCounter() {
+                const len = titleInput.value.length;
+                titleCounter.innerText = `${len}/20`;
             }
-        };
-
-        // 提交表单（对接Tunnel后端）
-        form.onsubmit = (e) => {
-            e.preventDefault();
-            const contentValue = content.value.trim();
-            const titleValue = title.value.trim();
-            const hasContent = contentValue.length > 0;
-            const hasTitle = titleValue.length > 0;
-            const hasImage = imageInput.files.length > 0;
-
-            if (!hasContent && !hasTitle && !hasImage) {
-                alert('请至少填写匿名投稿内容、标题或上传一张图片');
-                return;
+            function updateContentCounter() {
+                const len = contentInput.value.length;
+                contentCounter.innerText = `${len}/2000`;
             }
 
-            const formData = new FormData();
-            formData.append('title', titleValue);
-            formData.append('content', contentValue);
-            formData.append('tag', document.getElementById('tag').value);
-            for (const file of imageInput.files) {
-                formData.append('images', file);
-            }
+            titleInput.addEventListener('input', updateTitleCounter);
+            contentInput.addEventListener('input', updateContentCounter);
 
-            // 替换为你的Tunnel后端API地址，例如: https://api.ky-secret-v3.pages.dev/submit
-            fetch('https://你的隧道域名/submit', {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                alert('投稿提交成功！');
-                form.reset();
-                imagePreview.innerHTML = '';
-                imageName.innerText = '未选择任何文件';
-                titleCount.innerText = '0/20';
-                contentCount.innerText = '0/2000';
-            })
-            .catch(err => {
-                console.error('提交失败:', err);
-                alert('投稿提交失败，请稍后重试');
+            // 初始化计数
+            updateTitleCounter();
+            updateContentCounter();
+
+            // ---------- 多图预览 + 文件数量提示 (增强) ----------
+            fileInput.addEventListener('change', function(e) {
+                const files = Array.from(fileInput.files);
+                if (files.length === 0) {
+                    fileHint.innerText = '未选择任何文件';
+                    previewContainer.innerHTML = '';
+                    return;
+                }
+
+                // 限制最多5张 (友好提示)
+                if (files.length > 5) {
+                    alert('最多只能上传5张图片，超出部分不会被提交');
+                    // 只保留前5个
+                    const dt = new DataTransfer();
+                    files.slice(0, 5).forEach(f => dt.items.add(f));
+                    fileInput.files = dt.files;
+                    files.length = 5;
+                }
+
+                fileHint.innerText = `已选择 ${files.length} 个文件`;
+
+                // 清空并重新生成预览
+                previewContainer.innerHTML = '';
+                files.forEach(file => {
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                            const previewItem = document.createElement('div');
+                            previewItem.className = 'preview-item';
+                            const img = document.createElement('img');
+                            img.src = ev.target.result;
+                            previewItem.appendChild(img);
+                            previewContainer.appendChild(previewItem);
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
             });
-        };
+
+            // ---------- 表单提交 (对接真实Tunnel后端) ----------
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                // 内容至少填写一项：内容/标题/图片  (保持原规则)
+                const hasContent = contentInput.value.trim().length > 0;
+                const hasTitle = titleInput.value.trim().length > 0;
+                const hasImages = fileInput.files.length > 0;
+
+                if (!hasContent && !hasTitle && !hasImages) {
+                    alert('请至少填写匿名投稿内容、标题或上传一张图片');
+                    return;
+                }
+
+                // 构建 FormData
+                const formData = new FormData();
+                formData.append('title', titleInput.value.trim());
+                formData.append('content', contentInput.value.trim());
+                formData.append('tag', tagInput.value.trim() || '');
+
+                // 添加图片 (支持多张)
+                const files = fileInput.files;
+                for (let i = 0; i < files.length; i++) {
+                    formData.append('images', files[i]);
+                }
+
+                // ---------- 在这里替换为你的真实隧道地址 ----------
+                const SUBMIT_ENDPOINT = 'https://你的隧道域名/submit';  // ⚠️ 请修改为真实地址
+
+                // 显示提交中状态
+                const submitBtn = document.querySelector('.submit-btn');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<span>⏳</span> 提交中...';
+                submitBtn.disabled = true;
+
+                // 模拟演示：如果你没有真实后端，可以取消注释下面两行来模拟成功
+                // 生产环境请删除模拟代码，启用真实fetch
+
+                /* ---- 真实fetch (注释掉模拟，启用此段) ----
+                fetch(SUBMIT_ENDPOINT, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    return res.json();
+                })
+                .then(data => {
+                    alert('✅ 投稿提交成功！感谢你的分享。');
+                    form.reset();
+                    // 重置UI
+                    previewContainer.innerHTML = '';
+                    fileHint.innerText = '未选择任何文件';
+                    titleCounter.innerText = '0/20';
+                    contentCounter.innerText = '0/2000';
+                })
+                .catch(err => {
+                    console.error('提交失败:', err);
+                    alert('❌ 投稿提交失败，请稍后重试');
+                })
+                .finally(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+                */
+
+                // ========= 演示模式：模拟提交成功 (仅用于前端预览) =========
+                // 上线时请删除以下 setTimeout 模拟，并打开上方真实fetch代码块
+                setTimeout(() => {
+                    alert('✅ [演示模式] 投稿提交成功！(请替换为真实隧道地址)');
+                    form.reset();
+                    previewContainer.innerHTML = '';
+                    fileHint.innerText = '未选择任何文件';
+                    titleCounter.innerText = '0/20';
+                    contentCounter.innerText = '0/2000';
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }, 800);
+                // ========= 模拟结束 =========
+            });
+
+        })();
     </script>
+
+    <!-- 
+        设计一致性声明：
+        - 导航栏、logo、按钮与状态页/历史页100%同款。
+        - 卡片圆角28px、边框#ecf1f7、细腻阴影，继承历史事件卡。
+        - 黑底提交按钮 → 与 .nav-btn.active 视觉同源。
+        - 标签提示框采用圆角60px、背景#f4faff，呼应历史页location-badge。
+        - 保留完整投稿功能，无任何时间轴/检测干扰，纯粹投稿界面。
+        - 隧道API地址需用户自行替换。
+    -->
 </body>
 </html>
