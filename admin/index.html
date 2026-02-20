@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
-    <title>KY Secret · 管理控制台</title>
+    <title>KY Secret · 管理员登录</title>
     <style>
-        /* ===== KY Secret 全站视觉系统 — 管理后台一体化版 ===== */
-        /* 无跳转、无重定向，登录/工作台在同一页面 */
+        /* ===== KY Secret 全站视觉系统 ===== */
         * {
             margin: 0;
             padding: 0;
@@ -16,110 +15,67 @@
 
         body {
             background: #f7fafc;
-            color: #0f2a40;
-            padding: 2rem 1rem;
             display: flex;
             justify-content: center;
+            align-items: center;
             min-height: 100vh;
+            padding: 1rem;
         }
 
-        .ky-container {
-            max-width: 960px;
-            width: 100%;
-            margin: 0 auto;
-        }
-
-        /* ===== 全局导航 — 与全站统一 ===== */
-        .nav-header {
-            text-align: center;
-            margin-bottom: 2.5rem;
-        }
-
-        .logo {
-            font-size: 5rem;
-            font-weight: 900;
-            color: #000000;
-            letter-spacing: -0.02em;
-            margin-bottom: 0.5rem;
-            line-height: 1;
-        }
-
-        .nav-buttons {
-            display: flex;
-            gap: 0.75rem;
-            justify-content: center;
-            margin-bottom: 1.2rem;
-            flex-wrap: wrap;
-        }
-
-        .nav-btn {
-            padding: 0.5rem 1.4rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 40px;
-            background: #ffffff;
-            color: #334155;
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 550;
-            transition: 0.15s;
-        }
-
-        .nav-btn:hover {
-            background: #eef2f6;
-            border-color: #cbd5e1;
-        }
-
-        .nav-btn.active {
-            background: #0f172a;
-            color: white;
-            border-color: #0f172a;
-        }
-
-        /* ===== 管理后台主卡片 ===== */
-        .admin-card {
-            background: white;
-            border-radius: 28px;
-            border: 1px solid #ecf1f7;
-            box-shadow: 0 4px 14px rgba(0, 20, 40, 0.02);
-            padding: 2rem 2rem 2.2rem;
-            margin-bottom: 1.8rem;
-            min-height: 500px;
-            position: relative;
-        }
-
-        /* ===== 登录面板（内嵌，不是独立页面）===== */
-        .login-panel {
+        .login-container {
             max-width: 420px;
-            margin: 2rem auto;
-            padding: 2rem 2rem 2.2rem;
-            background: #fafeff;
-            border-radius: 32px;
-            border: 1px solid #e2ecf5;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+            width: 100%;
         }
 
-        .login-header {
+        .logo-area {
             text-align: center;
             margin-bottom: 2rem;
         }
 
-        .login-header h2 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #0f2a40;
-            margin-bottom: 0.4rem;
+        .logo {
+            font-size: 4.5rem;
+            font-weight: 900;
+            color: #000000;
+            letter-spacing: -0.02em;
+            line-height: 1;
+            margin-bottom: 0.5rem;
         }
 
-        .login-header p {
+        .logo-sub {
             color: #657e96;
             font-size: 0.9rem;
         }
 
-        .input-group {
-            margin-bottom: 1.4rem;
+        .login-card {
+            background: white;
+            border-radius: 32px;
+            border: 1px solid #ecf1f7;
+            box-shadow: 0 8px 24px rgba(0, 20, 40, 0.05);
+            padding: 2.2rem 2rem;
         }
 
-        .input-label {
+        .login-header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .login-header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #0f2a40;
+            margin-bottom: 0.3rem;
+        }
+
+        .login-header p {
+            color: #6b8ba5;
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
             display: block;
             font-size: 0.85rem;
             font-weight: 600;
@@ -127,20 +83,20 @@
             margin-bottom: 0.5rem;
         }
 
-        .admin-input {
+        .form-input {
             width: 100%;
             padding: 0.9rem 1.2rem;
             border: 1.5px solid #e2ecf5;
             border-radius: 60px;
             font-size: 0.95rem;
             background: white;
-            transition: 0.15s;
+            transition: all 0.15s;
             outline: none;
         }
 
-        .admin-input:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.08);
+        .form-input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
         }
 
         .login-btn {
@@ -154,272 +110,130 @@
             font-weight: 600;
             cursor: pointer;
             transition: 0.15s;
-            margin-top: 0.8rem;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 0.6rem;
+            margin-top: 0.8rem;
         }
 
         .login-btn:hover {
             background: #1e2f45;
         }
 
-        .login-hint {
-            text-align: center;
-            margin-top: 1.2rem;
-            font-size: 0.75rem;
-            color: #6f8faa;
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
-        /* ===== 仪表盘区域（登录后显示）===== */
-        .dashboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .welcome-section {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .admin-avatar {
-            width: 48px;
-            height: 48px;
-            background: #0f172a;
-            color: white;
+        .error-message {
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 0.8rem 1.2rem;
             border-radius: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.4rem;
-            font-weight: 600;
-        }
-
-        .welcome-text h2 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #0f2a40;
-        }
-
-        .welcome-text p {
-            color: #657e96;
-            font-size: 0.85rem;
-        }
-
-        .logout-btn {
-            background: #f1f5f9;
-            color: #1e3f5c;
-            border: 1px solid #dae2ed;
-            padding: 0.6rem 1.5rem;
-            border-radius: 40px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.15s;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .logout-btn:hover {
-            background: #e4ecf5;
-        }
-
-        /* 状态卡片 */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 1.2rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-item {
-            background: #fafeff;
-            border: 1px solid #e2ecf5;
-            border-radius: 20px;
-            padding: 1.2rem 1rem;
-        }
-
-        .stat-label {
             font-size: 0.8rem;
-            color: #657e96;
-            text-transform: uppercase;
-            margin-bottom: 0.4rem;
-        }
-
-        .stat-value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #0f2a40;
-        }
-
-        .stat-error {
-            color: #cd3c30;
-        }
-
-        /* 时间轴 */
-        .timeline-container {
-            margin: 1.5rem 0;
-        }
-
-        .timeline-bars {
-            display: flex;
-            gap: 2px;
-            height: 24px;
-            background: #f1f7fd;
-            border-radius: 12px;
-            padding: 2px;
-        }
-
-        .timeline-block {
-            flex: 1;
-            border-radius: 4px;
-            background: #e2e8f0;
-        }
-
-        .timeline-block.ok { background: #10b981; }
-        .timeline-block.down { background: #ef4444; }
-
-        /* 投稿列表 */
-        .submissions-list {
-            margin-top: 1.5rem;
-        }
-
-        .submission-item {
-            background: #fafeff;
-            border: 1px solid #e2ecf5;
-            border-radius: 20px;
-            padding: 1.2rem 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .footer-note {
-            text-align: center;
-            margin-top: 2.5rem;
-            font-size: 0.75rem;
-            color: #7996ae;
-            border-top: 1px solid #e2ecf5;
-            padding-top: 1.8rem;
-        }
-
-        /* 切换动画 */
-        .fade-transition {
-            transition: opacity 0.2s ease;
-        }
-
-        .hidden {
+            margin-bottom: 1.2rem;
             display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .error-message.show {
+            display: flex;
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .api-config {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #f1f7fd;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            color: #4a5f73;
+        }
+
+        .api-config input {
+            width: 100%;
+            margin-top: 0.5rem;
+            padding: 0.5rem 0.8rem;
+            border: 1px solid #cde0ed;
+            border-radius: 30px;
+            font-size: 0.8rem;
+        }
+
+        .hint-text {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.75rem;
+            color: #7e99b5;
+        }
+
+        .hint-text a {
+            color: #2563eb;
+            text-decoration: none;
         }
     </style>
 </head>
 <body>
-    <div class="ky-container">
-        <!-- 全局导航 — URL 始终保持 /admin，无跳转感 -->
-        <div class="nav-header">
+    <div class="login-container">
+        <div class="logo-area">
             <div class="logo">KYSECRET</div>
-            <div class="nav-buttons">
-                <a href="./index.html" class="nav-btn">📊 状态</a>
-                <a href="https://ky-secret-v3.pages.dev/status/history" class="nav-btn">📋 历史</a>
-                <a href="./submit.html" class="nav-btn">✉️ 投稿</a>
-                <a href="#" class="nav-btn active">⚙️ 管理</a>
-                <a href="./result.html" class="nav-btn">🔍 查询</a>
-            </div>
+            <div class="logo-sub">管理员登录 · 内容管理系统</div>
         </div>
 
-        <!-- 管理后台一体化卡片：登录/仪表盘 都在这里切换 -->
-        <div class="admin-card" id="adminCard">
-            <!-- ===== 登录面板（初始显示）===== -->
-            <div id="loginPanel" class="login-panel">
-                <div class="login-header">
-                    <h2>管理员登录</h2>
-                    <p>KY Secret 内容管理后台</p>
+        <div class="login-card">
+            <div class="login-header">
+                <h1>欢迎回来</h1>
+                <p>请输入你的管理员凭证</p>
+            </div>
+
+            <!-- 错误提示区域 -->
+            <div id="errorMessage" class="error-message">
+                <span>⚠️</span>
+                <span id="errorText"></span>
+            </div>
+
+            <!-- API 地址配置（调试用，正式可隐藏） -->
+            <div class="api-config">
+                <label style="font-weight:600;">🔌 后端API地址</label>
+                <input type="text" id="apiBaseUrl" value="https://www.qqq.servehttp.com" placeholder="例如: https://你的域名.com">
+                <div style="margin-top:0.3rem; color:#b45353; font-size:0.7rem;">当前指向: www.qqq.servehttp.com (需要你确认)</div>
+            </div>
+
+            <!-- 登录表单 -->
+            <form id="loginForm" onsubmit="return false;">
+                <div class="form-group">
+                    <label class="form-label">👤 用户名</label>
+                    <input type="text" id="username" class="form-input" placeholder="输入用户名" autocomplete="username" value="admin">
                 </div>
-                <div class="input-group">
-                    <label class="input-label">👤 用户名</label>
-                    <input type="text" id="username" class="admin-input" placeholder="admin" value="admin">
+
+                <div class="form-group">
+                    <label class="form-label">🔑 密码</label>
+                    <input type="password" id="password" class="form-input" placeholder="输入密码" autocomplete="current-password" value="admin123">
                 </div>
-                <div class="input-group">
-                    <label class="input-label">🔑 密码</label>
-                    <input type="password" id="password" class="admin-input" placeholder="••••••••" value="123456">
-                </div>
-                <button class="login-btn" id="loginBtn">
-                    <span>🔐</span> 登录 · 进入仪表盘
+
+                <button type="submit" id="loginBtn" class="login-btn">
+                    <span>🔐</span>
+                    <span>登录后台</span>
                 </button>
-                <div class="login-hint">
-                    ⚡ 演示模式 · 任意账号密码即可登录
-                </div>
+            </form>
+
+            <div class="hint-text">
+                <span id="loginStatus">⚡ 等待登录</span> · 
+                <a href="#" onclick="testConnection()">测试连接</a>
             </div>
-
-            <!-- ===== 仪表盘面板（登录后显示，初始隐藏）===== -->
-            <div id="dashboardPanel" class="hidden">
-                <!-- 头部：欢迎语 + 退出按钮 -->
-                <div class="dashboard-header">
-                    <div class="welcome-section">
-                        <div class="admin-avatar">KY</div>
-                        <div class="welcome-text">
-                            <h2 id="welcomeAdmin">欢迎回来，管理员</h2>
-                            <p id="loginTime">上次登录: 刚刚</p>
-                        </div>
-                    </div>
-                    <button class="logout-btn" id="logoutBtn">
-                        <span>🚪</span> 退出登录
-                    </button>
-                </div>
-
-                <!-- 服务器状态卡片 -->
-                <div style="margin-bottom: 1.8rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h3 style="font-size: 1.1rem; color: #0f2a40;">🖥️ 服务器实时状态</h3>
-                        <span style="background: #fee2e2; color: #b45353; padding: 0.2rem 1rem; border-radius: 60px; font-size: 0.7rem;">LIVE · 模拟</span>
-                    </div>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="stat-label">CPU</div>
-                            <div><span class="stat-value stat-error" id="cpuValue">ERR</span><span class="stat-unit">%</span></div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">GPU</div>
-                            <div><span class="stat-value stat-error" id="gpuValue">ERR</span><span class="stat-unit">%</span></div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">内存</div>
-                            <div><span class="stat-value stat-error" id="memValue">ERR</span><span class="stat-unit">%</span></div>
-                        </div>
-                    </div>
-
-                    <!-- 时间轴 -->
-                    <div class="timeline-container">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                            <span style="font-size:0.8rem; color:#526f85;">服务历史 (7天)</span>
-                            <span style="font-size:0.8rem;"><span style="color:#10b981;">●</span> 正常 <span style="color:#ef4444; margin-left:8px;">●</span> 故障</span>
-                        </div>
-                        <div class="timeline-bars" id="serverTimeline"></div>
-                    </div>
-                </div>
-
-                <!-- 待审核投稿 -->
-                <div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h3 style="font-size: 1.1rem; color: #0f2a40;">📬 待审核投稿</h3>
-                        <span style="background: #e68a2e; color: white; padding: 0.2rem 1rem; border-radius: 60px; font-size: 0.7rem;" id="pendingCount">2 待处理</span>
-                    </div>
-                    <div id="submissionsContainer" class="submissions-list">
-                        <!-- JS动态渲染 -->
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 页脚 -->
-        <div class="footer-note">
-            <a href="./index.html">← 当前状态</a> · 
-            <a href="https://ky-secret-v3.pages.dev/status/history">📋 历史事件</a> · 
-            <a href="#">📡 订阅</a>
         </div>
     </div>
 
@@ -427,199 +241,149 @@
         (function() {
             "use strict";
 
-            // ===== KY Secret 一体化管理后台 =====
-            // 核心：同一页面，无跳转。访问 /admin 即看到完整界面。
-            // 登录前显示登录卡片，登录后隐藏登录卡片，显示仪表盘。
-            // URL 始终保持当前路径，不改变。
-
-            // ---------- 状态管理 ----------
-            let isLoggedIn = false;
-
             // DOM 元素
-            const loginPanel = document.getElementById('loginPanel');
-            const dashboardPanel = document.getElementById('dashboardPanel');
-            const loginBtn = document.getElementById('loginBtn');
-            const logoutBtn = document.getElementById('logoutBtn');
+            const apiBaseUrlInput = document.getElementById('apiBaseUrl');
             const usernameInput = document.getElementById('username');
             const passwordInput = document.getElementById('password');
+            const loginBtn = document.getElementById('loginBtn');
+            const loginForm = document.getElementById('loginForm');
+            const errorMessage = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            const loginStatus = document.getElementById('loginStatus');
 
-            // ---------- 初始化：检查本地存储，保持登录状态 ----------
-            function initAuth() {
-                const savedToken = localStorage.getItem('admin_token');
-                const savedUser = localStorage.getItem('admin_user');
-                
-                if (savedToken && savedUser) {
-                    // 有令牌，直接显示仪表盘
-                    isLoggedIn = true;
-                    showDashboard(savedUser);
+            // 工具函数
+            function showError(msg) {
+                errorText.innerText = msg;
+                errorMessage.classList.add('show');
+                loginStatus.innerHTML = '❌ ' + msg;
+            }
+
+            function hideError() {
+                errorMessage.classList.remove('show');
+            }
+
+            function setLoading(isLoading) {
+                if (isLoading) {
+                    loginBtn.disabled = true;
+                    loginBtn.innerHTML = '<span class="spinner"></span><span>登录中...</span>';
+                    loginStatus.innerHTML = '⏳ 登录中...';
                 } else {
-                    // 未登录，显示登录面板
-                    isLoggedIn = false;
-                    showLogin();
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<span>🔐</span><span>登录后台</span>';
                 }
             }
 
-            // ---------- 显示登录界面（隐藏仪表盘）----------
-            function showLogin() {
-                loginPanel.classList.remove('hidden');
-                dashboardPanel.classList.add('hidden');
+            // 获取完整的登录接口地址
+            function getLoginUrl() {
+                let base = apiBaseUrlInput.value.trim();
+                if (!base) return '';
+                // 去掉末尾的斜杠
+                base = base.replace(/\/$/, '');
+                return base + '/api/login';
             }
 
-            // ---------- 显示仪表盘（隐藏登录）----------
-            function showDashboard(username) {
-                loginPanel.classList.add('hidden');
-                dashboardPanel.classList.remove('hidden');
+            // 测试连接
+            window.testConnection = async function() {
+                const url = getLoginUrl();
+                if (!url) {
+                    alert('请输入API地址');
+                    return;
+                }
                 
-                // 更新欢迎信息
-                document.getElementById('welcomeAdmin').innerText = `欢迎回来，${username || '管理员'}`;
-                document.getElementById('loginTime').innerHTML = `上次登录: ${new Date().toLocaleString('zh-CN', { hour12: false })}`;
-                
-                // 加载仪表盘数据
-                loadDashboardData();
-            }
+                loginStatus.innerHTML = '⏳ 测试连接中...';
+                try {
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: 'test', pwd: 'test' })
+                    });
+                    
+                    if (res.ok) {
+                        loginStatus.innerHTML = '✅ 服务器可连接';
+                    } else {
+                        const data = await res.json().catch(() => ({}));
+                        loginStatus.innerHTML = `⚠️ 服务器响应 ${res.status}`;
+                    }
+                } catch (err) {
+                    loginStatus.innerHTML = '❌ 无法连接到服务器';
+                    console.error(err);
+                }
+            };
 
-            // ---------- 登录处理 ----------
-            function handleLogin() {
-                const username = usernameInput.value.trim() || '管理员';
+            // 登录处理
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const username = usernameInput.value.trim();
                 const password = passwordInput.value.trim();
+                const loginUrl = getLoginUrl();
 
-                // 演示模式：任意非空密码即成功
-                if (password.length === 0) {
-                    alert('请输入密码');
+                if (!username || !password) {
+                    showError('用户名和密码不能为空');
                     return;
                 }
 
-                // 模拟登录请求
-                const mockToken = 'ky_admin_' + Math.random().toString(36).substring(2);
-                
-                // 存储登录状态
-                localStorage.setItem('admin_token', mockToken);
-                localStorage.setItem('admin_user', username);
-                
-                // 切换到仪表盘（无跳转，无刷新）
-                isLoggedIn = true;
-                showDashboard(username);
-            }
-
-            // ---------- 退出登录 ----------
-            function handleLogout() {
-                // 清除本地存储
-                localStorage.removeItem('admin_token');
-                localStorage.removeItem('admin_user');
-                
-                // 切回登录面板（同一页面，无跳转）
-                isLoggedIn = false;
-                showLogin();
-            }
-
-            // ---------- 加载仪表盘数据（模拟）----------
-            function loadDashboardData() {
-                // 设置服务器状态（ERR）
-                document.getElementById('cpuValue').innerText = 'ERR';
-                document.getElementById('gpuValue').innerText = 'ERR';
-                document.getElementById('memValue').innerText = 'ERR';
-                
-                // 生成时间轴
-                generateTimeline('serverTimeline');
-                
-                // 加载投稿列表
-                renderSubmissions();
-            }
-
-            // ---------- 生成时间轴 ----------
-            function generateTimeline(containerId) {
-                const container = document.getElementById(containerId);
-                if (!container) return;
-                container.innerHTML = '';
-                
-                const totalBlocks = 56;
-                for (let i = 0; i < totalBlocks; i++) {
-                    const block = document.createElement('div');
-                    block.classList.add('timeline-block');
-                    block.classList.add(i >= totalBlocks - 8 ? 'down' : 'ok');
-                    container.appendChild(block);
+                if (!loginUrl) {
+                    showError('请输入API地址');
+                    return;
                 }
-            }
 
-            // ---------- 渲染投稿列表 ----------
-            function renderSubmissions() {
-                const container = document.getElementById('submissionsContainer');
-                if (!container) return;
+                hideError();
+                setLoading(true);
 
-                const submissions = [
-                    {
-                        id: '#KY-2402',
-                        title: '图书馆闭馆音乐太早',
-                        content: '每天晚上9点就关灯放音乐，考研党真的需要多学一小时...',
-                        time: '2026-02-13 15:23 CST',
-                        tags: ['#学校', '#建议']
-                    },
-                    {
-                        id: '#KY-2401',
-                        title: '匿名表白计算机学院李老师',
-                        content: '李老师讲课真的太清晰了！虽然这门课很难，但您让我觉得编程很有意思。',
-                        time: '2026-02-13 10:07 CST',
-                        tags: ['#校园', '#感谢']
-                    }
-                ];
-
-                document.getElementById('pendingCount').innerText = `${submissions.length} 待处理`;
-
-                container.innerHTML = submissions.map(sub => `
-                    <div class="submission-item">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.6rem;">
-                            <span style="background: #eef4ff; color: #2563eb; padding: 0.2rem 0.8rem; border-radius: 60px; font-size: 0.7rem;">${sub.id}</span>
-                            <span style="color: #657e96; font-size: 0.7rem;">${sub.time}</span>
-                        </div>
-                        <div style="font-size: 1rem; font-weight: 600; margin-bottom: 0.4rem;">${sub.title}</div>
-                        <div style="color: #2c4a6a; font-size: 0.85rem; margin-bottom: 0.8rem;">${sub.content}</div>
-                        <div style="display: flex; gap: 0.4rem; margin-bottom: 1rem;">
-                            ${sub.tags.map(t => `<span style="background: #e2ecf5; padding: 0.2rem 0.8rem; border-radius: 60px; font-size: 0.7rem;">${t}</span>`).join('')}
-                        </div>
-                        <div style="display: flex; gap: 0.8rem; justify-content: flex-end;">
-                            <button class="login-btn" style="width: auto; padding: 0.4rem 1.2rem; background: #10b981;" onclick="window.approveSubmission('${sub.id}')">✅ 通过</button>
-                            <button class="login-btn" style="width: auto; padding: 0.4rem 1.2rem; background: #f1f5f9; color: #1e3f5c;" onclick="window.rejectSubmission('${sub.id}')">⛔ 拒绝</button>
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            // ---------- 审核操作（模拟）----------
-            window.approveSubmission = function(id) {
-                alert(`✅ 投稿 ${id} 已通过（模拟）`);
-            };
-            
-            window.rejectSubmission = function(id) {
-                alert(`❌ 投稿 ${id} 已拒绝（模拟）`);
-            };
-
-            // ---------- 事件绑定 ----------
-            function bindEvents() {
-                loginBtn.addEventListener('click', handleLogin);
-                logoutBtn.addEventListener('click', handleLogout);
-                
-                // 回车登录
-                [usernameInput, passwordInput].forEach(input => {
-                    input.addEventListener('keypress', (e) => {
-                        if (e.key === 'Enter') handleLogin();
+                try {
+                    console.log('发送登录请求到:', loginUrl);
+                    
+                    const response = await fetch(loginUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            username: username,
+                            pwd: password
+                        }),
+                        credentials: 'include'  // 允许携带 Cookie
                     });
-                });
-            }
 
-            // ---------- 启动 ----------
-            initAuth();
-            bindEvents();
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.message || `登录失败 (${response.status})`);
+                    }
+
+                    if (!data.success) {
+                        throw new Error(data.message || '登录失败');
+                    }
+
+                    // 登录成功
+                    loginStatus.innerHTML = '✅ 登录成功，跳转中...';
+                    
+                    // 存储用户信息（可选）
+                    if (data.user) {
+                        localStorage.setItem('admin_user', JSON.stringify(data.user));
+                    }
+                    
+                    // 跳转到管理后台
+                    setTimeout(() => {
+                        window.location.href = '/admin/dashboard.html';
+                    }, 500);
+
+                } catch (error) {
+                    console.error('登录错误:', error);
+                    showError(error.message || '网络错误，请检查服务器是否运行');
+                } finally {
+                    setLoading(false);
+                }
+            });
+
+            // 输入时隐藏错误
+            usernameInput.addEventListener('input', hideError);
+            passwordInput.addEventListener('input', hideError);
+
+            // 自动测试连接（可选）
+            setTimeout(() => testConnection(), 1000);
         })();
     </script>
-
-    <!-- 
-        设计说明：
-        - 完全符合要求：访问 /admin 一个URL，登录前显示登录卡，登录后同页面显示仪表盘
-        - 无任何页面跳转、无URL变化、无重定向
-        - 技术栈：纯HTML/CSS/JavaScript，条件渲染，localStorage持久化
-        - 视觉100%统一于全站设计体系
-        - 演示模式：任意密码即可登录，方便测试
-        - 实际使用时，只需将handleLogin中的模拟替换为真实fetch请求即可
-    -->
 </body>
 </html>
