@@ -1,389 +1,150 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
-    <title>KY Secret · 管理员登录</title>
-    <style>
-        /* ===== KY Secret 全站视觉系统 ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+<script>
+    (function() {
+        "use strict";
+
+        // DOM 元素
+        const apiBaseUrlInput = document.getElementById('apiBaseUrl');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginForm = document.getElementById('loginForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+        const loginStatus = document.getElementById('loginStatus');
+
+        // ✅ 设置默认 API 地址为你的 Tunnel
+        apiBaseUrlInput.value = 'https://households-hartford-glass-optimal.trycloudflare.com';
+
+        // 工具函数
+        function showError(msg) {
+            errorText.innerText = msg;
+            errorMessage.classList.add('show');
+            loginStatus.innerHTML = '❌ ' + msg;
         }
 
-        body {
-            background: #f7fafc;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 1rem;
+        function hideError() {
+            errorMessage.classList.remove('show');
         }
 
-        .login-container {
-            max-width: 420px;
-            width: 100%;
-        }
-
-        .logo-area {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .logo {
-            font-size: 4.5rem;
-            font-weight: 900;
-            color: #000000;
-            letter-spacing: -0.02em;
-            line-height: 1;
-            margin-bottom: 0.5rem;
-        }
-
-        .logo-sub {
-            color: #657e96;
-            font-size: 0.9rem;
-        }
-
-        .login-card {
-            background: white;
-            border-radius: 32px;
-            border: 1px solid #ecf1f7;
-            box-shadow: 0 8px 24px rgba(0, 20, 40, 0.05);
-            padding: 2.2rem 2rem;
-        }
-
-        .login-header {
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-
-        .login-header h1 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #0f2a40;
-            margin-bottom: 0.3rem;
-        }
-
-        .login-header p {
-            color: #6b8ba5;
-            font-size: 0.9rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #1e3f5c;
-            margin-bottom: 0.5rem;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 0.9rem 1.2rem;
-            border: 1.5px solid #e2ecf5;
-            border-radius: 60px;
-            font-size: 0.95rem;
-            background: white;
-            transition: all 0.15s;
-            outline: none;
-        }
-
-        .form-input:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
-        }
-
-        .login-btn {
-            width: 100%;
-            background: #0f172a;
-            color: white;
-            border: none;
-            padding: 0.9rem 1.5rem;
-            border-radius: 60px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.15s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.6rem;
-            margin-top: 0.8rem;
-        }
-
-        .login-btn:hover {
-            background: #1e2f45;
-        }
-
-        .login-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .error-message {
-            background: #fee2e2;
-            color: #b91c1c;
-            padding: 0.8rem 1.2rem;
-            border-radius: 60px;
-            font-size: 0.8rem;
-            margin-bottom: 1.2rem;
-            display: none;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .error-message.show {
-            display: flex;
-        }
-
-        .spinner {
-            width: 18px;
-            height: 18px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .api-config {
-            margin-top: 1.5rem;
-            padding: 1rem;
-            background: #f1f7fd;
-            border-radius: 16px;
-            font-size: 0.8rem;
-            color: #4a5f73;
-        }
-
-        .api-config input {
-            width: 100%;
-            margin-top: 0.5rem;
-            padding: 0.5rem 0.8rem;
-            border: 1px solid #cde0ed;
-            border-radius: 30px;
-            font-size: 0.8rem;
-        }
-
-        .hint-text {
-            text-align: center;
-            margin-top: 1.5rem;
-            font-size: 0.75rem;
-            color: #7e99b5;
-        }
-
-        .hint-text a {
-            color: #2563eb;
-            text-decoration: none;
-        }
-    </style>
-</head>
-<body>
-    <div class="login-container">
-        <div class="logo-area">
-            <div class="logo">KYSECRET</div>
-            <div class="logo-sub">管理员登录 · 内容管理系统</div>
-        </div>
-
-        <div class="login-card">
-            <div class="login-header">
-                <h1>欢迎回来</h1>
-                <p>请输入你的管理员凭证</p>
-            </div>
-
-            <!-- 错误提示区域 -->
-            <div id="errorMessage" class="error-message">
-                <span>⚠️</span>
-                <span id="errorText"></span>
-            </div>
-
-            <!-- API 地址配置（调试用，正式可隐藏） -->
-            <div class="api-config">
-                <label style="font-weight:600;">🔌 后端API地址</label>
-                <input type="text" id="apiBaseUrl" value="https://www.qqq.servehttp.com" placeholder="例如: https://你的域名.com">
-                <div style="margin-top:0.3rem; color:#b45353; font-size:0.7rem;">当前指向: www.qqq.servehttp.com (需要你确认)</div>
-            </div>
-
-            <!-- 登录表单 -->
-            <form id="loginForm" onsubmit="return false;">
-                <div class="form-group">
-                    <label class="form-label">👤 用户名</label>
-                    <input type="text" id="username" class="form-input" placeholder="输入用户名" autocomplete="username" value="admin">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">🔑 密码</label>
-                    <input type="password" id="password" class="form-input" placeholder="输入密码" autocomplete="current-password" value="admin123">
-                </div>
-
-                <button type="submit" id="loginBtn" class="login-btn">
-                    <span>🔐</span>
-                    <span>登录后台</span>
-                </button>
-            </form>
-
-            <div class="hint-text">
-                <span id="loginStatus">⚡ 等待登录</span> · 
-                <a href="#" onclick="testConnection()">测试连接</a>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        (function() {
-            "use strict";
-
-            // DOM 元素
-            const apiBaseUrlInput = document.getElementById('apiBaseUrl');
-            const usernameInput = document.getElementById('username');
-            const passwordInput = document.getElementById('password');
-            const loginBtn = document.getElementById('loginBtn');
-            const loginForm = document.getElementById('loginForm');
-            const errorMessage = document.getElementById('errorMessage');
-            const errorText = document.getElementById('errorText');
-            const loginStatus = document.getElementById('loginStatus');
-
-            // 工具函数
-            function showError(msg) {
-                errorText.innerText = msg;
-                errorMessage.classList.add('show');
-                loginStatus.innerHTML = '❌ ' + msg;
+        function setLoading(isLoading) {
+            if (isLoading) {
+                loginBtn.disabled = true;
+                loginBtn.innerHTML = '<span class="spinner"></span><span>登录中...</span>';
+                loginStatus.innerHTML = '⏳ 登录中...';
+            } else {
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<span>🔐</span><span>登录后台</span>';
             }
+        }
 
-            function hideError() {
-                errorMessage.classList.remove('show');
+        // 获取完整的登录接口地址
+        function getLoginUrl() {
+            let base = apiBaseUrlInput.value.trim();
+            if (!base) return '';
+            base = base.replace(/\/$/, '');
+            return base + '/api/admin/login';  // ✅ 注意路径是 /api/admin/login
+        }
+
+        // 测试连接
+        window.testConnection = async function() {
+            const url = getLoginUrl();
+            if (!url) {
+                alert('请输入API地址');
+                return;
             }
-
-            function setLoading(isLoading) {
-                if (isLoading) {
-                    loginBtn.disabled = true;
-                    loginBtn.innerHTML = '<span class="spinner"></span><span>登录中...</span>';
-                    loginStatus.innerHTML = '⏳ 登录中...';
+            
+            loginStatus.innerHTML = '⏳ 测试连接中...';
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'test', password: 'test' })  // ✅ 用 password
+                });
+                
+                if (res.ok) {
+                    loginStatus.innerHTML = '✅ 服务器可连接';
                 } else {
-                    loginBtn.disabled = false;
-                    loginBtn.innerHTML = '<span>🔐</span><span>登录后台</span>';
+                    const data = await res.json().catch(() => ({}));
+                    loginStatus.innerHTML = `⚠️ 服务器响应 ${res.status}`;
                 }
+            } catch (err) {
+                loginStatus.innerHTML = '❌ 无法连接到服务器';
+                console.error(err);
+            }
+        };
+
+        // 登录处理
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+            const loginUrl = getLoginUrl();
+
+            if (!username || !password) {
+                showError('用户名和密码不能为空');
+                return;
             }
 
-            // 获取完整的登录接口地址
-            function getLoginUrl() {
-                let base = apiBaseUrlInput.value.trim();
-                if (!base) return '';
-                // 去掉末尾的斜杠
-                base = base.replace(/\/$/, '');
-                return base + '/api/login';
+            if (!loginUrl) {
+                showError('请输入API地址');
+                return;
             }
 
-            // 测试连接
-            window.testConnection = async function() {
-                const url = getLoginUrl();
-                if (!url) {
-                    alert('请输入API地址');
-                    return;
-                }
+            hideError();
+            setLoading(true);
+
+            try {
+                console.log('发送登录请求到:', loginUrl);
+                console.log('请求数据:', { username, password });  // ✅ 调试用
                 
-                loginStatus.innerHTML = '⏳ 测试连接中...';
-                try {
-                    const res = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username: 'test', pwd: 'test' })
-                    });
-                    
-                    if (res.ok) {
-                        loginStatus.innerHTML = '✅ 服务器可连接';
-                    } else {
-                        const data = await res.json().catch(() => ({}));
-                        loginStatus.innerHTML = `⚠️ 服务器响应 ${res.status}`;
-                    }
-                } catch (err) {
-                    loginStatus.innerHTML = '❌ 无法连接到服务器';
-                    console.error(err);
-                }
-            };
+                const response = await fetch(loginUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password  // ✅ 关键修改：pwd -> password
+                    }),
+                    credentials: 'include'  // 允许携带 Cookie
+                });
 
-            // 登录处理
-            loginForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                const username = usernameInput.value.trim();
-                const password = passwordInput.value.trim();
-                const loginUrl = getLoginUrl();
+                const data = await response.json();
+                console.log('登录响应:', data);  // ✅ 调试用
 
-                if (!username || !password) {
-                    showError('用户名和密码不能为空');
-                    return;
+                if (!response.ok) {
+                    throw new Error(data.detail || `登录失败 (${response.status})`);
                 }
 
-                if (!loginUrl) {
-                    showError('请输入API地址');
-                    return;
-                }
-
-                hideError();
-                setLoading(true);
-
-                try {
-                    console.log('发送登录请求到:', loginUrl);
-                    
-                    const response = await fetch(loginUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            username: username,
-                            pwd: password
-                        }),
-                        credentials: 'include'  // 允许携带 Cookie
-                    });
-
-                    const data = await response.json();
-
-                    if (!response.ok) {
-                        throw new Error(data.message || `登录失败 (${response.status})`);
-                    }
-
-                    if (!data.success) {
-                        throw new Error(data.message || '登录失败');
-                    }
-
-                    // 登录成功
+                // ✅ 判断成功条件：你的后端返回 {"ok": true}
+                if (data.ok === true) {
                     loginStatus.innerHTML = '✅ 登录成功，跳转中...';
                     
-                    // 存储用户信息（可选）
-                    if (data.user) {
-                        localStorage.setItem('admin_user', JSON.stringify(data.user));
-                    }
+                    // 存储用户信息
+                    localStorage.setItem('admin_user', JSON.stringify({ username }));
                     
                     // 跳转到管理后台
                     setTimeout(() => {
                         window.location.href = '/admin/dashboard.html';
                     }, 500);
-
-                } catch (error) {
-                    console.error('登录错误:', error);
-                    showError(error.message || '网络错误，请检查服务器是否运行');
-                } finally {
-                    setLoading(false);
+                } else {
+                    throw new Error('登录失败：' + JSON.stringify(data));
                 }
-            });
 
-            // 输入时隐藏错误
-            usernameInput.addEventListener('input', hideError);
-            passwordInput.addEventListener('input', hideError);
+            } catch (error) {
+                console.error('登录错误:', error);
+                showError(error.message || '网络错误，请检查服务器是否运行');
+            } finally {
+                setLoading(false);
+            }
+        });
 
-            // 自动测试连接（可选）
-            setTimeout(() => testConnection(), 1000);
-        })();
-    </script>
-</body>
-</html>
+        // 输入时隐藏错误
+        usernameInput.addEventListener('input', hideError);
+        passwordInput.addEventListener('input', hideError);
+
+        // 自动测试连接
+        setTimeout(() => testConnection(), 1000);
+    })();
+</script>
