@@ -1,0 +1,12 @@
+{
+    "backend":"https://pvc-coins-productivity-dropped.trycloudflare.com",
+    "api": "/api",
+    "status" : "/status",
+    "submit" : "/submit",
+    "lookup" : "/lookup/{uuid}",
+    "admin_login" : "/admin/login",
+    "admin_logout" : "/admin/logout",
+    "admin_find" : "/admin/find",
+    "admin_review": "/admin/review",
+    "admin_history": "/admin/history"
+}
