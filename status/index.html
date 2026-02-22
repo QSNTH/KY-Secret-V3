@@ -221,6 +221,91 @@
       color: #4a627a;
     }
 
+    /* 硬件监控卡片 - 新增样式 */
+    .hardware-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      padding: 1.2rem 1.5rem;
+    }
+
+    .hardware-item {
+      background: #f8fafd;
+      border-radius: 20px;
+      padding: 1rem;
+      border: 1px solid #e6edf4;
+    }
+
+    .hardware-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.8rem;
+      font-weight: 600;
+      color: #1e3f5c;
+    }
+
+    .hardware-header span {
+      font-size: 1.2rem;
+    }
+
+    .hardware-detail {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .hardware-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: #2d4b68;
+    }
+
+    .hardware-label {
+      color: #607b96;
+    }
+
+    .hardware-value {
+      font-weight: 600;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 10px;
+      margin: 0.3rem 0;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 10px;
+      transition: width 0.3s ease;
+    }
+
+    .progress-fill.green { background: #0a8f5a; }
+    .progress-fill.yellow { background: #e68a2e; }
+    .progress-fill.red { background: #cd3c30; }
+
+    .gpu-specs {
+      grid-column: span 2;
+      background: #f0f5fa;
+      border-radius: 20px;
+      padding: 1rem;
+    }
+
+    .gpu-temp {
+      display: inline-block;
+      background: #ffe6e5;
+      color: #b11f1a;
+      padding: 0.2rem 0.8rem;
+      border-radius: 30px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
     /* 检测时间 & 刷新控件 */
     .check-footer {
       display: flex;
@@ -260,7 +345,7 @@
       border-color: #95b3cc;
     }
 
-    /* 页脚导航 - 统一风格 */
+    /* 页脚导航 */
     .footer-note {
       text-align: center;
       margin-top: 1.8rem;
@@ -285,6 +370,8 @@
       .logo { font-size: 4rem; }
       .service-item { flex-wrap: wrap; gap: 0.6rem; }
       .status-text { width: 100%; margin-left: 1.8rem; }
+      .hardware-grid { grid-template-columns: 1fr; }
+      .gpu-specs { grid-column: span 1; }
     }
   </style>
 </head>
@@ -306,46 +393,14 @@
       </div>
     </div>
 
-    <!-- ========= 前端托管 ========= -->
+    <!-- ========= 服务状态 ========= -->
     <div class="section">
       <div class="section-header">
-        🌐 前端托管
-        <span id="frontend-count">2 服务</span>
+        🌐 服务状态
+        <span>API 可用性</span>
       </div>
       <div class="service-list">
-        <!-- Cloudflare Pages -->
-        <div class="service-item" id="service-cf">
-          <div class="service-left">
-            <span class="status-indicator" id="indicator-cf"></span>
-            <span class="service-name">Cloudflare Pages</span>
-            <span class="service-endpoint">pages.kysecret.dev</span>
-          </div>
-          <div class="status-text">
-            <span id="status-badge-cf" class="status-badge badge-operational">检测中...</span>
-          </div>
-        </div>
-        <!-- GitHub Pages -->
-        <div class="service-item" id="service-gh">
-          <div class="service-left">
-            <span class="status-indicator" id="indicator-gh"></span>
-            <span class="service-name">GitHub Pages</span>
-            <span class="service-endpoint">ky-secret-v3.pages.dev</span>
-          </div>
-          <div class="status-text">
-            <span id="status-badge-gh" class="status-badge badge-operational">检测中...</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ========= 后端核心 ========= -->
-    <div class="section">
-      <div class="section-header">
-        ⚙️ 后端核心
-        <span id="backend-count">2 服务</span>
-      </div>
-      <div class="service-list">
-        <!-- Backend API (连接真实后端) -->
+        <!-- Backend API -->
         <div class="service-item" id="service-api">
           <div class="service-left">
             <span class="status-indicator" id="indicator-api"></span>
@@ -356,64 +411,47 @@
             <span id="status-badge-api" class="status-badge badge-unknown">检测中...</span>
           </div>
         </div>
-        <!-- 数据库 -->
-        <div class="service-item" id="service-db">
+        <!-- Status API -->
+        <div class="service-item" id="service-status">
           <div class="service-left">
-            <span class="status-indicator" id="indicator-db"></span>
-            <span class="service-name">Database</span>
-            <span class="service-endpoint">SQLite</span>
+            <span class="status-indicator" id="indicator-status"></span>
+            <span class="service-name">Status API</span>
+            <span class="service-endpoint">/api/status</span>
           </div>
           <div class="status-text">
-            <span id="status-badge-db" class="status-badge badge-unknown">检测中...</span>
+            <span id="status-badge-status" class="status-badge badge-unknown">检测中...</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ========= 管理后台 ========= -->
+    <!-- ========= 硬件监控 ========= -->
     <div class="section">
       <div class="section-header">
-        🔐 管理后台
-        <span id="admin-count">2 服务</span>
+        🖥️ 服务器硬件状态
+        <span id="hardware-time">实时</span>
       </div>
-      <div class="service-list">
-        <!-- Admin Login -->
-        <div class="service-item" id="service-login">
-          <div class="service-left">
-            <span class="status-indicator" id="indicator-login"></span>
-            <span class="service-name">Admin 登录</span>
-            <span class="service-endpoint">/api/admin/login</span>
-          </div>
-          <div class="status-text">
-            <span id="status-badge-login" class="status-badge badge-unknown">检测中...</span>
-          </div>
-        </div>
-        <!-- Admin Review -->
-        <div class="service-item" id="service-review">
-          <div class="service-left">
-            <span class="status-indicator" id="indicator-review"></span>
-            <span class="service-name">Admin 审核</span>
-            <span class="service-endpoint">/api/admin/review</span>
-          </div>
-          <div class="status-text">
-            <span id="status-badge-review" class="status-badge badge-unknown">检测中...</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 检测信息栏 -->
-      <div class="check-footer">
-        <div class="last-check">
-          <span>🕒 最后检测: </span>
-          <span id="lastCheckTime">刚刚</span>
-        </div>
-        <div id="manualRefreshBtn" class="refresh-btn">
-          <span>⟳</span> 立即检测
+      
+      <div id="hardwareMonitoring" style="min-height: 200px;">
+        <!-- 硬件监控内容将通过JS动态填充 -->
+        <div style="text-align: center; padding: 2rem; color: #94a3b8;">
+          <span>⏳ 正在获取硬件信息...</span>
         </div>
       </div>
     </div>
 
-    <!-- 页脚导航 - 统一风格 -->
+    <!-- ========= 检测信息栏 ========= -->
+    <div class="check-footer">
+      <div class="last-check">
+        <span>🕒 最后检测: </span>
+        <span id="lastCheckTime">刚刚</span>
+      </div>
+      <div id="manualRefreshBtn" class="refresh-btn">
+        <span>⟳</span> 立即刷新
+      </div>
+    </div>
+
+    <!-- 页脚导航 -->
     <div class="footer-note">
       <a href="./index.html">📊 当前状态</a> · 
       <a href="./history.html">📋 历史事件</a> · 
@@ -434,7 +472,7 @@
         } catch (e) {
           console.warn('无法加载配置，使用默认值');
           return {
-            backend: 'http://192.168.254.246:8000',
+            backend: 'https://pvc-coins-productivity-dropped.trycloudflare.com',
             api: '/api'
           };
         }
@@ -451,12 +489,12 @@
       let currentStatus = {};
       let backendUrl = '';
       let lastCheckTimestamp = Date.now();
+      let hardwareData = null;
 
-      // 更新UI
+      // 更新服务状态UI
       function updateServiceUI(id, state, message = '') {
         const indicator = document.getElementById(`indicator-${id}`);
         const badge = document.getElementById(`status-badge-${id}`);
-        const hintEl = document.getElementById(`hint-${id}`);
         
         if (indicator) {
           indicator.className = 'status-indicator';
@@ -486,11 +524,151 @@
           badge.innerText = text;
           badge.className = 'status-badge ' + badgeClass;
         }
-        
-        if (hintEl) {
-          hintEl.innerText = message || '';
-          hintEl.style.display = message ? 'inline-block' : 'none';
+      }
+
+      // 渲染硬件监控
+      function renderHardwareMonitoring(data) {
+        const container = document.getElementById('hardwareMonitoring');
+        if (!container) return;
+
+        if (!data) {
+          container.innerHTML = `
+            <div style="text-align: center; padding: 2rem; color: #94a3b8;">
+              <span>❌ 无法获取硬件信息</span>
+            </div>
+          `;
+          return;
         }
+
+        // 获取进度条颜色
+        function getProgressColor(percent) {
+          if (percent < 60) return 'green';
+          if (percent < 85) return 'yellow';
+          return 'red';
+        }
+
+        const cpuPercent = data.cpu?.usage_percent || 0;
+        const memPercent = data.memory?.usage_percent || 0;
+        const diskPercent = data.disk?.usage_percent || 0;
+
+        const html = `
+          <div class="hardware-grid">
+            <!-- CPU -->
+            <div class="hardware-item">
+              <div class="hardware-header">
+                <span>⚡</span> CPU
+              </div>
+              <div class="hardware-detail">
+                <div class="hardware-row">
+                  <span class="hardware-label">型号</span>
+                  <span class="hardware-value">${data.cpu?.name || '未知'}</span>
+                </div>
+                <div class="hardware-row">
+                  <span class="hardware-label">核心数</span>
+                  <span class="hardware-value">${data.cpu?.cores || 0} 核</span>
+                </div>
+                <div class="hardware-row">
+                  <span class="hardware-label">频率</span>
+                  <span class="hardware-value">${data.cpu?.freq || '0 GHz'}</span>
+                </div>
+                <div class="hardware-row">
+                  <span class="hardware-label">使用率</span>
+                  <span class="hardware-value">${cpuPercent.toFixed(1)}%</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill ${getProgressColor(cpuPercent)}" style="width: ${cpuPercent}%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 内存 -->
+            <div class="hardware-item">
+              <div class="hardware-header">
+                <span>📊</span> 内存
+              </div>
+              <div class="hardware-detail">
+                <div class="hardware-row">
+                  <span class="hardware-label">总容量</span>
+                  <span class="hardware-value">${data.memory?.total_gb || 0} GB</span>
+                </div>
+                <div class="hardware-row">
+                  <span class="hardware-label">已使用</span>
+                  <span class="hardware-value">${data.memory?.used_gb || 0} GB</span>
+                </div>
+                <div class="hardware-row">
+                  <span class="hardware-label">使用率</span>
+                  <span class="hardware-value">${memPercent.toFixed(1)}%</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill ${getProgressColor(memPercent)}" style="width: ${memPercent}%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 磁盘 -->
+            <div class="hardware-item">
+              <div class="hardware-header">
+                <span>💾</span> 磁盘
+              </div>
+              <div class="hardware-detail">
+                <div class="hardware-row">
+                  <span class="hardware-label">总容量</span>
+                  <span class="hardware-value">${data.disk?.total_gb || 0} GB</span>
+                </div>
+                <div class="hardware-row">
+                  <span class="hardware-label">已使用</span>
+                  <span class="hardware-value">${data.disk?.used_gb || 0} GB</span>
+                </div>
+                <div class="hardware-row">
+                  <span class="hardware-label">使用率</span>
+                  <span class="hardware-value">${diskPercent.toFixed(1)}%</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill ${getProgressColor(diskPercent)}" style="width: ${diskPercent}%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- GPU 信息（占两列？不，让它自适应） -->
+            <div class="hardware-item ${data.gpu?.name ? '' : 'gpu-specs'}">
+              <div class="hardware-header">
+                <span>🎮</span> GPU
+              </div>
+              <div class="hardware-detail">
+                <div class="hardware-row">
+                  <span class="hardware-label">型号</span>
+                  <span class="hardware-value">${data.gpu?.name || '未检测到'}</span>
+                </div>
+                ${data.gpu?.name ? `
+                <div class="hardware-row">
+                  <span class="hardware-label">使用率</span>
+                  <span class="hardware-value">${data.gpu.CUDA_usage_percent || 0}%</span>
+                </div>
+                <div class="hardware-row">
+                  <span class="hardware-label">温度</span>
+                  <span class="hardware-value">
+                    ${data.gpu.temp_c || 0}°C
+                    ${data.gpu.temp_c > 80 ? '<span class="gpu-temp">高温</span>' : ''}
+                  </span>
+                </div>
+                <div class="hardware-row">
+                  <span class="hardware-label">显存</span>
+                  <span class="hardware-value">${data.gpu.mem_used_gb || 0} / ${data.gpu.mem_total_gb || 0} GB</span>
+                </div>
+                <div class="hardware-row">
+                  <span class="hardware-label">显存使用率</span>
+                  <span class="hardware-value">${data.gpu.mem_percent?.toFixed(1) || 0}%</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill ${getProgressColor(data.gpu.mem_percent || 0)}" style="width: ${data.gpu.mem_percent || 0}%;"></div>
+                </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+
+        container.innerHTML = html;
       }
 
       // 更新全局横幅
@@ -545,48 +723,37 @@
         }
       }
 
-      // 检测数据库（通过API间接检测）
-      async function checkDatabase() {
-        if (!backendUrl) return STATUS.UNKNOWN;
+      // 检测Status API并获取硬件数据
+      async function checkStatusAPI() {
+        if (!backendUrl) return { state: STATUS.UNKNOWN, data: null };
         
         try {
-          const response = await fetch(`${backendUrl}/api/status`);
-          if (response.ok) {
-            return STATUS.OPERATIONAL;
-          }
-          return STATUS.DEGRADED;
-        } catch {
-          return STATUS.DOWN;
-        }
-      }
-
-      // 检测管理接口
-      async function checkAdminEndpoint(endpoint) {
-        if (!backendUrl) return STATUS.UNKNOWN;
-        
-        try {
-          const response = await fetch(`${backendUrl}${endpoint}`, {
-            method: endpoint.includes('login') ? 'POST' : 'GET',
-            headers: { 'Content-Type': 'application/json' }
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000);
+          
+          const response = await fetch(`${backendUrl}/api/status`, {
+            signal: controller.signal
           });
           
-          // 401是预期的（未登录），说明接口本身可用
-          if (response.status === 401 || response.status === 200) {
-            return STATUS.OPERATIONAL;
-          } else if (response.status >= 500) {
-            return STATUS.DOWN;
+          clearTimeout(timeoutId);
+          
+          if (response.ok) {
+            const data = await response.json();
+            hardwareData = data;
+            return { state: STATUS.OPERATIONAL, data };
           } else {
-            return STATUS.DEGRADED;
+            return { state: STATUS.DEGRADED, data: null };
           }
-        } catch {
-          return STATUS.DOWN;
+        } catch (error) {
+          console.warn('Status API检测失败:', error);
+          return { state: STATUS.DOWN, data: null };
         }
       }
 
       // 执行所有检测
       async function performHealthCheck() {
         const config = await loadConfig();
-        backendUrl = config.backend || 'http://192.168.254.246:8000';
+        backendUrl = config.backend || 'https://pvc-coins-productivity-dropped.trycloudflare.com';
         
         // 更新API端点显示
         const apiEndpoint = document.getElementById('api-endpoint');
@@ -594,35 +761,33 @@
           apiEndpoint.innerText = backendUrl.replace(/^https?:\/\//, '');
         }
 
-        // 并行检测所有服务
-        const results = await Promise.allSettled([
-          checkBackendAPI().then(state => ({ id: 'api', state })),
-          checkDatabase().then(state => ({ id: 'db', state })),
-          checkAdminEndpoint('/api/admin/login').then(state => ({ id: 'login', state })),
-          checkAdminEndpoint('/api/admin/review').then(state => ({ id: 'review', state }))
+        // 并行检测
+        const [apiState, statusResult] = await Promise.allSettled([
+          checkBackendAPI(),
+          checkStatusAPI()
         ]);
 
-        // 前端服务固定为正常
+        // 更新状态
         currentStatus = {
-          cf: STATUS.OPERATIONAL,
-          gh: STATUS.OPERATIONAL,
-          api: STATUS.UNKNOWN,
-          db: STATUS.UNKNOWN,
-          login: STATUS.UNKNOWN,
-          review: STATUS.UNKNOWN
+          api: apiState.status === 'fulfilled' ? apiState.value : STATUS.UNKNOWN,
+          status: statusResult.status === 'fulfilled' ? statusResult.value.state : STATUS.UNKNOWN
         };
 
-        // 更新检测结果
-        results.forEach(result => {
-          if (result.status === 'fulfilled' && result.value) {
-            currentStatus[result.value.id] = result.value.state;
-          }
-        });
+        // 如果有硬件数据，保存并渲染
+        if (statusResult.status === 'fulfilled' && statusResult.value.data) {
+          hardwareData = statusResult.value.data;
+          renderHardwareMonitoring(hardwareData);
+        } else if (hardwareData) {
+          // 如果这次没获取到但之前有缓存，显示缓存但标记为可能过期
+          renderHardwareMonitoring(hardwareData);
+        } else {
+          // 完全没有数据
+          renderHardwareMonitoring(null);
+        }
 
         // 更新UI
-        Object.entries(currentStatus).forEach(([id, state]) => {
-          updateServiceUI(id, state);
-        });
+        updateServiceUI('api', currentStatus.api);
+        updateServiceUI('status', currentStatus.status);
 
         // 更新全局状态
         updateGlobalBanner();
@@ -640,9 +805,8 @@
       // 初始化
       async function init() {
         // 先显示"检测中"
-        ['cf', 'gh', 'api', 'db', 'login', 'review'].forEach(id => {
-          updateServiceUI(id, STATUS.UNKNOWN);
-        });
+        updateServiceUI('api', STATUS.UNKNOWN);
+        updateServiceUI('status', STATUS.UNKNOWN);
 
         await performHealthCheck();
 
@@ -655,8 +819,8 @@
           });
         }
 
-        // 自动刷新（每60秒）
-        setInterval(performHealthCheck, 60000);
+        // 自动刷新（每30秒，因为硬件监控需要更实时）
+        setInterval(performHealthCheck, 30000);
       }
 
       init();
