@@ -330,6 +330,28 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.05);
         }
 
+        .preview-item .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 16px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-item .remove-btn:hover {
+            background: rgba(255,0,0,0.8);
+        }
+
         .submit-btn {
             width: 100%;
             padding: 1rem 1.5rem;
@@ -393,6 +415,38 @@
             padding: 0.2rem 0.8rem;
             font-size: 0.7rem;
         }
+
+        .required-star {
+            color: #c53030;
+            margin-left: 4px;
+            font-size: 0.9rem;
+        }
+
+        .or-divider {
+            text-align: center;
+            margin: 1rem 0;
+            position: relative;
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        .or-divider::before,
+        .or-divider::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: #e2e8f0;
+        }
+
+        .or-divider::before {
+            left: 0;
+        }
+
+        .or-divider::after {
+            right: 0;
+        }
     </style>
 </head>
 <body>
@@ -422,51 +476,43 @@
                         <span class="char-counter" id="titleCounter">0/20</span>
                     </label>
                     <input type="text" id="title" maxlength="20" placeholder="给你的投稿起个标题（20字以内）" autocomplete="off">
-                    <div class="field-hint">
-                        <span>✨</span> 好的标题更容易被看见
-                    </div>
                 </div>
 
                 <div class="form-item">
                     <label>
                         <span class="label-left">
                             <span>📄 匿名内容</span>
-                            <span style="color:#c53030; margin-left: 4px;">*</span>
+                            <span class="required-star" id="contentRequired">*</span>
                         </span>
-                        <span class="char-counter" id="contentCounter">0/2000</span>
+                        <span class="char-counter" id="contentCounter">0/200</span>
                     </label>
-                    <textarea id="content" maxlength="2000" placeholder="写下你想分享的一切…… 支持2000字"></textarea>
-                </div>
-                <!--
-                <div class="form-item">
-                    <label>
-                        <span class="label-left">
-                            <span>🏷️ 标签</span>
-                        </span>
-                    </label>
-                    <input type="text" id="tag" placeholder="例：#校园 #匿名故事 用#分隔" autocomplete="off">
-                    <div class="field-hint">
-                        <span>🔖</span> 推荐添加 #学校  #生活  #树洞
+                    <textarea id="content" maxlength="200" placeholder="写下你想分享的一切…… 支持200字"></textarea>
+                    <div class="field-hint" id="contentHint">
+                        <span>✍️</span> 和图片二选一即可
                     </div>
                 </div>
-                -->
+
+                <div class="or-divider">或者</div>
 
                 <div class="form-item">
                     <label>
                         <span class="label-left">
                             <span>🖼️ 上传图片</span>
-                            <span class="tip-text">可选，最多5张</span>
+                            <span class="required-star" id="imageRequired">*</span>
                         </span>
                     </label>
                     <div class="image-zone">
                         <div class="image-upload-btn">
-                            <input type="file" id="imageFiles" class="file-input" accept="image/*" multiple>
+                            <input type="file" id="imageFiles" class="file-input" accept="image/*">
                             <label for="imageFiles" class="custom-file-label">
                                 <span style="font-size:1.2rem;">📎</span> 选择图片
                             </label>
                             <span class="file-hint" id="fileCountHint">未选择任何文件</span>
                         </div>
                         <div class="image-preview" id="imagePreviewContainer"></div>
+                    </div>
+                    <div class="field-hint">
+                        <span>🖼️</span> 和内容二选一即可，只支持1张
                     </div>
                 </div>
 
@@ -501,56 +547,107 @@
             const fileHint = document.getElementById('fileCountHint');
             const previewContainer = document.getElementById('imagePreviewContainer');
             const form = document.getElementById('kySubmitForm');
+            const contentRequired = document.getElementById('contentRequired');
+            const imageRequired = document.getElementById('imageRequired');
             
             let isSubmitting = false;
+            let currentPreviewFile = null;
 
             // 字数统计
             function updateTitleCounter() {
                 titleCounter.innerText = `${titleInput.value.length}/20`;
             }
+            
             function updateContentCounter() {
                 contentCounter.innerText = `${contentInput.value.length}/200`;
+                updateRequiredFields();
+            }
+
+            // 更新必填标记
+            function updateRequiredFields() {
+                const hasContent = contentInput.value.trim().length > 0;
+                const hasImage = fileInput.files.length > 0;
+                
+                // 如果内容不为空，图片就不是必填
+                if (hasContent) {
+                    contentRequired.style.color = '#c53030';
+                    imageRequired.style.color = '#94a3b8';
+                } 
+                // 如果图片不为空，内容就不是必填
+                else if (hasImage) {
+                    contentRequired.style.color = '#94a3b8';
+                    imageRequired.style.color = '#c53030';
+                }
+                // 如果都为空，两者都是红色
+                else {
+                    contentRequired.style.color = '#c53030';
+                    imageRequired.style.color = '#c53030';
+                }
             }
 
             titleInput.addEventListener('input', updateTitleCounter);
             contentInput.addEventListener('input', updateContentCounter);
+            
+            // 初始化
             updateTitleCounter();
             updateContentCounter();
+            updateRequiredFields();
 
-            // 图片预览
+            // 图片预览（只允许1张）
             fileInput.addEventListener('change', function(e) {
                 const files = Array.from(fileInput.files);
+                
                 if (files.length === 0) {
                     fileHint.innerText = '未选择任何文件';
                     previewContainer.innerHTML = '';
+                    currentPreviewFile = null;
+                    updateRequiredFields();
                     return;
                 }
 
-                if (files.length > 5) {
-                    alert('最多只能上传5张图片，超出部分不会被提交');
+                // 只取第一张
+                const file = files[0];
+                
+                // 如果选了多张，提示并只保留第一张
+                if (files.length > 1) {
+                    alert('只支持上传1张图片，已自动选择第一张');
                     const dt = new DataTransfer();
-                    files.slice(0, 5).forEach(f => dt.items.add(f));
+                    dt.items.add(file);
                     fileInput.files = dt.files;
                 }
 
-                const validFiles = Array.from(fileInput.files);
-                fileHint.innerText = `已选择 ${validFiles.length} 个文件`;
+                fileHint.innerText = `已选择 1 个文件: ${file.name}`;
                 previewContainer.innerHTML = '';
+                currentPreviewFile = file;
 
-                validFiles.forEach(file => {
-                    if (file.type.startsWith('image/')) {
-                        const reader = new FileReader();
-                        reader.onload = (ev) => {
-                            const previewItem = document.createElement('div');
-                            previewItem.className = 'preview-item';
-                            const img = document.createElement('img');
-                            img.src = ev.target.result;
-                            previewItem.appendChild(img);
-                            previewContainer.appendChild(previewItem);
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        const previewItem = document.createElement('div');
+                        previewItem.className = 'preview-item';
+                        
+                        const img = document.createElement('img');
+                        img.src = ev.target.result;
+                        
+                        const removeBtn = document.createElement('button');
+                        removeBtn.className = 'remove-btn';
+                        removeBtn.innerHTML = '×';
+                        removeBtn.onclick = function() {
+                            fileInput.value = '';
+                            previewContainer.innerHTML = '';
+                            fileHint.innerText = '未选择任何文件';
+                            currentPreviewFile = null;
+                            updateRequiredFields();
                         };
-                        reader.readAsDataURL(file);
-                    }
-                });
+                        
+                        previewItem.appendChild(img);
+                        previewItem.appendChild(removeBtn);
+                        previewContainer.appendChild(previewItem);
+                    };
+                    reader.readAsDataURL(file);
+                }
+                
+                updateRequiredFields();
             });
 
             // 等待配置加载完成再允许提交
@@ -575,11 +672,11 @@
                 if (isSubmitting) return;
                 
                 const hasContent = contentInput.value.trim().length > 0;
-                const hasTitle = titleInput.value.trim().length > 0;
-                const hasImages = fileInput.files.length > 0;
+                const hasImage = fileInput.files.length > 0;
 
-                if (!hasContent && !hasTitle && !hasImages) {
-                    alert('请至少填写匿名投稿内容、标题或上传一张图片');
+                // 检查：内容和图片必须至少有一个
+                if (!hasContent && !hasImage) {
+                    alert('请填写匿名内容 或 上传一张图片（二选一）');
                     return;
                 }
 
@@ -592,13 +689,26 @@
 
                 // 构建 FormData
                 const formData = new FormData();
-                formData.append('title', titleInput.value.trim());
-                formData.append('content', contentInput.value.trim());
-                formData.append('tag', tagInput.value.trim() || '');
+                
+                // 标题（选填）
+                if (titleInput.value.trim()) {
+                    formData.append('title', titleInput.value.trim());
+                }
+                
+                // 内容（如果有）
+                if (hasContent) {
+                    formData.append('content', contentInput.value.trim());
+                } else {
+                    // 如果没内容但有图片，传一个空字符串或默认内容
+                    formData.append('content', '『图片投稿』');
+                }
+                
+                // 标签（暂时固定或为空）
+                formData.append('tag', '');
 
-                const files = fileInput.files;
-                for (let i = 0; i < files.length; i++) {
-                    formData.append('user_image', files[i]);
+                // 图片（最多1张）
+                if (hasImage) {
+                    formData.append('user_image', fileInput.files[0]);
                 }
 
                 // 使用动态配置构建URL
@@ -629,6 +739,8 @@
                     fileHint.innerText = '未选择任何文件';
                     titleCounter.innerText = '0/20';
                     contentCounter.innerText = '0/200';
+                    currentPreviewFile = null;
+                    updateRequiredFields();
                     
                 } catch (error) {
                     console.error('提交失败:', error);
