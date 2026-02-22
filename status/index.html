@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
   <title>KY Secret · 实时服务状态</title>
   <style>
-    /* 极简 · 纯状态监控 — 无时间轴、无历史包袱 */
+    /* ===== KY Secret V3 统一风格 ===== */
     * {
       margin: 0;
       padding: 0;
@@ -14,19 +14,21 @@
     }
 
     body {
-      background: #f9fcff;
-      color: #152b42;
-      line-height: 1.5;
+      background: #f7fafc;
+      padding: 2rem 1rem;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
     }
 
-    .container {
+    .ky-container {
       max-width: 780px;
+      width: 100%;
       margin: 0 auto;
-      padding: 2rem 1.2rem;
     }
 
-    /* 品牌区 —— 安静有力 */
-    .header {
+    .nav-header {
       text-align: center;
       margin-bottom: 2.5rem;
     }
@@ -34,7 +36,7 @@
     .logo {
       font-size: 5rem;
       font-weight: 900;
-      color: #0a1c2f;
+      color: #000000;
       letter-spacing: -0.02em;
       margin-bottom: 0.5rem;
       line-height: 1;
@@ -44,37 +46,34 @@
       display: flex;
       gap: 0.75rem;
       justify-content: center;
-      margin-bottom: 1.75rem;
+      margin-bottom: 1.2rem;
     }
 
     .nav-btn {
       padding: 0.5rem 1.4rem;
-      border: 1px solid #dae2ed;
-      border-radius: 100px;
+      border: 1px solid #e2e8f0;
+      border-radius: 40px;
       background: #ffffff;
-      color: #2c4763;
+      color: #334155;
       text-decoration: none;
       font-size: 0.9rem;
-      font-weight: 540;
-      transition: all 0.2s;
+      font-weight: 550;
+      transition: 0.15s;
       box-shadow: 0 1px 2px rgba(0,0,0,0.02);
     }
 
-    .nav-btn.active {
-      background: #0f2b3f;
-      color: white;
-      border-color: #0f2b3f;
-    }
-
     .nav-btn:hover {
-      background: #ecf3fa;
+      background: #eef2f6;
+      border-color: #cbd5e1;
     }
 
-    .nav-btn.active:hover {
-      background: #1c405a;
+    .nav-btn.active {
+      background: #0f172a;
+      color: white;
+      border-color: #0f172a;
     }
 
-    /* 实时状态大横幅 —— 一目了然 */
+    /* 全局状态横幅 */
     .global-status-banner {
       background: #f1f7fd;
       border-radius: 60px;
@@ -83,12 +82,11 @@
       align-items: center;
       justify-content: center;
       gap: 0.6rem;
-      margin: 0 auto 0.5rem;
+      margin: 0 auto 1.5rem;
       font-size: 0.9rem;
       font-weight: 550;
       color: #1e3f5c;
       border: 1px solid #dde9f5;
-      backdrop-filter: blur(4px);
     }
 
     .global-dot {
@@ -102,37 +100,36 @@
     .global-dot.degraded { background: #e68a2e; }
     .global-dot.down { background: #c62a2a; }
 
-    /* 服务卡片 —— 干净无冗余 */
+    /* 服务卡片 */
     .section {
       background: white;
       border-radius: 28px;
       margin-bottom: 1.8rem;
-      border: 1px solid #e6eff8;
+      border: 1px solid #ecf1f7;
+      box-shadow: 0 4px 14px rgba(0, 20, 40, 0.02);
       overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0, 20, 40, 0.02);
     }
 
     .section-header {
       padding: 1.2rem 1.5rem 0.5rem 1.5rem;
       font-size: 1.05rem;
-      font-weight: 680;
-      color: #173246;
+      font-weight: 700;
+      color: #0f2a40;
       display: flex;
       align-items: center;
       letter-spacing: -0.2px;
     }
 
     .section-header span {
-      background: #ecf3fa;
+      background: #eef4ff;
       padding: 0.2rem 0.8rem;
       border-radius: 30px;
       font-size: 0.7rem;
       font-weight: 600;
-      color: #2a5779;
+      color: #2563eb;
       margin-left: 0.7rem;
     }
 
-    /* 服务项 —— 纯粹状态 + 服务名 + 实时检测 */
     .service-list {
       padding: 0.2rem 0.2rem 0.8rem 0.2rem;
     }
@@ -148,7 +145,6 @@
       transition: background 0.15s;
     }
 
-    /* 轻微斑马线，易读 */
     .service-item:nth-child(even) {
       background: #fafdff;
     }
@@ -166,13 +162,11 @@
       border-radius: 14px;
       background: #cbd5e1;
       transition: background 0.2s ease;
-      box-shadow: 0 0 0 1px rgba(255,255,255,0.8);
     }
 
-    /* 状态颜色 —— 直观清晰 */
-    .status-indicator.operational { background: #0a8f5a; box-shadow: 0 0 0 2px rgba(10,143,90,0.1); }
-    .status-indicator.degraded { background: #e68a2e; box-shadow: 0 0 0 2px rgba(230,138,46,0.1); }
-    .status-indicator.down { background: #cd3c30; box-shadow: 0 0 0 2px rgba(205,60,48,0.1); }
+    .status-indicator.operational { background: #0a8f5a; }
+    .status-indicator.degraded { background: #e68a2e; }
+    .status-indicator.down { background: #cd3c30; }
     .status-indicator.unknown { background: #94a3b8; }
 
     .service-name {
@@ -266,49 +260,53 @@
       border-color: #95b3cc;
     }
 
-    .refresh-btn:active {
-      background: #d0e2f0;
+    /* 页脚导航 - 统一风格 */
+    .footer-note {
+      text-align: center;
+      margin-top: 1.8rem;
+      font-size: 0.75rem;
+      color: #7996ae;
+      border-top: 1px solid #e2ecf5;
+      padding-top: 1.8rem;
     }
 
-    /* 离线诊断提示 —— 轻量 */
-    .degraded-hint {
-      font-size: 0.7rem;
-      color: #b76a1a;
-      background: #fff1e0;
-      padding: 0.2rem 0.8rem;
-      border-radius: 30px;
-      margin-left: 0.6rem;
+    .footer-note a {
+      color: #2c5282;
+      text-decoration: none;
+      font-weight: 500;
+      margin: 0 0.4rem;
     }
 
-    /* 移动调整 */
+    .footer-note a:hover {
+      text-decoration: underline;
+    }
+
     @media (max-width: 550px) {
-      .container { padding: 1.5rem 1rem; }
       .logo { font-size: 4rem; }
       .service-item { flex-wrap: wrap; gap: 0.6rem; }
       .status-text { width: 100%; margin-left: 1.8rem; }
     }
-
-    /* 纯粹状态页 — 无时间轴，无历史卡片，只做实时检测 */
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- 头部 —— 历史按钮保留但非激活，当前为状态页 -->
-    <div class="header">
+  <div class="ky-container">
+    <!-- 头部：统一导航，三个按钮齐全 -->
+    <div class="nav-header">
       <div class="logo">KYSECRET</div>
       <div class="nav-buttons">
         <a href="./index.html" class="nav-btn active">📊 状态</a>
         <a href="./history.html" class="nav-btn">📋 历史</a>
+        <a href="../index.html" class="nav-btn">✉️ 投稿</a>
       </div>
 
-      <!-- 全局健康状态动态显示 (通过js更新) -->
+      <!-- 全局健康状态 -->
       <div id="globalBanner" class="global-status-banner">
         <span id="globalDot" class="global-dot"></span>
         <span id="globalMessage">正在检测服务状态...</span>
       </div>
     </div>
 
-    <!-- ========= 前端服务组 ========= -->
+    <!-- ========= 前端托管 ========= -->
     <div class="section">
       <div class="section-header">
         🌐 前端托管
@@ -326,12 +324,12 @@
             <span id="status-badge-cf" class="status-badge badge-operational">检测中...</span>
           </div>
         </div>
-        <!-- GitHub 仓库 · 静态资源 -->
+        <!-- GitHub Pages -->
         <div class="service-item" id="service-gh">
           <div class="service-left">
             <span class="status-indicator" id="indicator-gh"></span>
-            <span class="service-name">GitHub 仓库</span>
-            <span class="service-endpoint">github.com/kysecret/web</span>
+            <span class="service-name">GitHub Pages</span>
+            <span class="service-endpoint">ky-secret-v3.pages.dev</span>
           </div>
           <div class="status-text">
             <span id="status-badge-gh" class="status-badge badge-operational">检测中...</span>
@@ -347,28 +345,26 @@
         <span id="backend-count">2 服务</span>
       </div>
       <div class="service-list">
-        <!-- Backend API -->
+        <!-- Backend API (连接真实后端) -->
         <div class="service-item" id="service-api">
           <div class="service-left">
             <span class="status-indicator" id="indicator-api"></span>
             <span class="service-name">Backend API</span>
-            <span class="service-endpoint">api.kysecret.com/v1</span>
+            <span class="service-endpoint" id="api-endpoint">加载中...</span>
           </div>
           <div class="status-text">
-            <span id="status-badge-api" class="status-badge badge-down">离线</span>
-            <span class="degraded-hint" id="hint-api"></span>
+            <span id="status-badge-api" class="status-badge badge-unknown">检测中...</span>
           </div>
         </div>
-        <!-- 提交服务 Submission -->
-        <div class="service-item" id="service-sub">
+        <!-- 数据库 -->
+        <div class="service-item" id="service-db">
           <div class="service-left">
-            <span class="status-indicator" id="indicator-sub"></span>
-            <span class="service-name">提交服务 (Submission)</span>
-            <span class="service-endpoint">submit.kysecret.com</span>
+            <span class="status-indicator" id="indicator-db"></span>
+            <span class="service-name">Database</span>
+            <span class="service-endpoint">SQLite</span>
           </div>
           <div class="status-text">
-            <span id="status-badge-sub" class="status-badge badge-down">离线</span>
-            <span class="degraded-hint" id="hint-sub"></span>
+            <span id="status-badge-db" class="status-badge badge-unknown">检测中...</span>
           </div>
         </div>
       </div>
@@ -386,27 +382,26 @@
           <div class="service-left">
             <span class="status-indicator" id="indicator-login"></span>
             <span class="service-name">Admin 登录</span>
-            <span class="service-endpoint">admin.kysecret.com/login</span>
+            <span class="service-endpoint">/api/admin/login</span>
           </div>
           <div class="status-text">
-            <span id="status-badge-login" class="status-badge badge-operational">正常</span>
+            <span id="status-badge-login" class="status-badge badge-unknown">检测中...</span>
           </div>
         </div>
-        <!-- Admin Dashboard -->
-        <div class="service-item" id="service-dash">
+        <!-- Admin Review -->
+        <div class="service-item" id="service-review">
           <div class="service-left">
-            <span class="status-indicator" id="indicator-dash"></span>
-            <span class="service-name">Admin 仪表板</span>
-            <span class="service-endpoint">admin.kysecret.com/dash</span>
+            <span class="status-indicator" id="indicator-review"></span>
+            <span class="service-name">Admin 审核</span>
+            <span class="service-endpoint">/api/admin/review</span>
           </div>
           <div class="status-text">
-            <span id="status-badge-dash" class="status-badge badge-down">不可用</span>
-            <span class="degraded-hint" id="hint-dash"></span>
+            <span id="status-badge-review" class="status-badge badge-unknown">检测中...</span>
           </div>
         </div>
       </div>
 
-      <!-- 检测信息栏 —— 实时刷新，无时间轴，无历史包袱 -->
+      <!-- 检测信息栏 -->
       <div class="check-footer">
         <div class="last-check">
           <span>🕒 最后检测: </span>
@@ -418,9 +413,11 @@
       </div>
     </div>
 
-    <!-- 极简脚注 -->
-    <div style="text-align: center; padding: 1.8rem 0 0.2rem; color: #6e889c; font-size: 0.75rem; border-top: 1px solid #dfecf5; margin-top: 1rem;">
-      KY Secret · 实时状态检测 (每60秒自动刷新) · 模拟故障注入已启用
+    <!-- 页脚导航 - 统一风格 -->
+    <div class="footer-note">
+      <a href="./index.html">📊 当前状态</a> · 
+      <a href="./history.html">📋 历史事件</a> · 
+      <a href="../index.html">✉️ 匿名投稿</a>
     </div>
   </div>
 
@@ -428,23 +425,22 @@
     (function() {
       "use strict";
 
-      // ------------------------------------------------------------
-      // KY Secret 实时状态检测 JS — 纯前端模拟 + 真实探测骨架
-      // 设计目标：只显示当前状态，无时间轴。可通过fetch真实检测，现为模拟。
-      // 但保留真实检测能力：只需替换模拟部分即可接入真实健康检查。
-      // ------------------------------------------------------------
+      // 配置加载
+      async function loadConfig() {
+        try {
+          const response = await fetch('https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json');
+          const config = await response.json();
+          return config;
+        } catch (e) {
+          console.warn('无法加载配置，使用默认值');
+          return {
+            backend: 'http://192.168.254.246:8000',
+            api: '/api'
+          };
+        }
+      }
 
-      // ---------- 服务配置 ----------
-      const SERVICES = [
-        { id: 'cf', name: 'Cloudflare Pages', endpoint: 'https://pages.kysecret.dev/health', normal: true, type: 'frontend' },
-        { id: 'gh', name: 'GitHub 仓库', endpoint: 'https://raw.githubusercontent.com/kysecret/web/readme', normal: true, type: 'frontend' },
-        { id: 'api', name: 'Backend API', endpoint: 'https://api.kysecret.com/v1/ping', normal: false, type: 'backend' },
-        { id: 'sub', name: '提交服务', endpoint: 'https://submit.kysecret.com/status', normal: false, type: 'backend' },
-        { id: 'login', name: 'Admin 登录', endpoint: 'https://admin.kysecret.com/login/health', normal: true, type: 'admin' },
-        { id: 'dash', name: 'Admin 仪表板', endpoint: 'https://admin.kysecret.com/dash/api/health', normal: false, type: 'admin' }
-      ];
-
-      // 状态枚举
+      // 服务状态枚举
       const STATUS = {
         OPERATIONAL: 'operational',
         DEGRADED: 'degraded',
@@ -452,83 +448,187 @@
         UNKNOWN: 'unknown'
       };
 
-      // 当前检测结果存储
-      let currentStatus = {
-        cf: STATUS.OPERATIONAL,
-        gh: STATUS.OPERATIONAL,
-        api: STATUS.DOWN,
-        sub: STATUS.DOWN,
-        login: STATUS.OPERATIONAL,
-        dash: STATUS.DOWN
-      };
-
-      // 附加消息 (如延迟/错误详情)
-      let statusMessages = {
-        api: '连接超时',
-        sub: '5xx 错误',
-        dash: '服务未响应',
-        cf: '',
-        gh: '',
-        login: ''
-      };
-
-      // 最后一次检测时间
+      let currentStatus = {};
+      let backendUrl = '';
       let lastCheckTimestamp = Date.now();
 
-      // ---------- UI 更新函数 ----------
-      function updateAllUI() {
-        // 更新每个服务的指示器 + 徽章 + 提示
-        SERVICES.forEach(service => {
-          const id = service.id;
-          const state = currentStatus[id] || STATUS.UNKNOWN;
-          const msg = statusMessages[id] || '';
-
-          // 状态指示点
-          const indicator = document.getElementById(`indicator-${id}`);
-          if (indicator) {
-            indicator.className = 'status-indicator'; // reset
-            indicator.classList.add(state);
+      // 更新UI
+      function updateServiceUI(id, state, message = '') {
+        const indicator = document.getElementById(`indicator-${id}`);
+        const badge = document.getElementById(`status-badge-${id}`);
+        const hintEl = document.getElementById(`hint-${id}`);
+        
+        if (indicator) {
+          indicator.className = 'status-indicator';
+          indicator.classList.add(state);
+        }
+        
+        if (badge) {
+          let text = '';
+          let badgeClass = '';
+          switch (state) {
+            case STATUS.OPERATIONAL:
+              text = '正常';
+              badgeClass = 'badge-operational';
+              break;
+            case STATUS.DEGRADED:
+              text = '降级';
+              badgeClass = 'badge-degraded';
+              break;
+            case STATUS.DOWN:
+              text = '离线';
+              badgeClass = 'badge-down';
+              break;
+            default:
+              text = '未知';
+              badgeClass = 'badge-unknown';
           }
+          badge.innerText = text;
+          badge.className = 'status-badge ' + badgeClass;
+        }
+        
+        if (hintEl) {
+          hintEl.innerText = message || '';
+          hintEl.style.display = message ? 'inline-block' : 'none';
+        }
+      }
 
-          // 状态徽章
-          const badge = document.getElementById(`status-badge-${id}`);
-          if (badge) {
-            let text = '';
-            let badgeClass = '';
-            switch (state) {
-              case STATUS.OPERATIONAL:
-                text = '正常';
-                badgeClass = 'badge-operational';
-                break;
-              case STATUS.DEGRADED:
-                text = '降级';
-                badgeClass = 'badge-degraded';
-                break;
-              case STATUS.DOWN:
-                text = '离线';
-                badgeClass = 'badge-down';
-                break;
-              default:
-                text = '未知';
-                badgeClass = 'badge-unknown';
-            }
-            badge.innerText = text;
-            badge.className = 'status-badge ' + badgeClass;
+      // 更新全局横幅
+      function updateGlobalBanner() {
+        const dot = document.getElementById('globalDot');
+        const msg = document.getElementById('globalMessage');
+
+        let hasDown = false, hasDegraded = false, hasUnknown = false;
+        Object.values(currentStatus).forEach(state => {
+          if (state === STATUS.DOWN) hasDown = true;
+          else if (state === STATUS.DEGRADED) hasDegraded = true;
+          else if (state === STATUS.UNKNOWN) hasUnknown = true;
+        });
+
+        if (hasDown) {
+          dot.className = 'global-dot down';
+          msg.innerText = '部分服务离线';
+        } else if (hasDegraded) {
+          dot.className = 'global-dot degraded';
+          msg.innerText = '服务降级';
+        } else if (hasUnknown) {
+          dot.className = 'global-dot unknown';
+          msg.innerText = '部分状态未知';
+        } else {
+          dot.className = 'global-dot ok';
+          msg.innerText = '所有系统正常';
+        }
+      }
+
+      // 检测后端API
+      async function checkBackendAPI() {
+        if (!backendUrl) return STATUS.UNKNOWN;
+        
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000);
+          
+          const response = await fetch(`${backendUrl}/health`, {
+            signal: controller.signal
+          });
+          
+          clearTimeout(timeoutId);
+          
+          if (response.ok) {
+            return STATUS.OPERATIONAL;
+          } else {
+            return STATUS.DEGRADED;
           }
+        } catch (error) {
+          console.warn('后端API检测失败:', error);
+          return STATUS.DOWN;
+        }
+      }
 
-          // 额外提示（错误信息/降级原因）
-          const hintEl = document.getElementById(`hint-${id}`);
-          if (hintEl) {
-            hintEl.innerText = msg || '';
-            if (!msg) hintEl.style.display = 'none';
-            else hintEl.style.display = 'inline-block';
+      // 检测数据库（通过API间接检测）
+      async function checkDatabase() {
+        if (!backendUrl) return STATUS.UNKNOWN;
+        
+        try {
+          const response = await fetch(`${backendUrl}/api/status`);
+          if (response.ok) {
+            return STATUS.OPERATIONAL;
+          }
+          return STATUS.DEGRADED;
+        } catch {
+          return STATUS.DOWN;
+        }
+      }
+
+      // 检测管理接口
+      async function checkAdminEndpoint(endpoint) {
+        if (!backendUrl) return STATUS.UNKNOWN;
+        
+        try {
+          const response = await fetch(`${backendUrl}${endpoint}`, {
+            method: endpoint.includes('login') ? 'POST' : 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          
+          // 401是预期的（未登录），说明接口本身可用
+          if (response.status === 401 || response.status === 200) {
+            return STATUS.OPERATIONAL;
+          } else if (response.status >= 500) {
+            return STATUS.DOWN;
+          } else {
+            return STATUS.DEGRADED;
+          }
+        } catch {
+          return STATUS.DOWN;
+        }
+      }
+
+      // 执行所有检测
+      async function performHealthCheck() {
+        const config = await loadConfig();
+        backendUrl = config.backend || 'http://192.168.254.246:8000';
+        
+        // 更新API端点显示
+        const apiEndpoint = document.getElementById('api-endpoint');
+        if (apiEndpoint) {
+          apiEndpoint.innerText = backendUrl.replace(/^https?:\/\//, '');
+        }
+
+        // 并行检测所有服务
+        const results = await Promise.allSettled([
+          checkBackendAPI().then(state => ({ id: 'api', state })),
+          checkDatabase().then(state => ({ id: 'db', state })),
+          checkAdminEndpoint('/api/admin/login').then(state => ({ id: 'login', state })),
+          checkAdminEndpoint('/api/admin/review').then(state => ({ id: 'review', state }))
+        ]);
+
+        // 前端服务固定为正常
+        currentStatus = {
+          cf: STATUS.OPERATIONAL,
+          gh: STATUS.OPERATIONAL,
+          api: STATUS.UNKNOWN,
+          db: STATUS.UNKNOWN,
+          login: STATUS.UNKNOWN,
+          review: STATUS.UNKNOWN
+        };
+
+        // 更新检测结果
+        results.forEach(result => {
+          if (result.status === 'fulfilled' && result.value) {
+            currentStatus[result.value.id] = result.value.state;
           }
         });
 
-        // 更新全局横幅
+        // 更新UI
+        Object.entries(currentStatus).forEach(([id, state]) => {
+          updateServiceUI(id, state);
+        });
+
+        // 更新全局状态
         updateGlobalBanner();
 
         // 更新时间戳
+        lastCheckTimestamp = Date.now();
         const lastTimeEl = document.getElementById('lastCheckTime');
         if (lastTimeEl) {
           const date = new Date(lastCheckTimestamp);
@@ -537,148 +637,30 @@
         }
       }
 
-      // 全局概览状态
-      function updateGlobalBanner() {
-        const dot = document.getElementById('globalDot');
-        const msg = document.getElementById('globalMessage');
-
-        // 计算全局：只要有一个down => 总体离线；有degraded无down => 降级；全operational => 正常
-        let hasDown = false, hasDegraded = false, hasUnknown = false;
-        SERVICES.forEach(s => {
-          const state = currentStatus[s.id] || STATUS.UNKNOWN;
-          if (state === STATUS.DOWN) hasDown = true;
-          else if (state === STATUS.DEGRADED) hasDegraded = true;
-          else if (state === STATUS.UNKNOWN) hasUnknown = true;
-        });
-
-        if (hasDown) {
-          dot.className = 'global-dot down';
-          msg.innerText = '部分服务离线 · 实时状态';
-        } else if (hasDegraded) {
-          dot.className = 'global-dot degraded';
-          msg.innerText = '服务降级 · 性能下降';
-        } else if (hasUnknown) {
-          dot.className = 'global-dot unknown';
-          msg.innerText = '部分状态未知';
-        } else {
-          dot.className = 'global-dot ok';
-          msg.innerText = '所有系统正常 · 运行中';
-        }
-      }
-
-      // ---------- 核心检测逻辑 ----------
-      // 纯前端模拟: 真实情况下，替换此函数为真实fetch即可。
-      // 我们保留模拟的故障状态: 后端api/sub/dash离线，前端和管理员登录正常。
-      // 同时可随机产生降级/离线（演示动态检测）
-      function performHealthCheck() {
-        // 模拟检测过程
-        return new Promise((resolve) => {
-          // 模拟网络延迟 200~400ms
-          setTimeout(() => {
-            // 基础状态 —— 大部分与预设一致，但加入一些动态变化以体现检测效果
-            // 比如: 偶尔让 Cloudflare Pages 变成降级 (5%概率)，但为了清晰演示，我们设定稳定状态，但保留变化可能性。
-            
-            // 稳定状态: 与我们视觉初始一致；但手动刷新时可以看到“检测中”的变化
-            // 为了让演示更有趣，每次检测有一定概率改变 admin dashboard 为降级/离线
-            const random = Math.random();
-            
-            // 核心状态: 后端离线，admin dashboard 离线，但随机注入变化
-            currentStatus = {
-              cf: STATUS.OPERATIONAL,   // 前端永远正常
-              gh: STATUS.OPERATIONAL,
-              api: STATUS.DOWN,         // 保持离线 (真实环境离线)
-              sub: STATUS.DOWN,
-              login: STATUS.OPERATIONAL,
-              dash: STATUS.DOWN         // 默认离线，但随机可能变成降级
-            };
-
-            // 演示动态检测效果: Admin Dashboard 有时变为降级，有时还是离线 (更有实时感)
-            if (random < 0.3) {
-              currentStatus.dash = STATUS.DEGRADED;
-              statusMessages.dash = '高延迟 (280ms)';
-            } else if (random < 0.65) {
-              currentStatus.dash = STATUS.DOWN;
-              statusMessages.dash = '连接失败';
-            } else {
-              currentStatus.dash = STATUS.DOWN;  // 保持离线
-              statusMessages.dash = '5xx 错误';
-            }
-
-            // 后端 API 偶尔也变为降级 (概率小) — 但大部分离线
-            if (Math.random() < 0.2) {
-              currentStatus.api = STATUS.DEGRADED;
-              statusMessages.api = '响应缓慢';
-            } else {
-              currentStatus.api = STATUS.DOWN;
-              statusMessages.api = '超时/不可达';
-            }
-
-            // 提交服务：有时降级
-            if (Math.random() < 0.25) {
-              currentStatus.sub = STATUS.DEGRADED;
-              statusMessages.sub = '部分失败';
-            } else {
-              currentStatus.sub = STATUS.DOWN;
-              statusMessages.sub = '无法连接';
-            }
-
-            // 前端服务固定正常
-            statusMessages.cf = '';
-            statusMessages.gh = '';
-            statusMessages.login = '';
-
-            // 更新时间戳
-            lastCheckTimestamp = Date.now();
-            
-            resolve();
-          }, 280); // 模拟检测耗时
-        });
-      }
-
-      // 刷新所有状态并更新UI
-      async function refreshAllStatus() {
-        // 检测前可将部分徽章置为“检测中”
-        SERVICES.forEach(s => {
-          const badge = document.getElementById(`status-badge-${s.id}`);
-          if (badge) badge.innerText = '检测中...';
-        });
-        
-        await performHealthCheck();
-        updateAllUI();
-      }
-
-      // 初始化 & 绑定事件
+      // 初始化
       async function init() {
-        // 首次执行检测
-        await refreshAllStatus();
+        // 先显示"检测中"
+        ['cf', 'gh', 'api', 'db', 'login', 'review'].forEach(id => {
+          updateServiceUI(id, STATUS.UNKNOWN);
+        });
 
-        // 绑定手动刷新按钮
+        await performHealthCheck();
+
+        // 绑定刷新按钮
         const refreshBtn = document.getElementById('manualRefreshBtn');
         if (refreshBtn) {
-          refreshBtn.addEventListener('click', async function(e) {
+          refreshBtn.addEventListener('click', async (e) => {
             e.preventDefault();
-            await refreshAllStatus();
+            await performHealthCheck();
           });
         }
 
-        // 自动间隔: 每60秒检测一次 (保持状态实时)
-        setInterval(async () => {
-          await refreshAllStatus();
-        }, 60000); // 60,000 ms = 1分钟
+        // 自动刷新（每60秒）
+        setInterval(performHealthCheck, 60000);
       }
 
       init();
     })();
   </script>
-
-  <!-- 
-    设计说明:
-    - 完全移除时间轴(timeline)相关HTML、CSS、JS代码。无历史事件占位。
-    - 只保留状态卡片、状态指示点、检测时间、手动刷新。
-    - 6个服务，均有真实端点占位，通过JS模拟检测(但完全可替换为fetch)。
-    - 全局横幅反映整体健康度。
-    - 实时检测: 每次刷新(手动/自动)都会改变部分状态(如dashboard降级/离线概率)，体现“实时监测”。
-    - 零历史记录、零时间轴、零冗余折叠。简洁，聚焦当前是否挂掉。
-  -->
 </body>
 </html>
