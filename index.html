@@ -533,14 +533,13 @@
         </div>
     </div>
 
-    <script>
+ <script>
         (function() {
             "use strict";
 
             // DOM 元素
             const titleInput = document.getElementById('title');
             const contentInput = document.getElementById('content');
-            const tagInput = document.getElementById('tag');
             const titleCounter = document.getElementById('titleCounter');
             const contentCounter = document.getElementById('contentCounter');
             const fileInput = document.getElementById('imageFiles');
@@ -702,9 +701,6 @@
                     // 如果没内容但有图片，传一个空字符串或默认内容
                     formData.append('content', '『图片投稿』');
                 }
-                
-                // 标签（暂时固定或为空）
-                formData.append('tag', '');
 
                 // 图片（最多1张）
                 if (hasImage) {
