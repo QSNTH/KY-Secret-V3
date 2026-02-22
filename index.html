@@ -254,7 +254,7 @@
             border-radius: 60px;
             width: fit-content;
         }
-
+        
         .image-zone {
             background: #fafeff;
             border: 1.5px dashed #cde0ed;
@@ -509,7 +509,7 @@
                 titleCounter.innerText = `${titleInput.value.length}/20`;
             }
             function updateContentCounter() {
-                contentCounter.innerText = `${contentInput.value.length}/2000`;
+                contentCounter.innerText = `${contentInput.value.length}/200`;
             }
 
             titleInput.addEventListener('input', updateTitleCounter);
@@ -598,7 +598,7 @@
 
                 const files = fileInput.files;
                 for (let i = 0; i < files.length; i++) {
-                    formData.append('images', files[i]);
+                    formData.append('user_image', files[i]);
                 }
 
                 // 使用动态配置构建URL
@@ -628,7 +628,7 @@
                     previewContainer.innerHTML = '';
                     fileHint.innerText = '未选择任何文件';
                     titleCounter.innerText = '0/20';
-                    contentCounter.innerText = '0/2000';
+                    contentCounter.innerText = '0/200';
                     
                 } catch (error) {
                     console.error('提交失败:', error);
