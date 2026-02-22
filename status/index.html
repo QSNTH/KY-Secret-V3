@@ -221,7 +221,7 @@
       color: #4a627a;
     }
 
-    /* 硬件监控卡片 - 新增样式 */
+    /* 硬件监控卡片 */
     .hardware-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -289,13 +289,6 @@
     .progress-fill.yellow { background: #e68a2e; }
     .progress-fill.red { background: #cd3c30; }
 
-    .gpu-specs {
-      grid-column: span 2;
-      background: #f0f5fa;
-      border-radius: 20px;
-      padding: 1rem;
-    }
-
     .gpu-temp {
       display: inline-block;
       background: #ffe6e5;
@@ -304,6 +297,7 @@
       border-radius: 30px;
       font-size: 0.75rem;
       font-weight: 600;
+      margin-left: 0.5rem;
     }
 
     /* 检测时间 & 刷新控件 */
@@ -371,7 +365,6 @@
       .service-item { flex-wrap: wrap; gap: 0.6rem; }
       .status-text { width: 100%; margin-left: 1.8rem; }
       .hardware-grid { grid-template-columns: 1fr; }
-      .gpu-specs { grid-column: span 1; }
     }
   </style>
 </head>
@@ -393,12 +386,11 @@
       </div>
     </div>
 
-    <!-- ========= 服务状态 ========= -->
-
-        <div class="section">
+    <!-- ========= 前端托管 ========= -->
+    <div class="section">
       <div class="section-header">
         🌐 前端托管
-        <span id="frontend-count">2 服务</span>
+        <span>2 服务</span>
       </div>
       <div class="service-list">
         <!-- Cloudflare Pages -->
@@ -425,10 +417,11 @@
         </div>
       </div>
     </div>
-    
+
+    <!-- ========= 后端服务 ========= -->
     <div class="section">
       <div class="section-header">
-        🌐 服务状态
+        ⚙️ 后端服务
         <span>API 可用性</span>
       </div>
       <div class="service-list">
@@ -518,13 +511,19 @@
         UNKNOWN: 'unknown'
       };
 
-      let currentStatus = {};
+      let currentStatus = {
+        cf: STATUS.UNKNOWN,
+        gh: STATUS.UNKNOWN,
+        api: STATUS.UNKNOWN,
+        status: STATUS.UNKNOWN
+      };
+      
       let backendUrl = '';
       let lastCheckTimestamp = Date.now();
       let hardwareData = null;
 
       // 更新服务状态UI
-      function updateServiceUI(id, state, message = '') {
+      function updateServiceUI(id, state) {
         const indicator = document.getElementById(`indicator-${id}`);
         const badge = document.getElementById(`status-badge-${id}`);
         
@@ -556,6 +555,13 @@
           badge.innerText = text;
           badge.className = 'status-badge ' + badgeClass;
         }
+      }
+
+      // 更新所有服务UI
+      function updateAllServicesUI() {
+        Object.entries(currentStatus).forEach(([id, state]) => {
+          updateServiceUI(id, state);
+        });
       }
 
       // 渲染硬件监控
@@ -661,8 +667,8 @@
               </div>
             </div>
 
-            <!-- GPU 信息（占两列？不，让它自适应） -->
-            <div class="hardware-item ${data.gpu?.name ? '' : 'gpu-specs'}">
+            <!-- GPU -->
+            <div class="hardware-item">
               <div class="hardware-header">
                 <span>🎮</span> GPU
               </div>
@@ -730,6 +736,25 @@
         }
       }
 
+      // 检测前端服务
+      async function checkFrontendService(url) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000);
+          
+          const response = await fetch(url, {
+            mode: 'no-cors', // 因为跨域，只能检测是否可访问
+            signal: controller.signal
+          });
+          
+          clearTimeout(timeoutId);
+          return STATUS.OPERATIONAL; // no-cors 模式下只要不抛异常就算可达
+        } catch (error) {
+          console.warn(`前端服务检测失败 ${url}:`, error);
+          return STATUS.DOWN;
+        }
+      }
+
       // 检测后端API
       async function checkBackendAPI() {
         if (!backendUrl) return STATUS.UNKNOWN;
@@ -793,33 +818,36 @@
           apiEndpoint.innerText = backendUrl.replace(/^https?:\/\//, '');
         }
 
-        // 并行检测
-        const [apiState, statusResult] = await Promise.allSettled([
+        // 并行检测所有服务
+        const [cfState, ghState, apiState, statusResult] = await Promise.allSettled([
+          checkFrontendService('https://pages.kysecret.dev'),
+          checkFrontendService('https://ky-secret-v3.pages.dev'),
           checkBackendAPI(),
           checkStatusAPI()
         ]);
 
         // 更新状态
         currentStatus = {
+          cf: cfState.status === 'fulfilled' ? cfState.value : STATUS.UNKNOWN,
+          gh: ghState.status === 'fulfilled' ? ghState.value : STATUS.UNKNOWN,
           api: apiState.status === 'fulfilled' ? apiState.value : STATUS.UNKNOWN,
           status: statusResult.status === 'fulfilled' ? statusResult.value.state : STATUS.UNKNOWN
         };
+
+        // 更新所有UI
+        updateAllServicesUI();
 
         // 如果有硬件数据，保存并渲染
         if (statusResult.status === 'fulfilled' && statusResult.value.data) {
           hardwareData = statusResult.value.data;
           renderHardwareMonitoring(hardwareData);
         } else if (hardwareData) {
-          // 如果这次没获取到但之前有缓存，显示缓存但标记为可能过期
+          // 如果这次没获取到但之前有缓存，显示缓存
           renderHardwareMonitoring(hardwareData);
         } else {
           // 完全没有数据
           renderHardwareMonitoring(null);
         }
-
-        // 更新UI
-        updateServiceUI('api', currentStatus.api);
-        updateServiceUI('status', currentStatus.status);
 
         // 更新全局状态
         updateGlobalBanner();
@@ -837,8 +865,7 @@
       // 初始化
       async function init() {
         // 先显示"检测中"
-        updateServiceUI('api', STATUS.UNKNOWN);
-        updateServiceUI('status', STATUS.UNKNOWN);
+        updateAllServicesUI();
 
         await performHealthCheck();
 
@@ -851,7 +878,7 @@
           });
         }
 
-        // 自动刷新（每30秒，因为硬件监控需要更实时）
+        // 自动刷新（每30秒）
         setInterval(performHealthCheck, 30000);
       }
 
