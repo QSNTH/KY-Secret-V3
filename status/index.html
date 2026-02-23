@@ -895,8 +895,9 @@
                 <div class="hardware-row">
                   <span class="hardware-label">温度</span>
                   <span class="hardware-value ${getTEXTColor(data.gpu.temp_c || 'ERR')}">
-                    ${(data.gpu.temp_c + 9.43) || 'ERR'}°C
                     ${!isNaN(data.gpu.temp_c) && data.gpu.temp_c > 50 ? '<span class="gpu-temp">高温</span>' : ''}
+                    ${(data.gpu.temp_c + 9.43) || 'ERR'}°C
+                    
                   </span>
                 </div>
                 <div class="hardware-row">
@@ -949,7 +950,7 @@
                 </div>
                 <div class="hardware-row">
                   <span class="hardware-label">温度</span>
-                  <span class="hardware-value ${getTEXTColor(data.disk?.total_gb || 'ERR')}">${'43' || 'ERR'} °C ${!isNaN(data.gpu.temp_c) && data.gpu.temp_c > 50 ? '<span class="gpu-temp">高温</span>' : ''}</span>
+                  <span class="hardware-value ${getTEXTColor(data.disk?.total_gb || 'ERR')}">${!isNaN(data.gpu.temp_c) && data.gpu.temp_c > 50 ? '<span class="gpu-temp">高温</span>' : ''} ${'43' || 'ERR'} °C </span>
                 </div>
                 <div class="hardware-row">
                   <span class="hardware-label">已使用</span>
@@ -983,8 +984,9 @@
                 <div class="hardware-row">
                   <span class="hardware-label">温度</span>
                   <span class="hardware-value ${getTEXTColor(data.gpu.temp_c || 'ERR')}">
-                    ${data.gpu.temp_c || 'ERR'}°C
                     ${!isNaN(data.gpu.temp_c) && data.gpu.temp_c > 50 ? '<span class="gpu-temp">高温</span>' : ''}
+                    ${data.gpu.temp_c || 'ERR'}°C
+                    
                   </span>
                 </div>
                 <div class="hardware-row">
