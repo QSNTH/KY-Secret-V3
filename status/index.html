@@ -962,7 +962,7 @@
                 </div>
                 <div class="hardware-row">
                   <span class="hardware-label">使用率</span>
-                  <span class="hardware-value ${getTEXTColor(diskPercent.toFixed(8) || 'ERR')}">${diskPercent.toFixed(8) || 'ERR'} %</span>
+                  <span class="hardware-value ${getTEXTColor(diskPercent.toFixed(8) || 'ERR')}">${data.disk?.used_gb / data.disk?.total_gb} %</span>
                 </div>
                 <div class="progress-bar">
                   <div class="progress-fill ${getProgressColor(diskPercent)}" style="width: ${diskPercent}%;"></div>
