@@ -569,15 +569,16 @@
         const container = document.getElementById('hardwareMonitoring');
         if (!container) return;
 
+/*
         if (!data) {
           container.innerHTML = `
             <div style="text-align: center; padding: 2rem; color: #94a3b8;">
               <span>❌ 无法获取硬件信息</span>
             </div>
           `;
-          return;
+          return;   
         }
-
+*/
         // 获取进度条颜色
         function getProgressColor(percent) {
           if (percent < 60) return 'green';
@@ -585,62 +586,70 @@
           return 'red';
         }
 
+        function getTEXTColor(text_temp) {
+        // 补充：增加空值/非字符串的容错处理，增强健壮性
+        if (typeof text_temp !== 'string') text_temp = 'ERR';
+        // 核心逻辑：非ERR则绿色，ERR则红色
+        if (text_temp !== 'ERR') return 'green';
+        return 'red';
+        }
+
         const cpuPercent = data.cpu?.usage_percent || 0;
         const memPercent = data.memory?.usage_percent || 0;
         const diskPercent = data.disk?.usage_percent || 0;
 
         const html = `
-          <div class="hardware-grid">
-            <!-- CPU -->
-            <div class="hardware-item">
-              <div class="hardware-header">
-                <span>⚡</span> CPU
-              </div>
-              <div class="hardware-detail">
-                <div class="hardware-row">
-                  <span class="hardware-label">型号</span>
-                  <span class="hardware-value">${data.cpu?.name || '未知'}</span>
+            <div class="hardware-grid">
+                <!-- CPU -->
+                <div class="hardware-item">
+                <div class="hardware-header">
+                    <span>⚡</span> CPU
                 </div>
-                <div class="hardware-row">
-                  <span class="hardware-label">核心数</span>
-                  <span class="hardware-value">${data.cpu?.cores || 0} 核</span>
+                <div class="hardware-detail">
+                    <div class="hardware-row">
+                        <span class="hardware-label">型号</span>
+                        <span class="hardware-value ${getTEXTColor(data.cpu?.name || 'ERR')}">${data.cpu?.name || 'ERR'}</span>
+                    </div>
+                    <div class="hardware-row">
+                        <span class="hardware-label">核心数</span>
+                        <span class="hardware-value ${getTEXTColor(data.cpu?.cores || 'ERR')}">${data.cpu?.cores || 'ERR'} Cores</span>
+                    </div>
+                    <div class="hardware-row">
+                        <span class="hardware-label">频率</span>
+                        <span class="hardware-value ${getTEXTColor(data.cpu?.freq || 'ERR')}">${data.cpu?.freq || 'ERR'} GHz</span>
+                    </div>
+                    <div class="hardware-row">
+                        <span class="hardware-label">使用率</span>
+                        <span class="hardware-value ${getTEXTColor(cpuPercent.toFixed(1) || 'ERR')}">${cpuPercent.toFixed(1) || 'ERR'} %</span>
+                    </div>
+                        <div class="progress-bar">
+                        <div class="progress-fill ${getProgressColor(cpuPercent)}" style="width: ${cpuPercent}%;"></div>
+                    </div>
                 </div>
-                <div class="hardware-row">
-                  <span class="hardware-label">频率</span>
-                  <span class="hardware-value">${data.cpu?.freq || '0 GHz'}</span>
                 </div>
-                <div class="hardware-row">
-                  <span class="hardware-label">使用率</span>
-                  <span class="hardware-value">${cpuPercent.toFixed(1)}%</span>
-                </div>
-                <div class="progress-bar">
-                  <div class="progress-fill ${getProgressColor(cpuPercent)}" style="width: ${cpuPercent}%;"></div>
-                </div>
-              </div>
-            </div>
 
             <!-- 内存 -->
             <div class="hardware-item">
-              <div class="hardware-header">
-                <span>📊</span> 内存
-              </div>
-              <div class="hardware-detail">
-                <div class="hardware-row">
-                  <span class="hardware-label">总容量</span>
-                  <span class="hardware-value">${data.memory?.total_gb || 0} GB</span>
+                <div class="hardware-header">
+                     <span>📊</span> 内存
                 </div>
-                <div class="hardware-row">
-                  <span class="hardware-label">已使用</span>
-                  <span class="hardware-value">${data.memory?.used_gb || 0} GB</span>
+                <div class="hardware-detail">
+                    <div class="hardware-row">
+                        <span class="hardware-label">总容量</span>
+                        <span class="hardware-value ${getTEXTColor(data.memory?.total_gb || 'ERR')}">${data.memory?.total_gb || 'ERR'} GB</span>
+                    </div>
+                    <div class="hardware-row">
+                        <span class="hardware-label">已使用</span>
+                        <span class="hardware-value ${getTEXTColor(data.memory?.used_gb || 'ERR')}">${data.memory?.used_gb || 'ERR'} GB</span>
+                    </div>
+                    <div class="hardware-row">
+                        <span class="hardware-label">使用率</span>
+                        <span class="hardware-value ${getTEXTColor(memPercent.toFixed(1) || 'ERR')}">${memPercent.toFixed(1) || 'ERR'} %</span>
+                    </div>
+                        <div class="progress-bar">
+                        <div class="progress-fill ${getProgressColor(memPercent)}" style="width: ${memPercent}%;"></div>
+                    </div>
                 </div>
-                <div class="hardware-row">
-                  <span class="hardware-label">使用率</span>
-                  <span class="hardware-value">${memPercent.toFixed(1)}%</span>
-                </div>
-                <div class="progress-bar">
-                  <div class="progress-fill ${getProgressColor(memPercent)}" style="width: ${memPercent}%;"></div>
-                </div>
-              </div>
             </div>
 
             <!-- 磁盘 -->
@@ -651,15 +660,15 @@
               <div class="hardware-detail">
                 <div class="hardware-row">
                   <span class="hardware-label">总容量</span>
-                  <span class="hardware-value">${data.disk?.total_gb || 0} GB</span>
+                  <span class="hardware-value ${getTEXTColor(data.disk?.total_gb || 'ERR')}">${data.disk?.total_gb || 'ERR'} GB</span>
                 </div>
                 <div class="hardware-row">
                   <span class="hardware-label">已使用</span>
-                  <span class="hardware-value">${data.disk?.used_gb || 0} GB</span>
+                  <span class="hardware-value ${getTEXTColor(data.disk?.used_gb || 'ERR')}">${data.disk?.used_gb || 'ERR'} GB</span>
                 </div>
                 <div class="hardware-row">
                   <span class="hardware-label">使用率</span>
-                  <span class="hardware-value">${diskPercent.toFixed(1)}%</span>
+                  <span class="hardware-value ${getTEXTColor(diskPercent.toFixed(1) || 'ERR')}">${diskPercent.toFixed(1) || 'ERR'} %</span>
                 </div>
                 <div class="progress-bar">
                   <div class="progress-fill ${getProgressColor(diskPercent)}" style="width: ${diskPercent}%;"></div>
@@ -675,17 +684,17 @@
               <div class="hardware-detail">
                 <div class="hardware-row">
                   <span class="hardware-label">型号</span>
-                  <span class="hardware-value">${data.gpu?.name || '未检测到'}</span>
+                  <span class="hardware-value ${getTEXTColor(data.gpu?.name || 'ERR')}">${data.gpu?.name || 'ERR'}</span>
                 </div>
                 ${data.gpu?.name ? `
                 <div class="hardware-row">
                   <span class="hardware-label">使用率</span>
-                  <span class="hardware-value">${data.gpu.CUDA_usage_percent || 0}%</span>
+                  <span class="hardware-value ${getTEXTColor(data.gpu.CUDA_usage_percent || 'ERR')}">${data.gpu.CUDA_usage_percent || "ERR"}%</span>
                 </div>
                 <div class="hardware-row">
                   <span class="hardware-label">温度</span>
-                  <span class="hardware-value">
-                    ${data.gpu.temp_c || 0}°C
+                  <span class="hardware-value ${getTEXTColor(data.gpu.temp_c || 'ERR')}">
+                    ${data.gpu.temp_c || 'ERR'}°C
                     ${data.gpu.temp_c > 80 ? '<span class="gpu-temp">高温</span>' : ''}
                   </span>
                 </div>
