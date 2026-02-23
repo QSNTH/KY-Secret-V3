@@ -497,7 +497,7 @@
         } catch (e) {
           console.warn('无法加载配置，使用默认值');
           return {
-            backend: 'https://pvc-coins-productivity-dropped.trycloudflare.com',
+            backend: 'https://dog-filed-prostate-naples.trycloudflare.com/',
             api: '/api'
           };
         }
@@ -810,7 +810,7 @@
       // 执行所有检测
       async function performHealthCheck() {
         const config = await loadConfig();
-        backendUrl = config.backend || 'https://pvc-coins-productivity-dropped.trycloudflare.com';
+        backendUrl = config.backend || 'https://dog-filed-prostate-naples.trycloudflare.com/';
         
         // 更新API端点显示
         const apiEndpoint = document.getElementById('api-endpoint');
