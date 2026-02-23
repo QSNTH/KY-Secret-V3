@@ -1,753 +1,492 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
-    <title>KY Secret V3 · 匿名投稿</title>
-    <script>
-    // ========= KY Secret V3 动态配置加载 =========
-    window.KY_CONFIG = {
-        backendUrl: '',
-        apiPrefix: '/api',
-        endpoints: {}
-    };
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+  <title>KY Secret · 历史事件</title>
+  <style>
+    /* ===== KY Secret V3 统一风格 ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
 
-    // 使用立即执行函数，保证配置在DOM加载前启动
-    (async function initConfig() {
-        try {
-            // 尝试从GitHub加载
-            const githubResponse = await fetch('https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json');
-            const githubConfig = await githubResponse.json();
-            
-            window.KY_CONFIG.backendUrl = githubConfig.backend || githubConfig.backendBaseUrl;
-            window.KY_CONFIG.apiPrefix = githubConfig.api || '/api';
-            window.KY_CONFIG.endpoints = githubConfig;
-            
-            console.log('✅ 配置加载成功:', window.KY_CONFIG.backendUrl);
-        } catch (e) {
-            console.warn('⚠️ GitHub配置加载失败，尝试本地配置...');
-            
-            try {
-                const localResponse = await fetch('/config.json');
-                const localConfig = await localResponse.json();
-                
-                window.KY_CONFIG.backendUrl = localConfig.backend;
-                window.KY_CONFIG.apiPrefix = localConfig.api || '/api';
-                window.KY_CONFIG.endpoints = localConfig;
-                
-                console.log('✅ 本地配置加载成功');
-            } catch (e2) {
-                console.warn('⚠️ 本地配置也失败，使用硬编码备份');
-                
-                window.KY_CONFIG.backendUrl = 'https://pvc-coins-productivity-dropped.trycloudflare.com';
-                window.KY_CONFIG.apiPrefix = '/api';
-                window.KY_CONFIG.endpoints = {
-                    submit: '/submit',
-                    lookup: '/lookup/{uuid}',
-                    status: '/status',
-                    admin_login: '/admin/login',
-                    admin_logout: '/admin/logout',
-                    admin_find: '/admin/find',
-                    admin_review: '/admin/review',
-                    admin_history: '/admin/history'
-                };
-            }
-        }
-        
-        // 挂载工具函数
-        window.KY_CONFIG.getUrl = function(endpoint, params = {}) {
-            let path = window.KY_CONFIG.endpoints[endpoint];
-            
-            // 如果endpoint是完整路径（以/开头）就直接使用，否则从endpoints获取
-            if (!path) {
-                // 尝试直接使用传入的字符串作为路径
-                path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-            }
-            
-            // 替换路径参数 {uuid} 等
-            Object.keys(params).forEach(key => {
-                path = path.replace(`{${key}}`, params[key]);
-            });
-            
-            return `${window.KY_CONFIG.backendUrl}${window.KY_CONFIG.apiPrefix}${path}`;
-        };
-        
-        // 配置加载完成后触发表单可以提交
-        window.dispatchEvent(new CustomEvent('configLoaded', { detail: window.KY_CONFIG }));
-    })();
-    </script>
-    <style>
-        /* 您的原有样式保持不变 */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        }
+    body {
+      background: #f7fafc;
+      padding: 2rem 1rem;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
 
-        body {
-            background: #f7fafc;
-            padding: 2rem 1rem;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-        }
+    .ky-container {
+      max-width: 780px;
+      width: 100%;
+      margin: 0 auto;
+    }
 
-        .ky-container {
-            max-width: 780px;
-            width: 100%;
-            margin: 0 auto;
-        }
+    .nav-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
 
-        .nav-header {
-            text-align: center;
-            margin-bottom: 2.5rem;
-        }
+    .logo {
+      font-size: 5rem;
+      font-weight: 900;
+      color: #000000;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+      line-height: 1;
+    }
 
-        .logo {
-            font-size: 5rem;
-            font-weight: 900;
-            color: #000000;
-            letter-spacing: -0.02em;
-            margin-bottom: 0.5rem;
-            line-height: 1;
-        }
+    .nav-buttons {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-bottom: 1.2rem;
+    }
 
-        .nav-buttons {
-            display: flex;
-            gap: 0.75rem;
-            justify-content: center;
-            margin-bottom: 1.2rem;
-        }
+    .nav-btn {
+      padding: 0.5rem 1.4rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 40px;
+      background: #ffffff;
+      color: #334155;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 550;
+      transition: 0.15s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
 
-        .nav-btn {
-            padding: 0.5rem 1.4rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 40px;
-            background: #ffffff;
-            color: #334155;
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 550;
-            transition: 0.15s;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
-        }
+    .nav-btn:hover {
+      background: #eef2f6;
+      border-color: #cbd5e1;
+    }
 
-        .nav-btn:hover {
-            background: #eef2f6;
-            border-color: #cbd5e1;
-        }
+    .nav-btn.active {
+      background: #0f172a;
+      color: white;
+      border-color: #0f172a;
+    }
 
-        .nav-btn.active {
-            background: #0f172a;
-            color: white;
-            border-color: #0f172a;
-        }
+    /* 月份分段标题 */
+    .month-section {
+      margin-top: 2.8rem;
+      margin-bottom: 1.5rem;
+    }
 
-        .submit-card {
-            background: white;
-            border-radius: 28px;
-            border: 1px solid #ecf1f7;
-            box-shadow: 0 4px 14px rgba(0, 20, 40, 0.02);
-            padding: 2rem 2rem 2.2rem;
-            margin-bottom: 1.5rem;
-        }
+    .month-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #0b1e2e;
+      letter-spacing: -0.3px;
+      border-bottom: 1.5px solid #edf2f7;
+      padding-bottom: 0.4rem;
+      display: flex;
+      align-items: baseline;
+    }
 
-        .form-header {
-            margin-bottom: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+    .month-title span {
+      background: #eef4ff;
+      padding: 0.2rem 0.8rem;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #2563eb;
+      margin-left: 0.9rem;
+    }
 
-        .form-header h1 {
-            font-size: 1.65rem;
-            font-weight: 700;
-            color: #0f2a40;
-            letter-spacing: -0.3px;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-        }
+    /* 事件卡片 */
+    .incident-card {
+      margin-bottom: 2.2rem;
+      border: 1px solid #ecf1f7;
+      border-radius: 28px;
+      overflow: hidden;
+      background: white;
+      box-shadow: 0 4px 14px rgba(0, 20, 40, 0.02);
+    }
 
-        .form-header h1::before {
-            content: "✍️";
-            font-size: 1.8rem;
-        }
+    .incident-header {
+      padding: 1rem 1.4rem;
+      color: white;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      font-size: 0.95rem;
+    }
 
-        .form-badge {
-            background: #eef4ff;
-            padding: 0.35rem 1rem;
-            border-radius: 60px;
-            font-size: 0.75rem;
-            font-weight: 650;
-            color: #2563eb;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            border: 1px solid #dbeafe;
-        }
+    @media (min-width: 550px) {
+      .incident-header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
 
-        .form-item {
-            margin-bottom: 1.8rem;
-        }
+    .header-disruption { background-color: #f59e0b; }
+    .header-maintenance { background-color: #2563eb; }
+    .header-resolved { background-color: #10b981; }
 
-        .form-item label {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 0.6rem;
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #1e3f5c;
-            letter-spacing: -0.2px;
-        }
+    .incident-title {
+      font-weight: 650;
+      letter-spacing: -0.2px;
+    }
 
-        .label-left {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+    .incident-tag {
+      font-size: 0.75rem;
+      background: rgba(255,255,255,0.2);
+      padding: 0.2rem 0.9rem;
+      border-radius: 60px;
+      font-weight: 600;
+      display: inline-block;
+    }
 
-        .char-counter {
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: #6f8a9f;
-            background: #f1f7fd;
-            padding: 0.25rem 0.8rem;
-            border-radius: 60px;
-        }
+    .incident-body {
+      padding: 1.4rem 1.4rem 1.2rem;
+      background: #ffffff;
+    }
 
-        input, textarea {
-            width: 100%;
-            padding: 0.9rem 1.2rem;
-            border: 1.5px solid #e2ecf5;
-            border-radius: 20px;
-            font-size: 0.95rem;
-            background: #ffffff;
-            transition: all 0.15s;
-            color: #1f3a57;
-            outline: none;
-        }
+    .meta-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem 2rem;
+      margin-bottom: 1.4rem;
+      font-size: 0.85rem;
+      color: #334e68;
+    }
 
-        input:focus, textarea:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.08);
-            background: #ffffff;
-        }
+    .meta-item {
+      display: flex;
+      align-items: baseline;
+      gap: 0.4rem;
+    }
 
-        textarea {
-            min-height: 200px;
-            resize: vertical;
-            line-height: 1.6;
-        }
+    .meta-label {
+      font-weight: 650;
+      color: #5e7180;
+      min-width: 70px;
+    }
 
-        .field-hint {
-            margin-top: 0.4rem;
-            font-size: 0.72rem;
-            color: #6f8faa;
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-            background: #f4faff;
-            padding: 0.3rem 0.9rem;
-            border-radius: 60px;
-            width: fit-content;
-        }
-        
-        .image-zone {
-            background: #fafeff;
-            border: 1.5px dashed #cde0ed;
-            border-radius: 24px;
-            padding: 1.2rem 1.2rem 1rem;
-            transition: background 0.1s;
-        }
+    .meta-value {
+      color: #0c2e4e;
+      font-weight: 500;
+    }
 
-        .image-zone:hover {
-            background: #f2f9ff;
-            border-color: #91b8d9;
-        }
+    .location-badge {
+      background: #eef2f6;
+      padding: 0.2rem 0.7rem;
+      border-radius: 30px;
+      font-size: 0.75rem;
+      color: #365874;
+      display: inline-block;
+      margin-right: 4px;
+    }
 
-        .image-upload-btn {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
+    .timeline-events {
+      margin-top: 1.2rem;
+      border-top: 1px dashed #dce5ec;
+      padding-top: 1.2rem;
+    }
 
-        .file-input {
-            display: none;
-        }
+    .event-item {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 1rem;
+      font-size: 0.82rem;
+    }
 
-        .custom-file-label {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.7rem 1.4rem;
-            background: #eef2f6;
-            border-radius: 40px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #1e3f5c;
-            cursor: pointer;
-            transition: 0.15s;
-            border: 1px solid #dbe2ec;
-        }
+    @media (min-width: 550px) {
+      .event-item {
+        flex-direction: row;
+        align-items: baseline;
+      }
+    }
 
-        .custom-file-label:hover {
-            background: #e2eaf1;
-            border-color: #9fb8d0;
-        }
+    .event-time {
+      font-family: 'SF Mono', 'Menlo', monospace;
+      color: #526f85;
+      min-width: 180px;
+      font-weight: 450;
+      letter-spacing: -0.2px;
+    }
 
-        .file-hint {
-            color: #557a99;
-            font-size: 0.8rem;
-        }
+    .event-status {
+      font-weight: 650;
+      min-width: 110px;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: 0.4px;
+    }
 
-        .image-preview {
-            display: flex;
-            gap: 0.8rem;
-            flex-wrap: wrap;
-            margin-top: 1.2rem;
-            padding-top: 0.8rem;
-            border-top: 1px solid #e2ecf5;
-        }
+    .status-investigating { color: #f59e0b; }
+    .status-identified { color: #10b981; }
+    .status-monitoring { color: #0b8a73; }
+    .status-resolved { color: #10b981; }
+    .status-update { color: #2563eb; }
 
-        .preview-item {
-            position: relative;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-        }
+    .event-description {
+      color: #2d4259;
+      flex: 1;
+    }
 
-        .preview-item img {
-            display: block;
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 14px;
-            border: 2px solid white;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        }
+    /* 页脚导航 - 统一风格 */
+    .footer-note {
+      text-align: center;
+      margin-top: 1.8rem;
+      font-size: 0.75rem;
+      color: #7996ae;
+      border-top: 1px solid #e2ecf5;
+      padding-top: 1.8rem;
+    }
 
-        .preview-item .remove-btn {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: rgba(0,0,0,0.6);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            font-size: 16px;
-            line-height: 1;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    .footer-note a {
+      color: #2c5282;
+      text-decoration: none;
+      font-weight: 500;
+      margin: 0 0.4rem;
+    }
 
-        .preview-item .remove-btn:hover {
-            background: rgba(255,0,0,0.8);
-        }
+    .footer-note a:hover {
+      text-decoration: underline;
+    }
 
-        .submit-btn {
-            width: 100%;
-            padding: 1rem 1.5rem;
-            background: #0f172a;
-            color: white;
-            border: none;
-            border-radius: 40px;
-            font-size: 1.1rem;
-            font-weight: 650;
-            letter-spacing: 0.5px;
-            cursor: pointer;
-            transition: 0.15s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.6rem;
-            margin-top: 1.2rem;
-            border: 1px solid #1e2a44;
-        }
-
-        .submit-btn:hover {
-            background: #1e2f45;
-            transform: scale(1.01);
-            box-shadow: 0 8px 18px rgba(15,35,60,0.12);
-        }
-
-        .submit-btn:active {
-            transform: scale(0.99);
-        }
-
-        .footer-note {
-            text-align: center;
-            margin-top: 1.8rem;
-            font-size: 0.75rem;
-            color: #7996ae;
-            border-top: 1px solid #e2ecf5;
-            padding-top: 1.8rem;
-        }
-
-        .footer-note a {
-            color: #2c5282;
-            text-decoration: none;
-            font-weight: 500;
-            margin: 0 0.4rem;
-        }
-
-        .footer-note a:hover {
-            text-decoration: underline;
-        }
-
-        @media (max-width: 550px) {
-            .logo { font-size: 4rem; }
-            .submit-card { padding: 1.5rem; }
-            .form-header { flex-direction: column; align-items: flex-start; gap: 0.6rem; }
-        }
-
-        .tip-text {
-            background: #f1f9f0;
-            color: #1f6e4a;
-            border-radius: 60px;
-            padding: 0.2rem 0.8rem;
-            font-size: 0.7rem;
-        }
-
-        .required-star {
-            color: #c53030;
-            margin-left: 4px;
-            font-size: 0.9rem;
-        }
-
-        .or-divider {
-            text-align: center;
-            margin: 1rem 0;
-            position: relative;
-            color: #94a3b8;
-            font-size: 0.85rem;
-        }
-
-        .or-divider::before,
-        .or-divider::after {
-            content: "";
-            position: absolute;
-            top: 50%;
-            width: 40%;
-            height: 1px;
-            background: #e2e8f0;
-        }
-
-        .or-divider::before {
-            left: 0;
-        }
-
-        .or-divider::after {
-            right: 0;
-        }
-    </style>
+    @media (max-width: 550px) {
+      .logo { font-size: 4rem; }
+      .event-time { margin-bottom: 0.2rem; }
+    }
+  </style>
 </head>
 <body>
-    <div class="ky-container">
-        <div class="nav-header">
-            <div class="logo">KYSECRET</div>
-            <div class="nav-buttons">
-                <a href="./status/index.html" class="nav-btn">📊 状态</a>
-                <a href="https://ky-secret-v3.pages.dev/status/history" class="nav-btn">📋 历史</a>
-                <a href="" class="nav-btn active">✉️ 投稿</a>
-            </div>
-        </div>
-
-        <div class="submit-card">
-            <div class="form-header">
-                <h1>匿名投稿</h1>
-                <span class="form-badge">V3 · HTTPS加密</span>
-            </div>
-
-            <form id="kySubmitForm" enctype="multipart/form-data">
-                <div class="form-item">
-                    <label>
-                        <span class="label-left">
-                            <span>📌 标题</span>
-                            <span class="tip-text">选填</span>
-                        </span>
-                        <span class="char-counter" id="titleCounter">0/20</span>
-                    </label>
-                    <input type="text" id="title" maxlength="20" placeholder="给你的投稿起个标题（20字以内）" autocomplete="off">
-                </div>
-
-                <div class="form-item">
-                    <label>
-                        <span class="label-left">
-                            <span>📄 匿名内容</span>
-                            <span class="required-star" id="contentRequired">*</span>
-                        </span>
-                        <span class="char-counter" id="contentCounter">0/200</span>
-                    </label>
-                    <textarea id="content" maxlength="200" placeholder="写下你想分享的一切…… 支持200字"></textarea>
-                    <div class="field-hint" id="contentHint">
-                        <span>✍️</span> 和图片二选一即可
-                    </div>
-                </div>
-
-                <div class="or-divider">或者</div>
-
-                <div class="form-item">
-                    <label>
-                        <span class="label-left">
-                            <span>🖼️ 上传图片</span>
-                            <span class="required-star" id="imageRequired">*</span>
-                        </span>
-                    </label>
-                    <div class="image-zone">
-                        <div class="image-upload-btn">
-                            <input type="file" id="imageFiles" class="file-input" accept="image/*">
-                            <label for="imageFiles" class="custom-file-label">
-                                <span style="font-size:1.2rem;">📎</span> 选择图片
-                            </label>
-                            <span class="file-hint" id="fileCountHint">未选择任何文件</span>
-                        </div>
-                        <div class="image-preview" id="imagePreviewContainer"></div>
-                    </div>
-                    <div class="field-hint">
-                        <span>🖼️</span> 和内容二选一即可，只支持1张
-                    </div>
-                </div>
-
-                <button type="submit" class="submit-btn">
-                    <span>✈️</span> 匿名提交
-                </button>
-            </form>
-
-            <div style="margin-top: 1.8rem; font-size: 0.7rem; color: #6a889b; text-align: center; border-top: 1px solid #ecf5fa; padding-top: 1.2rem;">
-                ⚡ 投稿后经过人工审核展示 · 不会公开你的任何个人信息
-            </div>
-        </div>
-
-        <div class="footer-note">
-            <a href="./index.html">← 当前状态</a> · 
-            <a href="https://ky-secret-v3.pages.dev/status/history">📋 历史事件</a> · 
-        </div>
+  <div class="ky-container">
+    <!-- 头部：统一导航，三个按钮齐全 -->
+    <div class="nav-header">
+      <div class="logo">KYSECRET</div>
+      <div class="nav-buttons">
+        <a href="./index.html" class="nav-btn">📊 状态</a>
+        <a href="./history.html" class="nav-btn active">📋 历史</a>
+        <a href="../index.html" class="nav-btn">✉️ 投稿</a>
+      </div>
     </div>
 
- <script>
-        (function() {
-            "use strict";
+    <!-- 二月 2026 -->
+    <div class="month-section">
+      <div class="month-title">
+        February 2026 <span>2 个事件</span>
+      </div>
+    </div>
 
-            // DOM 元素
-            const titleInput = document.getElementById('title');
-            const contentInput = document.getElementById('content');
-            const titleCounter = document.getElementById('titleCounter');
-            const contentCounter = document.getElementById('contentCounter');
-            const fileInput = document.getElementById('imageFiles');
-            const fileHint = document.getElementById('fileCountHint');
-            const previewContainer = document.getElementById('imagePreviewContainer');
-            const form = document.getElementById('kySubmitForm');
-            const contentRequired = document.getElementById('contentRequired');
-            const imageRequired = document.getElementById('imageRequired');
+    <!-- 事件 1：Backend API 服务中断（注释掉的） -->
+
+    <div class="incident-card">
+      <div class="incident-header header-disruption">
+        <span class="incident-title">Backend API 服务中断</span>
+        <span class="incident-tag">服务中断</span>
+      </div>
+      <div class="incident-body">
+        <div class="meta-grid">
+          <div class="meta-item">
+            <span class="meta-label">状态</span>
+            <span class="meta-value" style="color: #10b981; font-weight: 650;">已解决</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">组件</span>
+            <span class="meta-value">Backend API, 数据库</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">影响范围</span>
+            <span class="meta-value">
+              <span class="location-badge">API Server</span>
+              <span class="location-badge">Database</span>
+            </span>
+          </div>
+        </div>
+        
+        <div class="timeline-events">
+            <div class="event-item">
+                <span class="event-time">February 22, 2026 3:24 UTC+8</span>
+                <span class="event-status status-investigating">调查中</span>
+                <span class="event-description">发现后端API服务异常，请求响应超时，正在排查根因</span>
+            </div>
             
-            let isSubmitting = false;
-            let currentPreviewFile = null;
+            <div class="event-item">
+                <span class="event-time">February 23, 2026 3:49 UTC+8</span>
+                <span class="event-status status-update">修复中</span>
+                <span class="event-description">进网光纤光信号丢失, 己联系工程师</span>
+            </div>
+            <div class="event-item">
+                <span class="event-time">February 23, 2026 4:51 UTC+8</span>
+                <span class="event-status status-monitoring">监控中</span>
+                <span class="event-description">已修复服务节点故障，api服务恢复，持续监控运行状态</span>
+            </div>
+            <div class="event-item">
+                <span class="event-time">February 23, 2026 4:58 UTC+8</span>
+                <span class="event-status status-resolved">已解决</span>
+                <span class="event-description">所有API节点恢复正常，服务完全可用，故障已解决</span>
+            </div>
+        </div>
+      </div>
+    </div>
 
-            // 字数统计
-            function updateTitleCounter() {
-                titleCounter.innerText = `${titleInput.value.length}/20`;
-            }
-            
-            function updateContentCounter() {
-                contentCounter.innerText = `${contentInput.value.length}/200`;
-                updateRequiredFields();
-            }
 
-            // 更新必填标记
-            function updateRequiredFields() {
-                const hasContent = contentInput.value.trim().length > 0;
-                const hasImage = fileInput.files.length > 0;
-                
-                // 如果内容不为空，图片就不是必填
-                if (hasContent) {
-                    contentRequired.style.color = '#c53030';
-                    imageRequired.style.color = '#94a3b8';
-                } 
-                // 如果图片不为空，内容就不是必填
-                else if (hasImage) {
-                    contentRequired.style.color = '#94a3b8';
-                    imageRequired.style.color = '#c53030';
-                }
-                // 如果都为空，两者都是红色
-                else {
-                    contentRequired.style.color = '#c53030';
-                    imageRequired.style.color = '#c53030';
-                }
-            }
+    <!-- 事件 2：KYsercet 计划性DEV（当前显示的事件） -->
+    <div class="incident-card">
+      <div class="incident-header header-maintenance">
+        <span class="incident-title">KYsercet 计划性DEV</span>
+        <span class="incident-tag">计划DEV</span>
+      </div>
+      <div class="incident-body">
+        <div class="meta-grid">
+          <div class="meta-item">
+            <span class="meta-label">描述</span>
+            <span class="meta-value">还在做啦</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">组件</span>
+            <span class="meta-value">前端到后端的发包</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">时间</span>
+            <span class="meta-value">February 05, 2026 00:00 - March 07, 2026 00:00 CST</span>
+          </div>
+        </div>
 
-            titleInput.addEventListener('input', updateTitleCounter);
-            contentInput.addEventListener('input', updateContentCounter);
-            
-            // 初始化
-            updateTitleCounter();
-            updateContentCounter();
-            updateRequiredFields();
+        <div class="timeline-events">
+          <div class="event-item">
+            <span class="event-time">February 15, 2026 00:00 CST</span>
+            <span class="event-status status-update">DEV</span>
+            <span class="event-description">内测用户可以优先访问</span>
+          </div>
+          <!-- 注释掉的第二个事件
+          <div class="event-item">
+            <span class="event-time">February 15, 2026 02:00 CST</span>
+            <span class="event-status status-update">更新</span>
+            <span class="event-description">维护完成，管理后台恢复正常访问，新功能已上线</span>
+          </div>
+          -->
+        </div>
+      </div>
+    </div>
 
-            // 图片预览（只允许1张）
-            fileInput.addEventListener('change', function(e) {
-                const files = Array.from(fileInput.files);
-                
-                if (files.length === 0) {
-                    fileHint.innerText = '未选择任何文件';
-                    previewContainer.innerHTML = '';
-                    currentPreviewFile = null;
-                    updateRequiredFields();
-                    return;
-                }
+    <!-- 一月 2026（注释掉的） -->
+    <!--
+    <div class="month-section">
+      <div class="month-title">
+        January 2026 <span>1 个事件</span>
+      </div>
+    </div>
+    -->
 
-                // 只取第一张
-                const file = files[0];
-                
-                // 如果选了多张，提示并只保留第一张
-                if (files.length > 1) {
-                    alert('只支持上传1张图片，已自动选择第一张');
-                    const dt = new DataTransfer();
-                    dt.items.add(file);
-                    fileInput.files = dt.files;
-                }
+    <!-- 事件 3：投稿服务文件上传失败（注释掉的） -->
+    <!--
+    <div class="incident-card">
+      <div class="incident-header header-disruption">
+        <span class="incident-title">投稿服务文件上传失败</span>
+        <span class="incident-tag">服务中断</span>
+      </div>
+      <div class="incident-body">
+        <div class="meta-grid">
+          <div class="meta-item">
+            <span class="meta-label">状态</span>
+            <span class="meta-value" style="color: #10b981; font-weight: 650;">已解决</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">组件</span>
+            <span class="meta-value">Submission Service, 文件存储</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">影响范围</span>
+            <span class="meta-value">
+              <span class="location-badge">File Server</span>
+              <span class="location-badge">Upload Node</span>
+            </span>
+          </div>
+        </div>
 
-                fileHint.innerText = `已选择 1 个文件: ${file.name}`;
-                previewContainer.innerHTML = '';
-                currentPreviewFile = file;
+        <div class="timeline-events">
+          <div class="event-item">
+            <span class="event-time">January 28, 2026 14:20 CST</span>
+            <span class="event-status status-identified">已定位</span>
+            <span class="event-description">定位到文件存储节点磁盘满，导致投稿图片/文件上传失败</span>
+          </div>
+          <div class="event-item">
+            <span class="event-time">January 28, 2026 15:05 CST</span>
+            <span class="event-status status-monitoring">监控中</span>
+            <span class="event-description">已清理磁盘空间，上传功能恢复，持续监控存储状态</span>
+          </div>
+          <div class="event-item">
+            <span class="event-time">January 28, 2026 15:30 CST</span>
+            <span class="event-status status-resolved">已解决</span>
+            <span class="event-description">存储节点运行正常，所有投稿上传功能恢复</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    -->
 
-                if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        const previewItem = document.createElement('div');
-                        previewItem.className = 'preview-item';
-                        
-                        const img = document.createElement('img');
-                        img.src = ev.target.result;
-                        
-                        const removeBtn = document.createElement('button');
-                        removeBtn.className = 'remove-btn';
-                        removeBtn.innerHTML = '×';
-                        removeBtn.onclick = function() {
-                            fileInput.value = '';
-                            previewContainer.innerHTML = '';
-                            fileHint.innerText = '未选择任何文件';
-                            currentPreviewFile = null;
-                            updateRequiredFields();
-                        };
-                        
-                        previewItem.appendChild(img);
-                        previewItem.appendChild(removeBtn);
-                        previewContainer.appendChild(previewItem);
-                    };
-                    reader.readAsDataURL(file);
-                }
-                
-                updateRequiredFields();
-            });
+    <!-- 十二月 2025（注释掉的） -->
+    <!--
+    <div class="month-section">
+      <div class="month-title">
+        December 2025 <span>1 个事件</span>
+      </div>
+    </div>
+    -->
 
-            // 等待配置加载完成再允许提交
-            async function waitForConfig() {
-                if (window.KY_CONFIG && window.KY_CONFIG.backendUrl) {
-                    return true;
-                }
-                // 最多等待3秒
-                for (let i = 0; i < 30; i++) {
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    if (window.KY_CONFIG && window.KY_CONFIG.backendUrl) {
-                        return true;
-                    }
-                }
-                return false;
-            }
+    <!-- 事件 4：图片生成服务异常（注释掉的） -->
+    <!--
+    <div class="incident-card">
+      <div class="incident-header header-disruption">
+        <span class="incident-title">图片生成服务异常</span>
+        <span class="incident-tag">服务中断</span>
+      </div>
+      <div class="incident-body">
+        <div class="meta-grid">
+          <div class="meta-item">
+            <span class="meta-label">状态</span>
+            <span class="meta-value" style="color: #10b981; font-weight: 650;">已解决</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">组件</span>
+            <span class="meta-value">文字图生成服务</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">原因</span>
+            <span class="meta-value">字体文件权限问题</span>
+          </div>
+        </div>
 
-            // 表单提交
-            form.addEventListener('submit', async function(e) {
-                e.preventDefault();
+        <div class="timeline-events">
+          <div class="event-item">
+            <span class="event-time">December 5, 2025 10:30 CST</span>
+            <span class="event-status status-investigating">调查中</span>
+            <span class="event-description">用户反馈投稿后文字图生成失败，服务日志显示字体加载错误</span>
+          </div>
+          <div class="event-item">
+            <span class="event-time">December 5, 2025 11:15 CST</span>
+            <span class="event-status status-identified">已定位</span>
+            <span class="event-description">字体文件权限被修改，导致PIL无法读取字体</span>
+          </div>
+          <div class="event-item">
+            <span class="event-time">December 5, 2025 11:45 CST</span>
+            <span class="event-status status-resolved">已解决</span>
+            <span class="event-description">修复字体权限，文字图生成恢复正常</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    -->
 
-                if (isSubmitting) return;
-                
-                const hasContent = contentInput.value.trim().length > 0;
-                const hasImage = fileInput.files.length > 0;
-
-                // 检查：内容和图片必须至少有一个
-                if (!hasContent && !hasImage) {
-                    alert('请填写匿名内容 或 上传一张图片（二选一）');
-                    return;
-                }
-
-                // 等待配置加载
-                const configReady = await waitForConfig();
-                if (!configReady) {
-                    alert('配置加载失败，请刷新页面重试');
-                    return;
-                }
-
-                // 构建 FormData
-                const formData = new FormData();
-                
-                // 标题（选填）
-                if (titleInput.value.trim()) {
-                    formData.append('title', titleInput.value.trim());
-                }
-                
-                // 内容（如果有）
-                if (hasContent) {
-                    formData.append('content', contentInput.value.trim());
-                } else {
-                    // 如果没内容但有图片，传一个空字符串或默认内容
-                    formData.append('content', '『图片投稿』');
-                }
-
-                // 图片（最多1张）
-                if (hasImage) {
-                    formData.append('user_image', fileInput.files[0]);
-                }
-
-                // 使用动态配置构建URL
-                const SUBMIT_ENDPOINT = window.KY_CONFIG.getUrl('submit');
-
-                const submitBtn = document.querySelector('.submit-btn');
-                const originalText = submitBtn.innerHTML;
-                submitBtn.innerHTML = '<span>⏳</span> 提交中...';
-                submitBtn.disabled = true;
-                isSubmitting = true;
-
-                try {
-                    const response = await fetch(SUBMIT_ENDPOINT, {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        throw new Error(`HTTP ${response.status}: ${errorText}`);
-                    }
-
-                    const data = await response.json();
-                    alert('✅ 投稿提交成功！感谢你的分享。审核通过后将发布。');
-                    
-                    form.reset();
-                    previewContainer.innerHTML = '';
-                    fileHint.innerText = '未选择任何文件';
-                    titleCounter.innerText = '0/20';
-                    contentCounter.innerText = '0/200';
-                    currentPreviewFile = null;
-                    updateRequiredFields();
-                    
-                } catch (error) {
-                    console.error('提交失败:', error);
-                    alert('❌ 投稿提交失败，请稍后重试。' + (error.message ? `\n${error.message}` : ''));
-                } finally {
-                    submitBtn.innerHTML = originalText;
-                    submitBtn.disabled = false;
-                    isSubmitting = false;
-                }
-            });
-
-        })();
-    </script>
+    <!-- 页脚导航 - 在容器最底部，所有事件卡片之后 -->
+    <div class="footer-note">
+      <a href="./index.html">📊 实时状态</a> · 
+      <a href="./history.html">📋 历史事件</a> · 
+      <a href="../index.html">✉️ 匿名投稿</a>
+    </div>
+  </div>
 </body>
 </html>
