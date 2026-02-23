@@ -61,12 +61,12 @@
       transition: 0.15s;
       box-shadow: 0 1px 2px rgba(0,0,0,0.02);
     }
-
+    /*
     .nav-btn:hover {
       background: #eef2f6;
       border-color: #cbd5e1;
     }
-
+    */
     .nav-btn.active {
       background: #0f172a;
       color: white;
@@ -1166,7 +1166,7 @@
         updateAllServicesUI();
 
         await performHealthCheck();
-
+        /*
         // 绑定刷新按钮
         const refreshBtn = document.getElementById('manualRefreshBtn');
         if (refreshBtn) {
@@ -1175,7 +1175,7 @@
             await performHealthCheck();
           });
         }
-
+        */
         // 自动刷新（每5秒）
         setInterval(performHealthCheck, 5000);
       }
