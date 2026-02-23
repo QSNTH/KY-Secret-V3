@@ -954,7 +954,7 @@
                 </div>
                 <div class="hardware-row">
                   <span class="hardware-label">已使用</span>
-                  <span class="hardware-value ${getTEXTColor(data.disk?.used_gb || 'ERR')}">${data.disk?.used_gb || 'ERR'} GB</span>
+                  <span class="hardware-value ${getTEXTColor(data.disk?.used_gb || 'ERR')}">${data.disk?.used_gb || 'ERR'}  / ${data.disk?.total_gb || 0}  GB</span>
                 </div>
                 <div class="hardware-row">
                   <span class="hardware-label">温度</span>
