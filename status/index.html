@@ -477,7 +477,7 @@
                       <span class="hardware-value red">Loading</span>
                     </div>
                     <div class="hardware-row">
-                      <span class="hardware-label">频率</span>
+                      <span class="hardware-label">温度</span>
                       <span class="hardware-value red">Loading</span>
                     </div>
                     <div class="hardware-row">
@@ -522,18 +522,22 @@
                   <div class="hardware-detail">
                     <div class="hardware-row">
                       <span class="hardware-label">总容量</span>
-                      <span class="hardware-value red">Loading</span>
+                      <span class="hardware-value blue">Loading</span>
                     </div>
                     <div class="hardware-row">
                       <span class="hardware-label">已使用</span>
-                      <span class="hardware-value red">Loading</span>
+                      <span class="hardware-value blue">Loading</span>
+                    </div>
+                    <div class="hardware-row">
+                      <span class="hardware-label">温度</span>
+                      <span class="hardware-value blue">Loading</span>
                     </div>
                     <div class="hardware-row">
                       <span class="hardware-label">使用率</span>
-                      <span class="hardware-value red">Loading</span>
+                      <span class="hardware-value blue">Loading</span>
                     </div>
                     <div class="progress-bar">
-                      <div class="progress-fill red" style="width:100%"></div>
+                      <div class="progress-fill blue" style="width:100%"></div>
                     </div>
                   </div>
                 </div>
@@ -559,7 +563,7 @@
                       <span class="hardware-value blue">Loading</span>
                     </div>
                     <div class="progress-bar">
-                      <div class="progress-fill red" style="width:100%"></div>
+                      <div class="progress-fill blue" style="width:100%"></div>
                     </div>
                   </div>
                 </div>
@@ -719,7 +723,7 @@
                       <span class="hardware-value red">ERR</span>
                     </div>
                     <div class="hardware-row">
-                      <span class="hardware-label">频率</span>
+                      <span class="hardware-label">温度</span>
                       <span class="hardware-value red">ERR</span>
                     </div>
                     <div class="hardware-row">
@@ -947,14 +951,14 @@
                 <div class="hardware-row">
                   <span class="hardware-label">总容量</span>
                   <span class="hardware-value ${getTEXTColor(data.disk?.total_gb || 'ERR')}">${data.disk?.total_gb || 'ERR'} GB</span>
+                <div class="hardware-row">
+                  <span class="hardware-label">已使用</span>
+                  <span class="hardware-value ${getTEXTColor(data.disk?.used_gb || 'ERR')}">${data.disk?.used_gb || 'ERR'} GB</span>
+                </div>
                 </div>
                 <div class="hardware-row">
                   <span class="hardware-label">温度</span>
                   <span class="hardware-value ${getTEXTColor(data.disk?.total_gb || 'ERR')}">${!isNaN(data.gpu.temp_c) && data.gpu.temp_c > 50 ? '<span class="gpu-temp">高温</span>' : ''} ${'43' || 'ERR'} °C </span>
-                </div>
-                <div class="hardware-row">
-                  <span class="hardware-label">已使用</span>
-                  <span class="hardware-value ${getTEXTColor(data.disk?.used_gb || 'ERR')}">${data.disk?.used_gb || 'ERR'} GB</span>
                 </div>
                 <div class="hardware-row">
                   <span class="hardware-label">使用率</span>
