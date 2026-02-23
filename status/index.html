@@ -605,24 +605,11 @@
         <span>🕒 最后检测: </span>
         <span id="lastCheckTime">刚刚</span>
       </div>
-    <!--
       <div id="manualRefreshBtn" class="refresh-btn">
-        <span>⟳</span> 立即刷新
-      </div>
-    -->
-      <div id="manualRefreshBtn" class="refresh-btn">
-        <span>⟳</span> 每5秒自动刷新
-      </div>
-<!--
-      <div id="manualRefreshBtn">
-        <span>⟳</span> 每5秒自动刷新
-      </div>
-
-      <div  class="refresh-btn">
         <span>⟳</span> 每5秒自动刷新
       </div>
     </div>
--->
+  </div>
     <!-- 页脚导航 -->
     <div class="footer-note">
       <a href="./index.html">📊 当前状态</a> · 
@@ -1181,7 +1168,6 @@
         await performHealthCheck();
 
         // 绑定刷新按钮
-        /*
         const refreshBtn = document.getElementById('manualRefreshBtn');
         if (refreshBtn) {
           refreshBtn.addEventListener('click', async (e) => {
@@ -1189,7 +1175,7 @@
             await performHealthCheck();
           });
         }
-        */
+
         // 自动刷新（每5秒）
         setInterval(performHealthCheck, 5000);
       }
