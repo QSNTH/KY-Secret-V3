@@ -270,6 +270,10 @@
       font-weight: 600;
     }
 
+    /* 文字颜色类 */
+    .green { color: #0a8f5a; }
+    .red { color: #cd3c30; }
+
     .progress-bar {
       width: 100%;
       height: 6px;
@@ -441,7 +445,7 @@
           <div class="service-left">
             <span class="status-indicator" id="indicator-status"></span>
             <span class="service-name">Status API</span>
-            <span class="service-endpoint" id="api-endpoint"><div class=""></div>https://dog-filed-prostate-naples.trycloudflare.com/api/status</span>
+            <span class="service-endpoint">https://dog-filed-prostate-naples.trycloudflare.com/api/status</span>
           </div>
           <div class="status-text">
             <span id="status-badge-status" class="status-badge badge-unknown">检测中...</span>
@@ -569,7 +573,7 @@
         const container = document.getElementById('hardwareMonitoring');
         if (!container) return;
 
-/*
+        // 无数据时显示友好提示
         if (!data) {
           container.innerHTML = `
             <div style="text-align: center; padding: 2rem; color: #94a3b8;">
@@ -578,25 +582,39 @@
           `;
           return;   
         }
-*/
+
         // 获取进度条颜色
         function getProgressColor(percent) {
+          // 容错：非数字返回红色
+          if (percent === 'ERR' || isNaN(percent)) return 'red';
           if (percent < 60) return 'green';
           if (percent < 85) return 'yellow';
           return 'red';
         }
 
+        // 获取文字颜色（修复数字类型判断错误）
         function getTEXTColor(text_temp) {
-        // 补充：增加空值/非字符串的容错处理，增强健壮性
-        if (typeof text_temp !== 'string') text_temp = 'ERR';
-        // 核心逻辑：非ERR则绿色，ERR则红色
-        if (text_temp !== 'ERR') return 'green';
-        return 'red';
+          // 容错：空值/非数字/ERR返回红色，其他返回绿色
+          if (text_temp === 'ERR' || text_temp === undefined || text_temp === null || isNaN(text_temp) && typeof text_temp !== 'string') {
+            return 'red';
+          }
+          // 字符串类型的ERR返回红色
+          if (typeof text_temp === 'string' && text_temp.trim() === 'ERR') {
+            return 'red';
+          }
+          return 'green';
         }
 
-        const cpuPercent = data.cpu?.usage_percent || 0;
-        const memPercent = data.memory?.usage_percent || 0;
-        const diskPercent = data.disk?.usage_percent || 0;
+        // 计算硬件使用率（补充容错）
+        const cpuPercent = !isNaN(data.cpu?.usage_percent) ? data.cpu.usage_percent : 0;
+        const memPercent = !isNaN(data.memory?.usage_percent) ? data.memory.usage_percent : 0;
+        const diskPercent = !isNaN(data.disk?.usage_percent) ? data.disk.usage_percent : 0;
+        
+        // 计算GPU显存使用率（补充缺失逻辑）
+        let gpuMemPercent = 0;
+        if (data.gpu?.mem_used_gb && data.gpu?.mem_total_gb && !isNaN(data.gpu.mem_used_gb) && !isNaN(data.gpu.mem_total_gb) && data.gpu.mem_total_gb > 0) {
+          gpuMemPercent = (data.gpu.mem_used_gb / data.gpu.mem_total_gb) * 100;
+        }
 
         const html = `
             <div class="hardware-grid">
@@ -689,13 +707,13 @@
                 ${data.gpu?.name ? `
                 <div class="hardware-row">
                   <span class="hardware-label">使用率</span>
-                  <span class="hardware-value ${getTEXTColor(data.gpu.CUDA_usage_percent || 'ERR')}">${data.gpu.CUDA_usage_percent || "ERR"}%</span>
+                  <span class="hardware-value ${getTEXTColor(data.gpu.cuda_usage_percent || data.gpu.CUDA_usage_percent || 'ERR')}">${data.gpu.cuda_usage_percent || data.gpu.CUDA_usage_percent || "ERR"}%</span>
                 </div>
                 <div class="hardware-row">
                   <span class="hardware-label">温度</span>
                   <span class="hardware-value ${getTEXTColor(data.gpu.temp_c || 'ERR')}">
                     ${data.gpu.temp_c || 'ERR'}°C
-                    ${data.gpu.temp_c > 80 ? '<span class="gpu-temp">高温</span>' : ''}
+                    ${!isNaN(data.gpu.temp_c) && data.gpu.temp_c > 80 ? '<span class="gpu-temp">高温</span>' : ''}
                   </span>
                 </div>
                 <div class="hardware-row">
@@ -704,10 +722,10 @@
                 </div>
                 <div class="hardware-row">
                   <span class="hardware-label">显存使用率</span>
-                  <span class="hardware-value">${data.gpu.mem_percent?.toFixed(1) || 0}%</span>
+                  <span class="hardware-value">${gpuMemPercent.toFixed(1) || 0}%</span>
                 </div>
                 <div class="progress-bar">
-                  <div class="progress-fill ${getProgressColor(data.gpu.mem_percent || 0)}" style="width: ${data.gpu.mem_percent || 0}%;"></div>
+                  <div class="progress-fill ${getProgressColor(gpuMemPercent)}" style="width: ${gpuMemPercent}%;"></div>
                 </div>
                 ` : ''}
               </div>
@@ -737,7 +755,7 @@
           dot.className = 'global-dot degraded';
           msg.innerText = '服务降级';
         } else if (hasUnknown) {
-          dot.className = 'global-dot unknown';
+          dot.className = 'global-dot'; // 恢复默认未知颜色
           msg.innerText = '部分状态未知';
         } else {
           dot.className = 'global-dot ok';
@@ -846,16 +864,16 @@
         // 更新所有UI
         updateAllServicesUI();
 
-        // 如果有硬件数据，保存并渲染
+        // 渲染硬件信息（修复传参问题）
         if (statusResult.status === 'fulfilled' && statusResult.value.data) {
           hardwareData = statusResult.value.data;
           renderHardwareMonitoring(hardwareData);
         } else if (hardwareData) {
-          // 如果这次没获取到但之前有缓存，显示缓存
-          renderHardwareMonitoring();
+          // 使用缓存数据渲染
+          renderHardwareMonitoring(hardwareData);
         } else {
           // 完全没有数据
-          renderHardwareMonitoring(hardwareData);
+          renderHardwareMonitoring(null);
         }
 
         // 更新全局状态
@@ -887,7 +905,7 @@
           });
         }
 
-        // 自动刷新（每3秒）
+        // 自动刷新（每5秒，统一注释和代码）
         setInterval(performHealthCheck, 5000);
       }
 
