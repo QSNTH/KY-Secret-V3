@@ -934,7 +934,7 @@
                 </div>
                 <div class="hardware-row">
                   <span class="hardware-label">使用率</span>
-                  <span class="hardware-value ${getTEXTColor(memPercent.toFixed(1) || 'ERR')}">${memPercent.toFixed(4) || 'ERR'} %</span>
+                  <span class="hardware-value ${getTEXTColor(memPercent.toFixed(1) || 'ERR')}">${memPercent.toFixed(1) || 'ERR'} %</span>
                 </div>
                 <div class="progress-bar">
                   <div class="progress-fill ${getProgressColor(memPercent)}" style="width: ${memPercent}%;"></div>
@@ -962,7 +962,7 @@
                 </div>
                 <div class="hardware-row">
                   <span class="hardware-label">使用率</span>
-                  <span class="hardware-value ${getTEXTColor(diskPercent.toFixed(1) || 'ERR')}">${diskPercent.toFixed(1) || 'ERR'} %</span>
+                  <span class="hardware-value ${getTEXTColor(diskPercent.toFixed(8) || 'ERR')}">${diskPercent.toFixed(8) || 'ERR'} %</span>
                 </div>
                 <div class="progress-bar">
                   <div class="progress-fill ${getProgressColor(diskPercent)}" style="width: ${diskPercent}%;"></div>
