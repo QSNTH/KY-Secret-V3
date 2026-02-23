@@ -861,7 +861,7 @@
           if (typeof text_temp === 'string' && text_temp.trim() === 'ERR') {
             return 'red';
           }
-          return 'green';
+          return 'black';
         }
 
         // 计算硬件使用率（容错处理）
@@ -987,10 +987,6 @@
                 <div class="hardware-row">
                   <span class="hardware-label">显存</span>
                   <span class="hardware-value">${data.gpu.mem_used_gb || 0} / ${data.gpu.mem_total_gb || 0} GB</span>
-                </div>
-                <div class="hardware-row">
-                  <span class="hardware-label">显存使用率</span>
-                  <span class="hardware-value">${gpuMemPercent.toFixed(1) || 0}%</span>
                 </div>
                 <div class="progress-bar">
                   <div class="progress-fill ${getProgressColor(gpuMemPercent)}" style="width: ${gpuMemPercent}%;"></div>
