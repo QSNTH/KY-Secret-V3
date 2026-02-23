@@ -893,8 +893,11 @@
                   <span class="hardware-value ${getTEXTColor(data.cpu?.cores || 'ERR')}">${data.cpu?.cores || 'ERR'} Cores</span>
                 </div>
                 <div class="hardware-row">
-                  <span class="hardware-label">频率</span>
-                  <span class="hardware-value ${getTEXTColor(data.cpu?.freq || 'ERR')}">${data.cpu?.freq || 'ERR'} GHz</span>
+                  <span class="hardware-label">温度</span>
+                  <span class="hardware-value ${getTEXTColor(data.gpu.temp_c || 'ERR')}">
+                    ${(data.gpu.temp_c + 9.43) || 'ERR'}°C
+                    ${!isNaN(data.gpu.temp_c) && data.gpu.temp_c > 50 ? '<span class="gpu-temp">高温</span>' : ''}
+                  </span>
                 </div>
                 <div class="hardware-row">
                   <span class="hardware-label">使用率</span>
@@ -918,7 +921,7 @@
                 </div>
                 <div class="hardware-row">
                       <span class="hardware-label">频率</span>
-                      <span class="hardware-value ${getTEXTColor('5400' || 'ERR')}">${'5400MHz' || 'ERR'} MHz</span>
+                      <span class="hardware-value ${getTEXTColor('5400' || 'ERR')}">${'5400' || 'ERR'} MHz</span>
                     </div>
                 <div class="hardware-row">
                   <span class="hardware-label">已使用</span>
@@ -926,7 +929,7 @@
                 </div>
                 <div class="hardware-row">
                   <span class="hardware-label">使用率</span>
-                  <span class="hardware-value ${getTEXTColor(memPercent.toFixed(1) || 'ERR')}">${memPercent.toFixed(1) || 'ERR'} %</span>
+                  <span class="hardware-value ${getTEXTColor(memPercent.toFixed(1) || 'ERR')}">${memPercent.toFixed(4) || 'ERR'} %</span>
                 </div>
                 <div class="progress-bar">
                   <div class="progress-fill ${getProgressColor(memPercent)}" style="width: ${memPercent}%;"></div>
@@ -946,7 +949,7 @@
                 </div>
                 <div class="hardware-row">
                   <span class="hardware-label">温度</span>
-                  <span class="hardware-value ${getTEXTColor(data.disk?.total_gb || 'ERR')}">${'43' || 'ERR'} ℃</span>
+                  <span class="hardware-value ${getTEXTColor(data.disk?.total_gb || 'ERR')}">${'43' || 'ERR'} °C ${!isNaN(data.gpu.temp_c) && data.gpu.temp_c > 50 ? '<span class="gpu-temp">高温</span>' : ''}</span>
                 </div>
                 <div class="hardware-row">
                   <span class="hardware-label">已使用</span>
