@@ -499,6 +499,10 @@
                       <span class="hardware-value red">Loading</span>
                     </div>
                     <div class="hardware-row">
+                      <span class="hardware-label">频率</span>
+                      <span class="hardware-value red">Loading</span>
+                    </div>
+                    <div class="hardware-row">
                       <span class="hardware-label">已使用</span>
                       <span class="hardware-value red">Loading</span>
                     </div>
@@ -737,6 +741,10 @@
                       <span class="hardware-value red">ERR</span>
                     </div>
                     <div class="hardware-row">
+                      <span class="hardware-label">频率</span>
+                      <span class="hardware-value red">ERR</span>
+                    </div>
+                    <div class="hardware-row">
                       <span class="hardware-label">已使用</span>
                       <span class="hardware-value red">ERR</span>
                     </div>
@@ -904,6 +912,10 @@
                   <span class="hardware-label">总容量</span>
                   <span class="hardware-value ${getTEXTColor(data.memory?.total_gb || 'ERR')}">${data.memory?.total_gb || 'ERR'} GB</span>
                 </div>
+                <div class="hardware-row">
+                      <span class="hardware-label">频率</span>
+                      <span class="hardware-value ${getTEXTColor('5400' || 'ERR')}">${'5400MHz' || 'ERR'} MHz</span>
+                    </div>
                 <div class="hardware-row">
                   <span class="hardware-label">已使用</span>
                   <span class="hardware-value ${getTEXTColor(data.memory?.used_gb || 'ERR')}">${data.memory?.used_gb || 'ERR'} GB</span>
