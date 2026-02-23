@@ -956,7 +956,6 @@
                   <span class="hardware-label">已使用</span>
                   <span class="hardware-value ${getTEXTColor(data.disk?.used_gb || 'ERR')}">${data.disk?.used_gb || 'ERR'} GB</span>
                 </div>
-                </div>
                 <div class="hardware-row">
                   <span class="hardware-label">温度</span>
                   <span class="hardware-value ${getTEXTColor(data.disk?.total_gb || 'ERR')}">${!isNaN(data.gpu.temp_c) && data.gpu.temp_c > 50 ? '<span class="gpu-temp">高温</span>' : ''} ${'43' || 'ERR'} °C </span>
