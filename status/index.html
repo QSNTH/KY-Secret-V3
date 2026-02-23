@@ -852,10 +852,10 @@
           renderHardwareMonitoring(hardwareData);
         } else if (hardwareData) {
           // 如果这次没获取到但之前有缓存，显示缓存
-          renderHardwareMonitoring(hardwareData);
+          renderHardwareMonitoring();
         } else {
           // 完全没有数据
-          renderHardwareMonitoring(null);
+          renderHardwareMonitoring(hardwareData);
         }
 
         // 更新全局状态
