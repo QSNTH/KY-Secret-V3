@@ -889,7 +889,7 @@
             <!-- CPU -->
             <div class="hardware-item">
               <div class="hardware-header">
-                <span>⚡</span> CPU
+                <span>⚡ ${getTEXTColor(data.cpu?.name || 'ERR')}">${data.cpu?.name || 'ERR'}</span>
               </div>
               <div class="hardware-detail">
                 <div class="hardware-row">
@@ -977,7 +977,7 @@
             <!-- GPU -->
             <div class="hardware-item">
               <div class="hardware-header">
-                <span>🎮</span> GPU
+                <span>🎮 ${getTEXTColor(data.gpu?.name || 'ERR')}">${data.gpu?.name || 'ERR'}</span> 
               </div>
               <div class="hardware-detail">
                 <div class="hardware-row">
