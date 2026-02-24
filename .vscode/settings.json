@@ -1,0 +1,13 @@
+{
+  // 编辑器字体配置
+  "editor.fontFamily": "JetBrains Mono, 'SDK_SC_Web Heavy', 'Microsoft YaHei', monospace",
+  "editor.fontSize": 15,
+  "editor.lineHeight": 1.4,
+  "editor.fontLigatures": true,
+
+  // 终端字体配置
+  "terminal.integrated.fontFamily": "JetBrains Mono, 'SDK_SC_Web Heavy', 'Microsoft YaHei', monospace",
+  "terminal.integrated.fontSize": 14,
+  "terminal.integrated.lineHeight": 1.2,
+  "terminal.integrated.fontLigatures": true
+}
