@@ -904,7 +904,7 @@
                   <span class="hardware-label">温度</span>
                   <span class="hardware-value ${getTEXTColor(data.cpu?.temp_c || 'ERR')}">
                     ${!isNaN(data.cpu?.temp_c) && data.cpu?.temp_c > 50 ? '<span class="gpu-temp">高温</span>' : ''}
-                    ${(data.cpu?.temp_c) || 'ERR'} °C
+                    ${(data.cpu?.temp_c + '°C' ) || 'ERR'}
                     
                   </span>
                 </div>
