@@ -241,14 +241,27 @@
       align-items: center;
       gap: 0.5rem;
       margin-bottom: 0.8rem;
-      font-weight: 400;
+      font-weight: 600;
       color: #1e3f5c;
+    }
+
+    .hardware-header-2 {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.8rem;
+      font-weight: 600;
+      color: #1e3f5c;
+      font-size: 0.9rem;
     }
 
     .hardware-header span {
       font-size: 1.2rem;
     }
 
+    .hardware-header span {
+      font-size: 1.2rem;
+    }
     .hardware-detail {
       display: flex;
       flex-direction: column;
@@ -888,8 +901,8 @@
           <div class="hardware-grid">
             <!-- CPU -->
             <div class="hardware-item">
-              <div class="hardware-header">
-                <span>⚡ ${data.cpu?.name || 'ERR'}</span>
+              <div class="hardware-header-2">
+                <span>⚡ </span> ${data.cpu?.name || 'ERR'}
               </div>
               <div class="hardware-detail">
                 <div class="hardware-row">
@@ -976,8 +989,8 @@
 
             <!-- GPU -->
             <div class="hardware-item">
-              <div class="hardware-header">
-                <span>🎮 ${data.gpu?.name || 'ERR'}</span> 
+              <div class="hardware-header-2">
+                <span>🎮 </span> ${data.gpu?.name || 'ERR'}
               </div>
               <div class="hardware-detail">
                 <div class="hardware-row">
