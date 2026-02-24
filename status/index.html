@@ -1138,7 +1138,7 @@
         // 并行检测所有服务
         const [cfState, ghState, apiState, statusResult] = await Promise.allSettled([
           checkFrontendService('https://ky-secret-v3.pages.dev'),
-          checkFrontendService('https://ky-secret-v3.pages.dev'),
+          checkFrontendService('https://github.com/QSNTH/KY-Secret-V3'),
           checkBackendAPI(),
           checkStatusAPI()
         ]);
