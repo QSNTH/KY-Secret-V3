@@ -1,384 +1,413 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=0.45, maximum-scale=0.6,user-scalable=no">
-  <title>KY Secret · 历史事件</title>
-  <style>
-    /* ===== KY Secret V3 统一风格 ===== */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.45, maximum-scale=0.6,user-scalable=no">
+    <title>KY Secret · 历史事件</title>
+    <style>
+        /* ===== KY Secret V3 统一风格 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
 
-    span {
-        white-space: pre-line;
-    }
+        .span-white-space {
+            white-space: pre-line;
+        }
 
-    body {
-      background: #f7fafc;
-      padding: 2rem 1rem;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-    }
+        body {
+            background: #f7fafc;
+            padding: 2rem 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
 
-    .ky-container {
-      max-width: 780px;
-      width: 100%;
-      margin: 0 auto;
-    }
+        .ky-container {
+            max-width: 780px;
+            width: 100%;
+            margin: 0 auto;
+        }
 
-    .nav-header {
-      text-align: center;
-      margin-bottom: 2.5rem;
-    }
+        .nav-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
 
-    .logo {
-      font-size: 5rem;
-      font-weight: 900;
-      color: #000000;
-      letter-spacing: -0.02em;
-      margin-bottom: 0.5rem;
-      line-height: 1;
-    }
+        .logo {
+            font-size: 5rem;
+            font-weight: 900;
+            color: #000000;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
 
-    .nav-buttons {
-      display: flex;
-      gap: 0.75rem;
-      justify-content: center;
-      margin-bottom: 1.2rem;
-    }
+        .nav-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-bottom: 1.2rem;
+        }
 
-    .nav-btn {
-      padding: 0.5rem 1.4rem;
-      border: 1px solid #e2e8f0;
-      border-radius: 40px;
-      background: #ffffff;
-      color: #334155;
-      text-decoration: none;
-      font-size: 0.9rem;
-      font-weight: 550;
-      transition: 0.15s;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
-    }
+        .nav-btn {
+            padding: 0.5rem 1.4rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 40px;
+            background: #ffffff;
+            color: #334155;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 550;
+            transition: 0.15s;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
 
-    .nav-btn:hover {
-      background: #eef2f6;
-      border-color: #cbd5e1;
-    }
+        .nav-btn:hover {
+            background: #eef2f6;
+            border-color: #cbd5e1;
+        }
 
-    .nav-btn.active {
-      background: #0f172a;
-      color: white;
-      border-color: #0f172a;
-    }
+        .nav-btn.active {
+            background: #0f172a;
+            color: white;
+            border-color: #0f172a;
+        }
 
-    /* 月份分段标题 */
-    .month-section {
-      margin-top: 2.8rem;
-      margin-bottom: 1.5rem;
-    }
+        /* 月份分段标题 */
+        .month-section {
+            margin-top: 2.8rem;
+            margin-bottom: 1.5rem;
+        }
 
-    .month-title {
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: #0b1e2e;
-      letter-spacing: -0.3px;
-      border-bottom: 1.5px solid #edf2f7;
-      padding-bottom: 0.4rem;
-      display: flex;
-      align-items: baseline;
-    }
+        .month-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0b1e2e;
+            letter-spacing: -0.3px;
+            border-bottom: 1.5px solid #edf2f7;
+            padding-bottom: 0.4rem;
+            display: flex;
+            align-items: baseline;
+        }
 
-    .month-title span {
-      background: #eef4ff;
-      padding: 0.2rem 0.8rem;
-      border-radius: 30px;
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: #2563eb;
-      margin-left: 0.9rem;
-    }
+        .month-title span {
+            background: #eef4ff;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #2563eb;
+            margin-left: 0.9rem;
+        }
 
-    /* 事件卡片 */
-    .incident-card {
-      margin-bottom: 2.2rem;
-      border: 1px solid #ecf1f7;
-      border-radius: 28px;
-      overflow: hidden;
-      background: white;
-      box-shadow: 0 4px 14px rgba(0, 20, 40, 0.02);
-    }
+        /* 事件卡片 */
+        .incident-card {
+            margin-bottom: 2.2rem;
+            border: 1px solid #ecf1f7;
+            border-radius: 28px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 4px 14px rgba(0, 20, 40, 0.02);
+        }
 
-    .incident-header {
-      padding: 1rem 1.4rem;
-      color: white;
-      font-weight: 600;
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-      font-size: 0.95rem;
-    }
+        .incident-header {
+            padding: 1rem 1.4rem;
+            color: white;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            font-size: 0.95rem;
+        }
 
-    @media (min-width: 550px) {
-      .incident-header {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-      }
-    }
+        @media (min-width: 550px) {
+            .incident-header {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
 
-    .header-disruption { background-color: #f59e0b; }
-    .header-maintenance { background-color: #2563eb; }
-    .header-resolved { background-color: #10b981; }
+        .header-disruption {
+            background-color: #f59e0b;
+        }
 
-    .incident-title {
-      font-weight: 650;
-      letter-spacing: -0.2px;
-    }
+        .header-maintenance {
+            background-color: #2563eb;
+        }
 
-    .incident-tag {
-      font-size: 0.75rem;
-      background: rgba(255,255,255,0.2);
-      padding: 0.2rem 0.9rem;
-      border-radius: 60px;
-      font-weight: 600;
-      display: inline-block;
-    }
+        .header-resolved {
+            background-color: #10b981;
+        }
 
-    .incident-body {
-      padding: 1.4rem 1.4rem 1.2rem;
-      background: #ffffff;
-    }
+        .incident-title {
+            font-weight: 650;
+            letter-spacing: -0.2px;
+        }
 
-    .meta-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem 2rem;
-      margin-bottom: 1.4rem;
-      font-size: 0.85rem;
-      color: #334e68;
-    }
+        .incident-tag {
+            font-size: 0.75rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.2rem 0.9rem;
+            border-radius: 60px;
+            font-weight: 600;
+            display: inline-block;
+        }
 
-    .meta-item {
-      display: flex;
-      align-items: baseline;
-      gap: 0.4rem;
-    }
+        .incident-body {
+            padding: 1.4rem 1.4rem 1.2rem;
+            background: #ffffff;
+        }
 
-    .meta-label {
-      font-weight: 650;
-      color: #5e7180;
-      min-width: 70px;
-    }
+        .meta-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem 2rem;
+            margin-bottom: 1.4rem;
+            font-size: 0.85rem;
+            color: #334e68;
+        }
 
-    .meta-value {
-      color: #0c2e4e;
-      font-weight: 500;
-    }
+        .meta-item {
+            display: flex;
+            align-items: baseline;
+            gap: 0.4rem;
+        }
 
-    .location-badge {
-      background: #eef2f6;
-      padding: 0.2rem 0.7rem;
-      border-radius: 30px;
-      font-size: 0.75rem;
-      color: #365874;
-      display: inline-block;
-      margin-right: 4px;
-    }
+        .meta-label {
+            font-weight: 650;
+            color: #5e7180;
+            min-width: 70px;
+        }
 
-    .timeline-events {
-      margin-top: 1.2rem;
-      border-top: 1px dashed #dce5ec;
-      padding-top: 1.2rem;
-    }
+        .meta-value {
+            color: #0c2e4e;
+            font-weight: 500;
+        }
 
-    .event-item {
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 1rem;
-      font-size: 0.82rem;
-    }
+        .location-badge {
+            background: #eef2f6;
+            padding: 0.2rem 0.7rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            color: #365874;
+            display: inline-block;
+            margin-right: 4px;
+        }
 
-    @media (min-width: 550px) {
-      .event-item {
-        flex-direction: row;
-        align-items: baseline;
-      }
-    }
+        .timeline-events {
+            margin-top: 1.2rem;
+            border-top: 1px dashed #dce5ec;
+            padding-top: 1.2rem;
+        }
 
-    .event-time {
-      font-family: 'SF Mono', 'Menlo', monospace;
-      color: #526f85;
-      min-width: 180px;
-      font-weight: 450;
-      letter-spacing: -0.2px;
-    }
+        .event-item {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 1rem;
+            font-size: 0.82rem;
+        }
 
-    .event-status {
-      font-weight: 650;
-      min-width: 110px;
-      text-transform: uppercase;
-      font-size: 0.72rem;
-      letter-spacing: 0.4px;
-      text-align: center;
-    }
+        @media (min-width: 550px) {
+            .event-item {
+                flex-direction: row;
+                align-items: baseline;
+            }
+        }
 
-    .status-investigating { color: #f59e0b; }
-    .status-identified { color: #10b981; }
-    .status-monitoring { color: #0b8a73; }
-    .status-resolved { color: #10b981; }
-    .status-update { color: #2563eb; }
+        .event-time {
+            font-family: 'SF Mono', 'Menlo', monospace;
+            color: #526f85;
+            min-width: 180px;
+            font-weight: 450;
+            letter-spacing: -0.2px;
+        }
 
-    .event-description {
-      color: #2d4259;
-      flex: 1;
-    }
+        .event-status {
+            font-weight: 650;
+            min-width: 110px;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.4px;
+            text-align: center;
+        }
 
-    /* 页脚导航 - 统一风格 */
-    .footer-note {
-      text-align: center;
-      margin-top: 1.8rem;
-      font-size: 0.75rem;
-      color: #7996ae;
-      border-top: 1px solid #e2ecf5;
-      padding-top: 1.8rem;
-    }
+        .status-investigating {
+            color: #f59e0b;
+        }
 
-    .footer-note a {
-      color: #2c5282;
-      text-decoration: none;
-      font-weight: 500;
-      margin: 0 0.4rem;
-    }
+        .status-identified {
+            color: #10b981;
+        }
 
-    .footer-note a:hover {
-      text-decoration: underline;
-    }
+        .status-monitoring {
+            color: #0b8a73;
+        }
 
-    @media (max-width: 550px) {
-      .logo { font-size: 4rem; }
-      .event-time { margin-bottom: 0.2rem; }
-    }
-  </style>
+        .status-resolved {
+            color: #10b981;
+        }
+
+        .status-update {
+            color: #2563eb;
+        }
+
+        .event-description {
+            color: #2d4259;
+            flex: 1;
+        }
+
+        /* 页脚导航 - 统一风格 */
+        .footer-note {
+            text-align: center;
+            margin-top: 1.8rem;
+            font-size: 0.75rem;
+            color: #7996ae;
+            border-top: 1px solid #e2ecf5;
+            padding-top: 1.8rem;
+        }
+
+        .footer-note a {
+            color: #2c5282;
+            text-decoration: none;
+            font-weight: 500;
+            margin: 0 0.4rem;
+        }
+
+        .footer-note a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 550px) {
+            .logo {
+                font-size: 4rem;
+            }
+
+            .event-time {
+                margin-bottom: 0.2rem;
+            }
+        }
+    </style>
 </head>
+
 <body>
-  <div class="ky-container">
-    <!-- 头部：统一导航，三个按钮齐全 -->
-    <div class="nav-header">
-      <div class="logo">KYSECRET</div>
-      <div class="nav-buttons">
-        <a href="https://ky-secret-v3.pages.dev/status/index.html" class="nav-btn">📊 状态</a>
-        <a href="https://ky-secret-v3.pages.dev/status/history.html" class="nav-btn active">📋 历史</a>
-        <a href="https://ky-secret-v3.pages.dev/" class="nav-btn">✉️ 投稿(BAN)</a>
-      </div>
-    </div>
-
-    <!-- 二月 2026 -->
-    <div class="month-section">
-      <div class="month-title">
-        February 2026 <span>2 个事件</span>
-      </div>
-    </div>
-
-    <!-- 事件 1：Backend API 服务中断（注释掉的） -->
-
-    <div class="incident-card">
-      <div class="incident-header header-disruption">
-        <span class="incident-title">Backend API 服务中断</span>
-        <span class="incident-tag">服务中断</span>
-      </div>
-      <div class="incident-body">
-        <div class="meta-grid">
-          <div class="meta-item">
-            <span class="meta-label">状态</span>
-            <span class="meta-value" style="color: #10b981; font-weight: 650;">已解决</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-label">组件</span>
-            <span class="meta-value">Backend API, 数据库</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-label">影响范围</span>
-            <span class="meta-value">
-              <span class="location-badge">API Server</span>
-              <span class="location-badge">Database</span>
-            </span>
-          </div>
-        </div>
-        
-        <div class="timeline-events">
-            <div class="event-item">
-                <span class="event-time">February 22, 2026 3:24 UTC+8</span>
-                <span class="event-status status-investigating">调查中</span>
-                <span class="event-description">发现后端API服务异常，请求响应超时，正在排查根因</span>
-            </div>
-            
-            <div class="event-item">
-                <span class="event-time">February 23, 2026 3:49 UTC+8</span>
-                <span class="event-status status-update">修复中</span>
-                <span class="event-description">进网光纤光信号丢失, 己联系工程师</span>
-            </div>
-            <div class="event-item">
-                <span class="event-time">February 23, 2026 4:51 UTC+8</span>
-                <span class="event-status status-monitoring">监控中</span>
-                <span class="event-description">已修复服务节点故障，api服务恢复，持续监控运行状态</span>
-            </div>
-            <div class="event-item">
-                <span class="event-time">February 23, 2026 4:58 UTC+8</span>
-                <span class="event-status status-resolved">已解决</span>
-                <span class="event-description">所有API节点恢复正常，服务完全可用，故障已解决</span>
+    <div class="ky-container">
+        <!-- 头部：统一导航，三个按钮齐全 -->
+        <div class="nav-header">
+            <div class="logo">KYSECRET</div>
+            <div class="nav-buttons">
+                <a href="https://ky-secret-v3.pages.dev/status/index.html" class="nav-btn">📊 状态</a>
+                <a href="https://ky-secret-v3.pages.dev/status/history.html" class="nav-btn active">📋 历史</a>
+                <a href="https://ky-secret-v3.pages.dev/" class="nav-btn">✉️ 投稿(BAN)</a>
             </div>
         </div>
-      </div>
-    </div>
 
-
-    <!-- 事件 2：KYsercet 计划性DEV（当前显示的事件） -->
-    <div class="incident-card">
-      <div class="incident-header header-maintenance">
-        <span class="incident-title">KYsercet 计划性DEV</span>
-        <span class="incident-tag">计划DEV</span>
-      </div>
-      <div class="incident-body">
-        <div class="meta-grid">
-          <div class="meta-item">
-            <span class="meta-label">描述</span>
-            <span class="meta-value">还在做啦</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-label">组件</span>
-            <span class="meta-value">前端到后端的发包</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-label">时间</span>
-            <span class="meta-value">February 05, 2026 00:00 - March 07, 2026 00:00 CST</span>
-          </div>
+        <!-- 二月 2026 -->
+        <div class="month-section">
+            <div class="month-title">
+                February 2026 <span>2 个事件</span>
+            </div>
         </div>
 
-        <div class="timeline-events">
-          <div class="event-item">
-            <span class="event-time">February 15, 2026 00:00 CST</span>
-            <span class="event-status status-update">DEV</span>
-            <span class="event-description">内测用户可以优先访问</span>
-          </div>
-          <!-- 注释掉的第二个事件
+        <!-- 事件 1：Backend API 服务中断（注释掉的） -->
+
+        <div class="incident-card">
+            <div class="incident-header header-disruption">
+                <span class="incident-title">Backend API 服务中断</span>
+                <span class="incident-tag">服务中断</span>
+            </div>
+            <div class="incident-body">
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <span class="meta-label">状态</span>
+                        <span class="meta-value" style="color: #10b981; font-weight: 650;">已解决</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">组件</span>
+                        <span class="meta-value">Backend API, 数据库</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">影响范围</span>
+                        <span class="meta-value">
+                            <span class="location-badge">API Server</span>
+                            <span class="location-badge">Database</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="timeline-events">
+                    <div class="event-item">
+                        <span class="event-time">February 22, 2026 3:24 UTC+8</span>
+                        <span class="event-status status-investigating">调查中</span>
+                        <span class="event-description">发现后端API服务异常，请求响应超时，正在排查根因</span>
+                    </div>
+
+                    <div class="event-item">
+                        <span class="event-time">February 23, 2026 3:49 UTC+8</span>
+                        <span class="event-status status-update">修复中</span>
+                        <span class="event-description">进网光纤光信号丢失, 己联系工程师</span>
+                    </div>
+                    <div class="event-item">
+                        <span class="event-time">February 23, 2026 4:51 UTC+8</span>
+                        <span class="event-status status-monitoring">监控中</span>
+                        <span class="event-description">已修复服务节点故障，api服务恢复，持续监控运行状态</span>
+                    </div>
+                    <div class="event-item">
+                        <span class="event-time">February 23, 2026 4:58 UTC+8</span>
+                        <span class="event-status status-resolved">已解决</span>
+                        <span class="event-description">所有API节点恢复正常，服务完全可用，故障已解决</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- 事件 2：KYsercet 计划性DEV（当前显示的事件） -->
+        <div class="incident-card">
+            <div class="incident-header header-maintenance">
+                <span class="incident-title">KYsercet 计划性DEV</span>
+                <span class="incident-tag">计划DEV</span>
+            </div>
+            <div class="incident-body">
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <span class="meta-label">描述</span>
+                        <span class="meta-value">还在做啦</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">组件</span>
+                        <span class="meta-value">前端到后端的发包</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">时间</span>
+                        <span class="meta-value">February 05, 2026 00:00 - March 07, 2026 00:00 CST</span>
+                    </div>
+                </div>
+
+                <div class="timeline-events">
+                    <div class="event-item">
+                        <span class="event-time">February 15, 2026 00:00 CST</span>
+                        <span class="event-status status-update">DEV</span>
+                        <span class="event-description">内测用户可以优先访问</span>
+                    </div>
+                    <!-- 注释掉的第二个事件
           <div class="event-item">
             <span class="event-time">February 15, 2026 02:00 CST</span>
             <span class="event-status status-update">更新</span>
             <span class="event-description">维护完成，管理后台恢复正常访问，新功能已上线</span>
           </div>
           -->
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
 
-    <!-- 一月 2026（注释掉的） -->
-    <!--
+        <!-- 一月 2026（注释掉的） -->
+        <!--
     <div class="month-section">
       <div class="month-title">
         January 2026 <span>1 个事件</span>
@@ -386,8 +415,8 @@
     </div>
     -->
 
-    <!-- 事件 3：投稿服务文件上传失败（注释掉的） -->
-    <!--
+        <!-- 事件 3：投稿服务文件上传失败（注释掉的） -->
+        <!--
     <div class="incident-card">
       <div class="incident-header header-disruption">
         <span class="incident-title">投稿服务文件上传失败</span>
@@ -433,8 +462,8 @@
     </div>
     -->
 
-    <!-- 十二月 2025（注释掉的） -->
-    <!--
+        <!-- 十二月 2025（注释掉的） -->
+        <!--
     <div class="month-section">
       <div class="month-title">
         December 2025 <span>1 个事件</span>
@@ -442,8 +471,8 @@
     </div>
     -->
 
-    <!-- 事件 4：图片生成服务异常（注释掉的） -->
-    <!--
+        <!-- 事件 4：图片生成服务异常（注释掉的） -->
+        <!--
     <div class="incident-card">
       <div class="incident-header header-disruption">
         <span class="incident-title">图片生成服务异常</span>
@@ -486,12 +515,13 @@
     </div>
     -->
 
-    <!-- 页脚导航 - 在容器最底部，所有事件卡片之后 -->
-    <div class="footer-note">
-      <a href="./index.html">📊 实时状态</a> · 
-      <a href="./history.html">📋 历史事件</a> · 
-      <a href="../index.html">✉️ 匿名投稿</a>
+        <!-- 页脚导航 - 在容器最底部，所有事件卡片之后 -->
+        <div class="footer-note">
+            <a href="./index.html">📊 实时状态</a> ·
+            <a href="./history.html">📋 历史事件</a> ·
+            <a href="../index.html">✉️ 匿名投稿</a>
+        </div>
     </div>
-  </div>
 </body>
+
 </html>
