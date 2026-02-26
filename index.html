@@ -447,6 +447,18 @@
         .or-divider::after {
             right: 0;
         }
+
+        .global-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 12px;
+            background: #94a3b8;
+        }
+        .global-dot.ok { background: #0f7b4b; }
+        .global-dot.degraded { background: #e68a2e; }
+        .global-dot.down { background: #c62a2a; }
+
+
     </style>
 </head>
 <body>
@@ -458,6 +470,11 @@
                 <a href="https://ky-secret-v3.pages.dev/status/history" class="nav-btn">📋 历史</a>
                 <a href="" class="nav-btn active">✉️ 投稿(有限度)</a>
             </div>
+        </div>
+
+        <div class="global-status-banner">
+            <span class="global-dot ok"></span>
+            <span id="globalMessage">所有系统正常</span>
         </div>
 
         <div class="submit-card">
