@@ -1,12 +1,83 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=0.45, maximum-scale=0.6,user-scalable=no">
-    <title>KY Secret · 实时服务状态</title>
+    <title>KY Secret V3 · 匿名投稿</title>
+    <script>
+    // ========= KY Secret V3 动态配置加载 =========
+    window.KY_CONFIG = {
+        backendUrl: '',
+        apiPrefix: '/api',
+        endpoints: {}
+    };
+
+    // 使用立即执行函数，保证配置在DOM加载前启动
+    (async function initConfig() {
+        try {
+            // 尝试从GitHub加载
+            const githubResponse = await fetch('https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json');
+            const githubConfig = await githubResponse.json();
+            
+            window.KY_CONFIG.backendUrl = githubConfig.backend || githubConfig.backendBaseUrl;
+            window.KY_CONFIG.apiPrefix = githubConfig.api || '/api';
+            window.KY_CONFIG.endpoints = githubConfig;
+            
+            console.log('✅ 配置加载成功:', window.KY_CONFIG.backendUrl);
+        } catch (e) {
+            console.warn('⚠️ GitHub配置加载失败，尝试本地配置...');
+            
+            try {
+                const localResponse = await fetch('/config.json');
+                const localConfig = await localResponse.json();
+                
+                window.KY_CONFIG.backendUrl = localConfig.backend;
+                window.KY_CONFIG.apiPrefix = localConfig.api || '/api';
+                window.KY_CONFIG.endpoints = localConfig;
+                
+                console.log('✅ 本地配置加载成功');
+            } catch (e2) {
+                console.warn('⚠️ 本地配置也失败，使用硬编码备份');
+                
+                window.KY_CONFIG.backendUrl = 'https://pvc-coins-productivity-dropped.trycloudflare.com';
+                window.KY_CONFIG.apiPrefix = '/api';
+                window.KY_CONFIG.endpoints = {
+                    submit: '/submit',
+                    lookup: '/lookup/{uuid}',
+                    status: '/status',
+                    admin_login: '/admin/login',
+                    admin_logout: '/admin/logout',
+                    admin_find: '/admin/find',
+                    admin_review: '/admin/review',
+                    admin_history: '/admin/history'
+                };
+            }
+        }
+        
+        // 挂载工具函数
+        window.KY_CONFIG.getUrl = function(endpoint, params = {}) {
+            let path = window.KY_CONFIG.endpoints[endpoint];
+            
+            // 如果endpoint是完整路径（以/开头）就直接使用，否则从endpoints获取
+            if (!path) {
+                // 尝试直接使用传入的字符串作为路径
+                path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+            }
+            
+            // 替换路径参数 {uuid} 等
+            Object.keys(params).forEach(key => {
+                path = path.replace(`{${key}}`, params[key]);
+            });
+            
+            return `${window.KY_CONFIG.backendUrl}${window.KY_CONFIG.apiPrefix}${path}`;
+        };
+        
+        // 配置加载完成后触发表单可以提交
+        window.dispatchEvent(new CustomEvent('configLoaded', { detail: window.KY_CONFIG }));
+    })();
+    </script>
     <style>
-        /* ===== KY Secret V3 统一风格 ===== */
+        /* 您的原有样式保持不变 */
         * {
             margin: 0;
             padding: 0;
@@ -60,7 +131,7 @@
             font-size: 0.9rem;
             font-weight: 550;
             transition: 0.15s;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
         }
 
         .nav-btn:hover {
@@ -74,326 +145,243 @@
             border-color: #0f172a;
         }
 
-        /* 全局状态横幅 */
-        .global-status-banner {
-            background: #f1f7fd;
-            border-radius: 60px;
-            padding: 0.9rem 1.5rem;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.6rem;
-            margin: 0 auto 1.5rem;
-            font-size: 0.9rem;
-            font-weight: 550;
-            color: #1e3f5c;
-            border: 1px solid #dde9f5;
-        }
-
-        .global-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 12px;
-            background: #94a3b8;
-        }
-
-        .global-dot.ok {
-            background: #0f7b4b;
-        }
-
-        .global-dot.degraded {
-            background: #e68a2e;
-        }
-
-        .global-dot.down {
-            background: #c62a2a;
-        }
-
-        /* 服务卡片 */
-        .section {
+        .submit-card {
             background: white;
             border-radius: 28px;
-            margin-bottom: 1.8rem;
             border: 1px solid #ecf1f7;
             box-shadow: 0 4px 14px rgba(0, 20, 40, 0.02);
-            overflow: hidden;
+            padding: 2rem 2rem 2.2rem;
+            margin-bottom: 1.5rem;
         }
 
-        .section-header {
-            padding: 1.2rem 1.5rem 0.5rem 1.5rem;
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: #0f2a40;
+        .form-header {
+            margin-bottom: 2rem;
             display: flex;
             align-items: center;
+            justify-content: space-between;
+        }
+
+        .form-header h1 {
+            font-size: 1.65rem;
+            font-weight: 700;
+            color: #0f2a40;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .form-header h1::before {
+            content: "✍️";
+            font-size: 1.8rem;
+        }
+
+        .form-badge {
+            background: #eef4ff;
+            padding: 0.35rem 1rem;
+            border-radius: 60px;
+            font-size: 0.75rem;
+            font-weight: 650;
+            color: #2563eb;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border: 1px solid #dbeafe;
+        }
+
+        .form-item {
+            margin-bottom: 1.8rem;
+        }
+
+        .form-item label {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.6rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1e3f5c;
             letter-spacing: -0.2px;
         }
 
-        .section-header span {
-            background: #eef4ff;
-            padding: 0.2rem 0.8rem;
-            border-radius: 30px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: #2563eb;
-            margin-left: 0.7rem;
-        }
-
-        .service-list {
-            padding: 0.2rem 0.2rem 0.8rem 0.2rem;
-        }
-
-        .service-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1rem 1.5rem;
-            margin: 0.2rem 0.4rem;
-            border-radius: 18px;
-            background: #ffffff;
-            transition: background 0.15s;
-        }
-
-        .service-item:nth-child(even) {
-            background: #fafdff;
-        }
-
-        .service-left {
-            display: flex;
-            align-items: center;
-            gap: 0.9rem;
-            flex-wrap: wrap;
-        }
-
-        .status-indicator {
-            width: 14px;
-            height: 14px;
-            border-radius: 14px;
-            background: #cbd5e1;
-            transition: background 0.2s ease;
-        }
-
-        .status-indicator.operational {
-            background: #0a8f5a;
-        }
-
-        .status-indicator.degraded {
-            background: #e68a2e;
-        }
-
-        .status-indicator.down {
-            background: #cd3c30;
-        }
-
-        .status-indicator.unknown {
-            background: #94a3b8;
-        }
-
-        .service-name {
-            font-weight: 570;
-            color: #0e2f44;
-            font-size: 0.98rem;
-        }
-
-        .service-endpoint {
-            font-size: 0.7rem;
-            color: #607b96;
-            background: #eef4fa;
-            padding: 0.2rem 0.7rem;
-            border-radius: 40px;
-            font-family: monospace;
-        }
-
-        .status-text {
-            font-weight: 640;
-            font-size: 0.85rem;
+        .label-left {
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        .status-badge {
-            padding: 0.3rem 0.9rem;
-            border-radius: 100px;
+        .char-counter {
             font-size: 0.75rem;
-            font-weight: 650;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-
-        .badge-operational {
-            background: #e1f7ed;
-            color: #0a6d47;
-        }
-
-        .badge-degraded {
-            background: #ffeed9;
-            color: #a3500a;
-        }
-
-        .badge-down {
-            background: #ffe6e5;
-            color: #b11f1a;
-        }
-
-        .badge-unknown {
-            background: #edf2f7;
-            color: #4a627a;
-        }
-
-        /* 硬件监控卡片 */
-        .hardware-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-            padding: 1.2rem 1.5rem;
-        }
-
-        .hardware-item {
-            background: #f8fafd;
-            border-radius: 20px;
-            padding: 1rem;
-            border: 1px solid #e6edf4;
-        }
-
-        .hardware-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.8rem;
-            font-weight: 600;
-            color: #1e3f5c;
-        }
-
-        .hardware-header-2 {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.8rem;
-            font-weight: 600;
-            color: #1e3f5c;
-            font-size: 0.9rem;
-        }
-
-        .hardware-header-2 span {
-            font-size: 1.2rem;
-        }
-
-        .hardware-header span {
-            font-size: 1.2rem;
-        }
-
-        .hardware-detail {
-            display: flex;
-            flex-direction: column;
-            gap: 0.3rem;
-        }
-
-        .hardware-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85rem;
-            color: #2d4b68;
-        }
-
-        .hardware-label {
-            color: #607b96;
-        }
-
-        .hardware-value {
-            font-weight: 600;
-        }
-
-        /* 文字颜色类 */
-        .green {
-            color: #0a8f5a;
-        }
-
-        .red {
-            color: #cd3c30;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: #e2e8f0;
-            border-radius: 10px;
-            margin: 0.3rem 0;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            border-radius: 10px;
-            transition: width 0.3s ease;
-        }
-
-        .progress-fill.green {
-            background: #0a8f5a;
-        }
-
-        .progress-fill.yellow {
-            background: #e68a2e;
-        }
-
-        .progress-fill.red {
-            background: #cd3c30;
-        }
-
-        .gpu-temp {
-            display: inline-block;
-            background: #ffe6e5;
-            color: #b11f1a;
-            padding: 0.2rem 0.8rem;
-            border-radius: 30px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-left: 0.5rem;
-        }
-
-        /* 检测时间 & 刷新控件 */
-        .check-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 0.8rem;
-            padding: 1rem 1.5rem 1.2rem 1.5rem;
-            border-top: 1px solid #e6edf4;
-            color: #5a7188;
-            font-size: 0.78rem;
-            flex-wrap: wrap;
-        }
-
-        .last-check {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .refresh-btn {
-            background: white;
-            border: 1px solid #cde0ed;
-            padding: 0.4rem 1.1rem;
+            font-weight: 500;
+            color: #6f8a9f;
+            background: #f1f7fd;
+            padding: 0.25rem 0.8rem;
             border-radius: 60px;
-            font-size: 0.75rem;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 0.9rem 1.2rem;
+            border: 1.5px solid #e2ecf5;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            background: #ffffff;
+            transition: all 0.15s;
+            color: #1f3a57;
+            outline: none;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.08);
+            background: #ffffff;
+        }
+
+        textarea {
+            min-height: 200px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .field-hint {
+            margin-top: 0.4rem;
+            font-size: 0.72rem;
+            color: #6f8faa;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: #f4faff;
+            padding: 0.3rem 0.9rem;
+            border-radius: 60px;
+            width: fit-content;
+        }
+        
+        .image-zone {
+            background: #fafeff;
+            border: 1.5px dashed #cde0ed;
+            border-radius: 24px;
+            padding: 1.2rem 1.2rem 1rem;
+            transition: background 0.1s;
+        }
+
+        .image-zone:hover {
+            background: #f2f9ff;
+            border-color: #91b8d9;
+        }
+
+        .image-upload-btn {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .custom-file-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.4rem;
+            background: #eef2f6;
+            border-radius: 40px;
+            font-size: 0.85rem;
             font-weight: 600;
-            color: #1c4e6e;
+            color: #1e3f5c;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid #dbe2ec;
+        }
 
-            /*cursor: pointer;*/
+        .custom-file-label:hover {
+            background: #e2eaf1;
+            border-color: #9fb8d0;
+        }
 
+        .file-hint {
+            color: #557a99;
+            font-size: 0.8rem;
+        }
+
+        .image-preview {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            margin-top: 1.2rem;
+            padding-top: 0.8rem;
+            border-top: 1px solid #e2ecf5;
+        }
+
+        .preview-item {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+
+        .preview-item img {
+            display: block;
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 14px;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        .preview-item .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 16px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-item .remove-btn:hover {
+            background: rgba(255,0,0,0.8);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: #0f172a;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            font-size: 1.1rem;
+            font-weight: 650;
+            letter-spacing: 0.5px;
+            cursor: pointer;
             transition: 0.15s;
             display: flex;
             align-items: center;
-            gap: 0.4rem;
+            justify-content: center;
+            gap: 0.6rem;
+            margin-top: 1.2rem;
+            border: 1px solid #1e2a44;
         }
 
-        /*
-    .refresh-btn:hover {
-      background: #e7f0f9;
-      border-color: #95b3cc;
-    }
-    */
-        /* 页脚导航 */
+        .submit-btn:hover {
+            background: #1e2f45;
+            transform: scale(1.01);
+            box-shadow: 0 8px 18px rgba(15,35,60,0.12);
+        }
+
+        .submit-btn:active {
+            transform: scale(0.99);
+        }
+
         .footer-note {
             text-align: center;
             margin-top: 1.8rem;
@@ -415,841 +403,352 @@
         }
 
         @media (max-width: 550px) {
-            .logo {
-                font-size: 4rem;
-            }
+            .logo { font-size: 4rem; }
+            .submit-card { padding: 1.5rem; }
+            .form-header { flex-direction: column; align-items: flex-start; gap: 0.6rem; }
+        }
 
-            .service-item {
-                flex-wrap: wrap;
-                gap: 0.6rem;
-            }
+        .tip-text {
+            background: #f1f9f0;
+            color: #1f6e4a;
+            border-radius: 60px;
+            padding: 0.2rem 0.8rem;
+            font-size: 0.7rem;
+        }
 
-            .status-text {
-                width: 100%;
-                margin-left: 1.8rem;
-            }
+        .required-star {
+            color: #c53030;
+            margin-left: 4px;
+            font-size: 0.9rem;
+        }
 
-            .hardware-grid {
-                grid-template-columns: 1fr;
-            }
+        .or-divider {
+            text-align: center;
+            margin: 1rem 0;
+            position: relative;
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        .or-divider::before,
+        .or-divider::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: #e2e8f0;
+        }
+
+        .or-divider::before {
+            left: 0;
+        }
+
+        .or-divider::after {
+            right: 0;
         }
     </style>
 </head>
-
 <body>
     <div class="ky-container">
-        <!-- 头部：统一导航，三个按钮齐全 -->
         <div class="nav-header">
             <div class="logo">KYSECRET</div>
             <div class="nav-buttons">
-                <a href="https://ky-secret-v3.pages.dev/status/index.html" class="nav-btn active">📊 状态</a>
-                <a href="https://ky-secret-v3.pages.dev/status/history.html" class="nav-btn">📋 历史</a>
-                <a href="https://ky-secret-v3.pages.dev/index.html" class="nav-btn">✉️ 投稿(BAN)</a>
-            </div>
-
-            <!-- 全局健康状态 -->
-            <div id="globalBanner" class="global-status-banner">
-                <span id="globalDot" class="global-dot"></span>
-                <span id="globalMessage">正在检测服务状态...</span>
+                <a href="./status/index.html" class="nav-btn">📊 状态</a>
+                <a href="https://ky-secret-v3.pages.dev/status/history" class="nav-btn">📋 历史</a>
+                <a href="" class="nav-btn active">✉️ 投稿</a>
             </div>
         </div>
 
-        <!-- ========= 前端托管 ========= -->
-        <div class="section">
-            <div class="section-header">
-                🌐 前端托管
-                <span>2 服务</span>
+        <div class="submit-card">
+            <div class="form-header">
+                <h1>匿名投稿</h1>
+                <span class="form-badge">V3 · HTTPS加密</span>
             </div>
-            <div class="service-list">
-                <!-- Cloudflare Pages -->
-                <div class="service-item" id="service-cf">
-                    <div class="service-left">
-                        <span class="status-indicator" id="indicator-cf"></span>
-                        <span class="service-name">Cloudflare Pages</span>
-                        <span class="service-endpoint">https://ky-secret-v3.pages.dev/</span>
-                    </div>
-                    <div class="status-text">
-                        <span id="status-badge-cf" class="status-badge badge-operational">检测中...</span>
+
+            <form id="kySubmitForm" enctype="multipart/form-data">
+                <div class="form-item">
+                    <label>
+                        <span class="label-left">
+                            <span>📌 标题</span>
+                            <span class="tip-text">选填</span>
+                        </span>
+                        <span class="char-counter" id="titleCounter">0/20</span>
+                    </label>
+                    <input type="text" id="title" maxlength="20" placeholder="给你的投稿起个标题（20字以内）" autocomplete="off">
+                </div>
+
+                <div class="form-item">
+                    <label>
+                        <span class="label-left">
+                            <span>📄 匿名内容</span>
+                            <span class="required-star" id="contentRequired">*</span>
+                        </span>
+                        <span class="char-counter" id="contentCounter">0/200</span>
+                    </label>
+                    <textarea id="content" maxlength="200" placeholder="写下你想分享的一切…… 支持200字"></textarea>
+                    <div class="field-hint" id="contentHint">
+                        <span>✍️</span> 和图片二选一即可
                     </div>
                 </div>
-                <!-- GitHub Pages -->
-                <div class="service-item" id="service-gh">
-                    <div class="service-left">
-                        <span class="status-indicator" id="indicator-gh"></span>
-                        <span class="service-name">GitHub Repository</span>
-                        <span class="service-endpoint">######################</span>
+
+                <div class="or-divider">或者</div>
+
+                <div class="form-item">
+                    <label>
+                        <span class="label-left">
+                            <span>🖼️ 上传图片</span>
+                            <span class="required-star" id="imageRequired">*</span>
+                        </span>
+                    </label>
+                    <div class="image-zone">
+                        <div class="image-upload-btn">
+                            <input type="file" id="imageFiles" class="file-input" accept="image/*">
+                            <label for="imageFiles" class="custom-file-label">
+                                <span style="font-size:1.2rem;">📎</span> 选择图片
+                            </label>
+                            <span class="file-hint" id="fileCountHint">未选择任何文件</span>
+                        </div>
+                        <div class="image-preview" id="imagePreviewContainer"></div>
                     </div>
-                    <div class="status-text">
-                        <span id="status-badge-gh" class="status-badge badge-operational">检测中...</span>
+                    <div class="field-hint">
+                        <span>🖼️</span> 和内容二选一即可，只支持1张
                     </div>
                 </div>
+
+                <button type="submit" class="submit-btn">
+                    <span>✈️</span> 匿名提交
+                </button>
+            </form>
+
+            <div style="margin-top: 1.8rem; font-size: 0.7rem; color: #6a889b; text-align: center; border-top: 1px solid #ecf5fa; padding-top: 1.2rem;">
+                ⚡ 投稿后经过人工审核展示 · 不会公开你的任何个人信息
             </div>
         </div>
 
-        <!-- ========= 后端服务 ========= -->
-        <div class="section">
-            <div class="section-header">
-                ⚙️ 后端服务
-                <span>API 可用性</span>
-            </div>
-            <div class="service-list">
-                <!-- Backend API -->
-                <div class="service-item" id="service-api">
-                    <div class="service-left">
-                        <span class="status-indicator" id="indicator-api"></span>
-                        <span class="service-name">Backend API</span>
-                        <span class="service-endpoint" id="api-endpoint">加载中...</span>
-                    </div>
-                    <div class="status-text">
-                        <span id="status-badge-api" class="status-badge badge-unknown">检测中...</span>
-                    </div>
-                </div>
-                <!-- Status API -->
-                <div class="service-item" id="service-status">
-                    <div class="service-left">
-                        <span class="status-indicator" id="indicator-status"></span>
-                        <span class="service-name">Status API</span>
-                        <span
-                            class="service-endpoint">/api/status | /health</span>
-                    </div>
-                    <div class="status-text">
-                        <span id="status-badge-status" class="status-badge badge-unknown">检测中...</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ========= 硬件监控 ========= -->
-        <div class="section">
-            <div class="section-header">
-                🖥️ 服务器硬件状态
-                <span id="hardware-time">实时</span>
-            </div>
-
-            <div id="hardwareMonitoring" style="min-height: 200px;">
-                <div style="position: relative; min-height: 320px;">
-                    <div class="hardware-grid">
-                        <!-- CPU -->
-                        <div class="hardware-item">
-                            <div class="hardware-header"><span>⚡</span> CPU</div>
-                            <div class="hardware-detail">
-                                <div class="hardware-row">
-                                    <span class="hardware-label">型号</span>
-                                    <span class="hardware-value">Loading</span>
-                                </div>
-                                <div class="hardware-row">
-                                    <span class="hardware-label">核心数</span>
-                                    <span class="hardware-value">Loading</span>
-                                </div>
-                                <div class="hardware-row">
-                                    <span class="hardware-label">温度</span>
-                                    <span class="hardware-value">Loading</span>
-                                </div>
-                                <div class="hardware-row">
-                                    <span class="hardware-label">使用率</span>
-                                    <span class="hardware-value">Loading</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill red" style="width:100%"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 内存 -->
-                        <div class="hardware-item">
-                            <div class="hardware-header"><span>📊</span> 内存</div>
-                            <div class="hardware-detail">
-                                <div class="hardware-row">
-                                    <span class="hardware-label">总容量</span>
-                                    <span class="hardware-value">Loading</span>
-                                </div>
-                                <div class="hardware-row">
-                                    <span class="hardware-label">频率</span>
-                                    <span class="hardware-value">Loading</span>
-                                </div>
-                                <div class="hardware-row">
-                                    <span class="hardware-label">已使用</span>
-                                    <span class="hardware-value">Loading</span>
-                                </div>
-                                <div class="hardware-row">
-                                    <span class="hardware-label">使用率</span>
-                                    <span class="hardware-value">Loading</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill red" style="width:100%"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 磁盘 -->
-                        <div class="hardware-item">
-                            <div class="hardware-header"><span>💾</span> 磁盘</div>
-                            <div class="hardware-detail">
-                                <div class="hardware-row">
-                                    <span class="hardware-label">总容量</span>
-                                    <span class="hardware-value blue">Loading</span>
-                                </div>
-                                <div class="hardware-row">
-                                    <span class="hardware-label">已使用</span>
-                                    <span class="hardware-value blue">Loading</span>
-                                </div>
-                                <div class="hardware-row">
-                                    <span class="hardware-label">温度</span>
-                                    <span class="hardware-value blue">Loading</span>
-                                </div>
-                                <div class="hardware-row">
-                                    <span class="hardware-label">使用率</span>
-                                    <span class="hardware-value blue">Loading</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill red" style="width:100%"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- GPU -->
-                        <div class="hardware-item">
-                            <div class="hardware-header"><span>🎮</span> GPU</div>
-                            <div class="hardware-detail">
-                                <div class="hardware-row">
-                                    <span class="hardware-label">型号</span>
-                                    <span class="hardware-value">Loading</span>
-                                </div>
-                                <div class="hardware-row">
-                                    <span class="hardware-label">使用率</span>
-                                    <span class="hardware-value">Loading</span>
-                                </div>
-                                <div class="hardware-row">
-                                    <span class="hardware-label">温度</span>
-                                    <span class="hardware-value">Loading</span>
-                                </div>
-                                <div class="hardware-row">
-                                    <span class="hardware-label">显存</span>
-                                    <span class="hardware-value">Loading</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill red" style="width:100%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 白色半透明遮罩 + 居中文字 -->
-                    <div style="
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(255, 255, 255, 0.65);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 20px;
-                z-index: 10;
-              ">
-                        <div style="
-                  font-size: 15px;
-                  font-weight: 600;
-                  color: #4a627a;
-                  background: rgba(255,255,255,0.9);
-                  padding: 10px 18px;
-                  border-radius: 12px;
-                  box-shadow: 0 4px 12px rgba(0,20,40,0.08);
-                ">
-                            ⏳ 正在获取硬件信息...
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ========= 检测信息栏 ========= -->
-        <div class="check-footer">
-            <!--<div class="last-check">-->
-
-            <div id="manualRefreshBtn" class="refresh-btn">
-                <span>🕒 最后检测: </span>
-                <span id="lastCheckTime">刚刚</span>
-            </div>
-            <div id="manualRefreshBtn" class="refresh-btn">
-                <span>⟳</span> 每5秒自动刷新
-            </div>
-        </div>
-        <!-- 页脚导航 -->
-        <div class="footer-note">
-            <a href="./index.html">📊 当前状态</a> ·
-            <a href="./history.html">📋 历史事件</a> ·
-            <a href="../index.html">✉️ 匿名投稿</a>
+        <div class="footer-note">当前状态
+                <a href="https://ky-secret-v3.pages.dev/status/index">📊 当前状态</a> ·
+                <a href="https://ky-secret-v3.pages.dev/status/history">📋 历史事件</a> ·
+                <a href="https://ky-secret-v3.pages.dev/index">✉️ 匿名投稿</a>
         </div>
     </div>
 
-
-    <script>
-        (function () {
+ <script>
+        (function() {
             "use strict";
 
-            // 配置加载
-            async function loadConfig() {
-                try {
-                    const response = await fetch('https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json',{cache:"no-store"});
-                    const config = await response.json();
-                    return config;
-                } catch (e) {
-                    console.warn('无法加载配置，使用默认值');
-                    return {
-                        backend: 'https://indirect-nationally-incentives-argued.trycloudflare.com',
-                        api: '/api'
-                    };
+            // DOM 元素
+            const titleInput = document.getElementById('title');
+            const contentInput = document.getElementById('content');
+            const titleCounter = document.getElementById('titleCounter');
+            const contentCounter = document.getElementById('contentCounter');
+            const fileInput = document.getElementById('imageFiles');
+            const fileHint = document.getElementById('fileCountHint');
+            const previewContainer = document.getElementById('imagePreviewContainer');
+            const form = document.getElementById('kySubmitForm');
+            const contentRequired = document.getElementById('contentRequired');
+            const imageRequired = document.getElementById('imageRequired');
+            
+            let isSubmitting = false;
+            let currentPreviewFile = null;
+
+            // 字数统计
+            function updateTitleCounter() {
+                titleCounter.innerText = `${titleInput.value.length}/20`;
+            }
+            
+            function updateContentCounter() {
+                contentCounter.innerText = `${contentInput.value.length}/200`;
+                updateRequiredFields();
+            }
+
+            // 更新必填标记
+            function updateRequiredFields() {
+                const hasContent = contentInput.value.trim().length > 0;
+                const hasImage = fileInput.files.length > 0;
+                
+                // 如果内容不为空，图片就不是必填
+                if (hasContent) {
+                    contentRequired.style.color = '#c53030';
+                    imageRequired.style.color = '#94a3b8';
+                } 
+                // 如果图片不为空，内容就不是必填
+                else if (hasImage) {
+                    contentRequired.style.color = '#94a3b8';
+                    imageRequired.style.color = '#c53030';
+                }
+                // 如果都为空，两者都是红色
+                else {
+                    contentRequired.style.color = '#c53030';
+                    imageRequired.style.color = '#c53030';
                 }
             }
 
-            // 服务状态枚举
-            const STATUS = {
-                OPERATIONAL: 'operational',
-                DEGRADED: 'degraded',
-                DOWN: 'down',
-                UNKNOWN: 'unknown'
-            };
+            titleInput.addEventListener('input', updateTitleCounter);
+            contentInput.addEventListener('input', updateContentCounter);
+            
+            // 初始化
+            updateTitleCounter();
+            updateContentCounter();
+            updateRequiredFields();
 
-            let currentStatus = {
-                cf: STATUS.UNKNOWN,
-                gh: STATUS.UNKNOWN,
-                api: STATUS.UNKNOWN,
-                status: STATUS.UNKNOWN
-            };
-
-            let backendUrl = '';
-            let lastCheckTimestamp = Date.now();
-            let hardwareData = null;
-
-            // 更新服务状态UI
-            function updateServiceUI(id, state) {
-                const indicator = document.getElementById(`indicator-${id}`);
-                const badge = document.getElementById(`status-badge-${id}`);
-
-                if (indicator) {
-                    indicator.className = 'status-indicator';
-                    indicator.classList.add(state);
-                }
-
-                if (badge) {
-                    let text = '';
-                    let badgeClass = '';
-                    switch (state) {
-                        case STATUS.OPERATIONAL:
-                            text = '正常';
-                            badgeClass = 'badge-operational';
-                            break;
-                        case STATUS.DEGRADED:
-                            text = '降级';
-                            badgeClass = 'badge-degraded';
-                            break;
-                        case STATUS.DOWN:
-                            text = '离线';
-                            badgeClass = 'badge-down';
-                            break;
-                        default:
-                            text = '未知';
-                            badgeClass = 'badge-unknown';
-                    }
-                    badge.innerText = text;
-                    badge.className = 'status-badge ' + badgeClass;
-                }
-            }
-
-            // 更新所有服务UI
-            function updateAllServicesUI() {
-                Object.entries(currentStatus).forEach(([id, state]) => {
-                    updateServiceUI(id, state);
-                });
-            }
-
-            // 渲染硬件监控（唯一正确的函数定义）
-            function renderHardwareMonitoring(data) {
-                const container = document.getElementById('hardwareMonitoring');
-                if (!container) return;
-
-                // ==============================================
-                // 错误模式：白色半透明遮罩 + 全部 ERR 红色 + 进度条100%红
-                // ==============================================
-                if (!data) {
-                    container.innerHTML = `
-            <div style="position: relative; min-height: 320px;">
-              <div class="hardware-grid">
-                <!-- CPU -->
-                <div class="hardware-item">
-                  <div class="hardware-header"><span>⚡</span> CPU</div>
-                  <div class="hardware-detail">
-                    <div class="hardware-row">
-                      <span class="hardware-label">型号</span>
-                      <span class="hardware-value red">ERR</span>
-                    </div>
-                    <div class="hardware-row">
-                      <span class="hardware-label">核心数</span>
-                      <span class="hardware-value red">ERR</span>
-                    </div>
-                    <div class="hardware-row">
-                      <span class="hardware-label">温度</span>
-                      <span class="hardware-value red">ERR</span>
-                    </div>
-                    <div class="hardware-row">
-                      <span class="hardware-label">使用率</span>
-                      <span class="hardware-value red">ERR</span>
-                    </div>
-                    <div class="progress-bar">
-                      <div class="progress-fill red" style="width:100%"></div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- 内存 -->
-                <div class="hardware-item">
-                  <div class="hardware-header"><span>📊</span> 内存</div>
-                  <div class="hardware-detail">
-                    <div class="hardware-row">
-                      <span class="hardware-label">总容量</span>
-                      <span class="hardware-value red">ERR</span>
-                    </div>
-                    <div class="hardware-row">
-                      <span class="hardware-label">频率</span>
-                      <span class="hardware-value red">ERR</span>
-                    </div>
-                    <div class="hardware-row">
-                      <span class="hardware-label">已使用</span>
-                      <span class="hardware-value red">ERR</span>
-                    </div>
-                    <div class="hardware-row">
-                      <span class="hardware-label">使用率</span>
-                      <span class="hardware-value red">ERR</span>
-                    </div>
-                    <div class="progress-bar">
-                      <div class="progress-fill red" style="width:100%"></div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- 磁盘 -->
-                <div class="hardware-item">
-                  <div class="hardware-header"><span>💾</span> 磁盘</div>
-                  <div class="hardware-detail">
-                    <div class="hardware-row">
-                      <span class="hardware-label">总容量</span>
-                      <span class="hardware-value red">ERR</span>
-                    </div>
-                    <div class="hardware-row">
-                      <span class="hardware-label">已使用</span>
-                      <span class="hardware-value red">ERR</span>
-                    </div>
-                    <div class="hardware-row">
-                      <span class="hardware-label">温度</span>
-                      <span class="hardware-value red">ERR</span>
-                    </div>
-                    <div class="hardware-row">
-                      <span class="hardware-label">使用率</span>
-                      <span class="hardware-value red">ERR</span>
-                    </div>
-                    <div class="progress-bar">
-                      <div class="progress-fill red" style="width:100%"></div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- GPU -->
-                <div class="hardware-item">
-                  <div class="hardware-header"><span>🎮</span> GPU</div>
-                  <div class="hardware-detail">
-                    <div class="hardware-row">
-                      <span class="hardware-label">型号</span>
-                      <span class="hardware-value red">ERR</span>
-                    </div>
-                    <div class="hardware-row">
-                      <span class="hardware-label">使用率</span>
-                      <span class="hardware-value red">ERR</span>
-                    </div>
-                    <div class="hardware-row">
-                      <span class="hardware-label">温度</span>
-                      <span class="hardware-value red">ERR</span>
-                    </div>
-                    <div class="hardware-row">
-                      <span class="hardware-label">显存</span>
-                      <span class="hardware-value red">ERR</span>
-                    </div>
-                    <div class="progress-bar">
-                      <div class="progress-fill red" style="width:100%"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 白色半透明遮罩 + 居中文字 -->
-              <div style="
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(255, 255, 255, 0.65);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 20px;
-                z-index: 10;
-              ">
-                <div style="
-                  font-size: 15px;
-                  font-weight: 600;
-                  color: #4a627a;
-                  background: rgba(255,255,255,0.9);
-                  padding: 10px 18px;
-                  border-radius: 12px;
-                  box-shadow: 0 4px 12px rgba(0,20,40,0.08);
-                ">
-                  无法获取硬件信息
-                </div>
-              </div>
-            </div>
-          `;
+            // 图片预览（只允许1张）
+            fileInput.addEventListener('change', function(e) {
+                const files = Array.from(fileInput.files);
+                
+                if (files.length === 0) {
+                    fileHint.innerText = '未选择任何文件';
+                    previewContainer.innerHTML = '';
+                    currentPreviewFile = null;
+                    updateRequiredFields();
                     return;
                 }
 
-                // ==============================================
-                // 正常模式：显示真实硬件数据
-                // ==============================================
-                // 获取进度条颜色
-                function getProgressColor(percent) {
-                    if (percent === 'ERR' || isNaN(percent)) return 'red';
-                    if (percent < 60) return 'green';
-                    if (percent < 85) return 'yellow';
-                    return 'red';
+                // 只取第一张
+                const file = files[0];
+                
+                // 如果选了多张，提示并只保留第一张
+                if (files.length > 1) {
+                    alert('只支持上传1张图片，已自动选择第一张');
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    fileInput.files = dt.files;
                 }
 
-                // 获取文字颜色
-                function getTEXTColor(text_temp) {
-                    if (text_temp === 'ERR' || text_temp === undefined || text_temp === null || isNaN(text_temp) && typeof text_temp !== 'string') {
-                        return 'red';
+                fileHint.innerText = `已选择 1 个文件: ${file.name}`;
+                previewContainer.innerHTML = '';
+                currentPreviewFile = file;
+
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        const previewItem = document.createElement('div');
+                        previewItem.className = 'preview-item';
+                        
+                        const img = document.createElement('img');
+                        img.src = ev.target.result;
+                        
+                        const removeBtn = document.createElement('button');
+                        removeBtn.className = 'remove-btn';
+                        removeBtn.innerHTML = '×';
+                        removeBtn.onclick = function() {
+                            fileInput.value = '';
+                            previewContainer.innerHTML = '';
+                            fileHint.innerText = '未选择任何文件';
+                            currentPreviewFile = null;
+                            updateRequiredFields();
+                        };
+                        
+                        previewItem.appendChild(img);
+                        previewItem.appendChild(removeBtn);
+                        previewContainer.appendChild(previewItem);
+                    };
+                    reader.readAsDataURL(file);
+                }
+                
+                updateRequiredFields();
+            });
+
+            // 等待配置加载完成再允许提交
+            async function waitForConfig() {
+                if (window.KY_CONFIG && window.KY_CONFIG.backendUrl) {
+                    return true;
+                }
+                // 最多等待3秒
+                for (let i = 0; i < 30; i++) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    if (window.KY_CONFIG && window.KY_CONFIG.backendUrl) {
+                        return true;
                     }
-                    if (typeof text_temp === 'string' && text_temp.trim() === 'ERR') {
-                        return 'red';
-                    }
-                    return 'black';
                 }
-
-                // 计算硬件使用率（容错处理）
-                const cpuPercent = !isNaN(data.cpu?.usage_percent) ? data.cpu.usage_percent : 0;
-                const memPercent = !isNaN(data.memory?.usage_percent) ? data.memory.usage_percent : 0;
-                const diskPercent = !isNaN(data.disk?.usage_percent) ? data.disk.usage_percent : 0;
-
-                // 计算GPU显存使用率
-                let gpuMemPercent = 0;
-                if (data.gpu?.mem_used_gb && data.gpu?.mem_total_gb && !isNaN(data.gpu.mem_used_gb) && !isNaN(data.gpu.mem_total_gb) && data.gpu.mem_total_gb > 0) {
-                    gpuMemPercent = (data.gpu.mem_used_gb / data.gpu.mem_total_gb) * 100;
-                }
-
-                // 渲染正常数据的HTML
-                const html = `
-          <div class="hardware-grid">
-            <!-- CPU -->
-            <div class="hardware-item">
-              <div class="hardware-header-2">
-                <span>⚡ </span> ${data.cpu?.name || 'ERR'}
-              </div>
-              <div class="hardware-detail">
-                <div class="hardware-row">
-                  <span class="hardware-label">型号</span>
-                  <span class="hardware-value ${getTEXTColor(data.cpu?.name || 'ERR')}">${data.cpu?.name || 'ERR'}</span>
-                </div>
-                <div class="hardware-row">
-                  <span class="hardware-label">核心数</span>
-                  <span class="hardware-value ${getTEXTColor(data.cpu?.cores || 'ERR')}">${data.cpu?.cores || 'ERR'} Cores</span>
-                </div>
-                <div class="hardware-row">
-                  <span class="hardware-label">温度</span>
-                  <span class="hardware-value ${getTEXTColor(data.cpu?.temp_c || 'ERR')}">
-                    ${!isNaN(data.cpu?.temp_c) && data.cpu?.temp_c > 50 ? '<span class="gpu-temp">高温</span>' : ''}
-                    ${(data.cpu?.temp_c) || 'VALUE_ERR'}
-                    
-                  </span>
-                </div>
-                <div class="hardware-row">
-                  <span class="hardware-label">使用率</span>
-                  <span class="hardware-value ${getTEXTColor(cpuPercent.toFixed(1) || 'ERR')}">${cpuPercent.toFixed(1) || 'ERR'} %</span>
-                </div>
-                <div class="progress-bar">
-                  <div class="progress-fill ${getProgressColor(cpuPercent)}" style="width: ${cpuPercent}%;"></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 内存 -->
-            <div class="hardware-item">
-              <div class="hardware-header">
-                <span>📊</span> 内存
-              </div>
-              <div class="hardware-detail">
-                <div class="hardware-row">
-                  <span class="hardware-label">总容量</span>
-                  <span class="hardware-value ${getTEXTColor(data.memory?.total_gb || 'ERR')}">${data.memory?.total_gb || 'ERR'} GB</span>
-                </div>
-                <div class="hardware-row">
-                      <span class="hardware-label">频率</span>
-                      <span class="hardware-value ${getTEXTColor('5400' || 'ERR')}">${'5400' || 'ERR'} MHz</span>
-                    </div>
-                <div class="hardware-row">
-                  <span class="hardware-label">已使用</span>
-                  <span class="hardware-value ${getTEXTColor(data.memory?.used_gb || 'ERR')}">${data.memory?.used_gb || 'ERR'} GB</span>
-                </div>
-                <div class="hardware-row">
-                  <span class="hardware-label">使用率</span>
-                  <span class="hardware-value ${getTEXTColor(memPercent.toFixed(1) || 'ERR')}">${memPercent.toFixed(1) || 'ERR'} %</span>
-                </div>
-                <div class="progress-bar">
-                  <div class="progress-fill ${getProgressColor(memPercent)}" style="width: ${memPercent}%;"></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 磁盘 -->
-            <div class="hardware-item">
-              <div class="hardware-header">
-                <span>💾</span> 磁盘
-              </div>
-              <div class="hardware-detail">
-                <div class="hardware-row">
-                  <span class="hardware-label">总容量</span>
-                  <span class="hardware-value ${getTEXTColor(data.disk?.total_gb || 'ERR')}">${data.disk?.total_gb || 'ERR'} GB</span>
-                </div>
-                <div class="hardware-row">
-                  <span class="hardware-label">已使用</span>
-                  <span class="hardware-value ${getTEXTColor(data.disk?.used_gb || 'ERR')}">${data.disk?.used_gb || 'ERR'}  / ${data.disk?.total_gb || 0}  GB</span>
-                </div>
-                <div class="hardware-row">
-                  <span class="hardware-label">温度</span>
-                  <span class="hardware-value ${getTEXTColor(data.disk?.total_gb || 'ERR')}">${!isNaN(data.gpu.temp_c) && data.gpu.temp_c > 50 ? '<span class="gpu-temp">高温</span>' : ''} ${'43' || 'ERR'} °C </span>
-                </div>
-                <div class="hardware-row">
-                  <span class="hardware-label">使用率</span>
-                  <span class="hardware-value ${getTEXTColor(diskPercent.toFixed(8) || 'ERR')}">${data.disk?.used_gb / data.disk?.total_gb} %</span>
-                </div>
-                <div class="progress-bar">
-                  <div class="progress-fill ${getProgressColor(diskPercent)}" style="width: ${diskPercent}%;"></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- GPU -->
-            <div class="hardware-item">
-              <div class="hardware-header-2">
-                <span>🎮 </span> ${data.gpu?.name || 'ERR'}
-              </div>
-              <div class="hardware-detail">
-                <div class="hardware-row">
-                  <span class="hardware-label">型号</span>
-                  <span class="hardware-value ${getTEXTColor(data.gpu?.name || 'ERR')}">${data.gpu?.name || 'ERR'}</span>
-                </div>
-                ${data.gpu?.name ? `
-                <div class="hardware-row">
-                  <span class="hardware-label">使用率</span>
-                  <span class="hardware-value ${getTEXTColor(data.gpu.cuda_usage_percent || data.gpu.CUDA_usage_percent || 'ERR')}">${data.gpu.cuda_usage_percent || data.gpu.CUDA_usage_percent || "ERR"}%</span>
-                </div>
-                <div class="hardware-row">
-                  <span class="hardware-label">温度</span>
-                  <span class="hardware-value ${getTEXTColor(data.gpu.temp_c || 'ERR')}">
-                    ${!isNaN(data.gpu.temp_c) && data.gpu.temp_c > 50 ? '<span class="gpu-temp">高温</span>' : ''}
-                    ${data.gpu.temp_c || 'ERR'}°C
-                    
-                  </span>
-                </div>
-                <div class="hardware-row">
-                  <span class="hardware-label">显存</span>
-                  <span class="hardware-value">${data.gpu.mem_used_gb || 0} / ${data.gpu.mem_total_gb || 0} GB</span>
-                </div>
-                <div class="progress-bar">
-                  <div class="progress-fill ${getProgressColor(gpuMemPercent)}" style="width: ${gpuMemPercent}%;"></div>
-                </div>
-                ` : ''}
-              </div>
-            </div>
-          </div>
-        `;
-
-                container.innerHTML = html;
+                return false;
             }
 
-            // 更新全局横幅
-            function updateGlobalBanner() {
-                const dot = document.getElementById('globalDot');
-                const msg = document.getElementById('globalMessage');
+            // 表单提交
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
 
-                let hasDown = false, hasDegraded = false, hasUnknown = false;
-                Object.values(currentStatus).forEach(state => {
-                    if (state === STATUS.DOWN) hasDown = true;
-                    else if (state === STATUS.DEGRADED) hasDegraded = true;
-                    else if (state === STATUS.UNKNOWN) hasUnknown = true;
-                });
+                if (isSubmitting) return;
+                
+                const hasContent = contentInput.value.trim().length > 0;
+                const hasImage = fileInput.files.length > 0;
 
-                if (hasDown) {
-                    dot.className = 'global-dot down';
-                    msg.innerText = '部分服务离线';
-                } else if (hasDegraded) {
-                    dot.className = 'global-dot degraded';
-                    msg.innerText = '服务降级';
-                } else if (hasUnknown) {
-                    dot.className = 'global-dot';
-                    msg.innerText = '部分状态未知';
+                // 检查：内容和图片必须至少有一个
+                if (!hasContent && !hasImage) {
+                    alert('请填写匿名内容 或 上传一张图片（二选一）');
+                    return;
+                }
+
+                // 等待配置加载
+                const configReady = await waitForConfig();
+                if (!configReady) {
+                    alert('配置加载失败，请刷新页面重试');
+                    return;
+                }
+
+                // 构建 FormData
+                const formData = new FormData();
+                
+                // 标题（选填）
+                if (titleInput.value.trim()) {
+                    formData.append('title', titleInput.value.trim());
+                }
+                
+                // 内容（如果有）
+                if (hasContent) {
+                    formData.append('content', contentInput.value.trim());
                 } else {
-                    dot.className = 'global-dot ok';
-                    msg.innerText = '所有系统正常';
+                    // 如果没内容但有图片，传一个空字符串或默认内容
+                    formData.append('content', '『图片投稿』');
                 }
-            }
 
-            // 检测前端服务
-            async function checkFrontendService(url) {
-                try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-                    const response = await fetch(url, {
-                        mode: 'no-cors',
-                        signal: controller.signal
-                    });
-
-                    clearTimeout(timeoutId);
-                    return STATUS.OPERATIONAL;
-                } catch (error) {
-                    console.warn(`前端服务检测失败 ${url}:`, error);
-                    return STATUS.DOWN;
+                // 图片（最多1张）
+                if (hasImage) {
+                    formData.append('user_image', fileInput.files[0]);
                 }
-            }
 
-            // 检测后端API
-            async function checkBackendAPI() {
-                if (!backendUrl) return STATUS.UNKNOWN;
+                // 使用动态配置构建URL
+                const SUBMIT_ENDPOINT = window.KY_CONFIG.getUrl('submit');
+
+                const submitBtn = document.querySelector('.submit-btn');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<span>⏳</span> 提交中...';
+                submitBtn.disabled = true;
+                isSubmitting = true;
 
                 try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-                    const response = await fetch(`${backendUrl}/health`, {
-                        signal: controller.signal
+                    const response = await fetch(SUBMIT_ENDPOINT, {
+                        method: 'POST',
+                        body: formData
                     });
 
-                    clearTimeout(timeoutId);
-
-                    if (response.ok) {
-                        return STATUS.OPERATIONAL;
-                    } else {
-                        return STATUS.DEGRADED;
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`HTTP ${response.status}: ${errorText}`);
                     }
+
+                    const data = await response.json();
+                    alert('✅ 投稿提交成功！感谢你的分享。审核通过后将发布。');
+                    
+                    form.reset();
+                    previewContainer.innerHTML = '';
+                    fileHint.innerText = '未选择任何文件';
+                    titleCounter.innerText = '0/20';
+                    contentCounter.innerText = '0/200';
+                    currentPreviewFile = null;
+                    updateRequiredFields();
+                    
                 } catch (error) {
-                    console.warn('后端API检测失败:', error);
-                    return STATUS.DOWN;
+                    console.error('提交失败:', error);
+                    alert('❌ 投稿提交失败，请稍后重试。' + (error.message ? `\n${error.message}` : ''));
+                } finally {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    isSubmitting = false;
                 }
-            }
+            });
 
-            // 检测Status API并获取硬件数据
-            async function checkStatusAPI() {
-                if (!backendUrl) return { state: STATUS.UNKNOWN, data: null };
-
-                try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-                    const response = await fetch(`${backendUrl}/api/status`, {
-                        signal: controller.signal
-                    });
-
-                    clearTimeout(timeoutId);
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        hardwareData = data;
-                        return { state: STATUS.OPERATIONAL, data };
-                    } else {
-                        return { state: STATUS.DEGRADED, data: null };
-                    }
-                } catch (error) {
-                    console.warn('Status API检测失败:', error);
-                    return { state: STATUS.DOWN, data: null };
-                }
-            }
-
-            // 执行所有检测
-            async function performHealthCheck() {
-                const config = await loadConfig();
-                backendUrl = config.backend || 'https://indirect-nationally-incentives-argued.trycloudflare.com';
-
-                // 更新API端点显示
-                const apiEndpoint = document.getElementById('api-endpoint');
-                if (apiEndpoint) {
-                    apiEndpoint.innerText = backendUrl.replace(/^https?:\/\//, '');
-                }
-
-                // 并行检测所有服务
-                const [cfState, ghState, apiState, statusResult] = await Promise.allSettled([
-                    checkFrontendService('https://ky-secret-v3.pages.dev'),
-                    checkFrontendService('https://github.com/QSNTH/KY-Secret-V3'),
-                    checkBackendAPI(),
-                    checkStatusAPI()
-                ]);
-
-                // 更新状态
-                currentStatus = {
-                    cf: cfState.status === 'fulfilled' ? cfState.value : STATUS.UNKNOWN,
-                    gh: ghState.status === 'fulfilled' ? ghState.value : STATUS.UNKNOWN,
-                    api: apiState.status === 'fulfilled' ? apiState.value : STATUS.UNKNOWN,
-                    status: statusResult.status === 'fulfilled' ? statusResult.value.state : STATUS.UNKNOWN
-                };
-
-                // 更新所有UI
-                updateAllServicesUI();
-
-                // 渲染硬件信息
-                if (statusResult.status === 'fulfilled' && statusResult.value.data) {
-                    hardwareData = statusResult.value.data;
-                    renderHardwareMonitoring(hardwareData);
-                } else if (hardwareData) {
-                    renderHardwareMonitoring(hardwareData);
-                } else {
-                    renderHardwareMonitoring(null);
-                }
-
-                // 更新全局状态
-                updateGlobalBanner();
-
-                // 更新时间戳
-                lastCheckTimestamp = Date.now();
-                const lastTimeEl = document.getElementById('lastCheckTime');
-                if (lastTimeEl) {
-                    const date = new Date(lastCheckTimestamp);
-                    const timeStr = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`;
-                    lastTimeEl.innerText = timeStr;
-                }
-            }
-
-            // 初始化
-            async function init() {
-                // 先显示"检测中"
-                updateAllServicesUI();
-
-                await performHealthCheck();
-                /*
-                // 绑定刷新按钮
-                const refreshBtn = document.getElementById('manualRefreshBtn');
-                if (refreshBtn) {
-                  refreshBtn.addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    await performHealthCheck();
-                  });
-                }
-                */
-                // 自动刷新（每5秒）
-                setInterval(performHealthCheck, 5000);
-            }
-
-            init();
         })();
     </script>
 </body>
-
 </html>
