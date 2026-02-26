@@ -692,7 +692,7 @@
             // 配置加载
             async function loadConfig() {
                 try {
-                    const response = await fetch('https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json');
+                    const response = await fetch('https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json',{cache:"no-store"});
                     const config = await response.json();
                     return config;
                 } catch (e) {
