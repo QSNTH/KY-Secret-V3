@@ -1,5 +1,5 @@
 {
-    "backend":"https://cottage-stack-reform-wallpapers.trycloudflare.com ",
+    "backend":"https://cottage-stack-reform-wallpapers.trycloudflare.com",
     "api": "/api",
     "status" : "/status",
     "submit" : "/submit",
