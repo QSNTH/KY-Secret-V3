@@ -1132,7 +1132,7 @@
       // 执行所有检测
       async function performHealthCheck() {
         const config = await loadConfig();
-        backendUrl = config.backend || 'https://indirect-nationally-incentives-argued.trycloudflare.com';
+        backendUrl = config.backend;
         
         // 更新API端点显示
         const apiEndpoint = document.getElementById('api-endpoint');
