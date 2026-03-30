@@ -444,7 +444,7 @@
             <div class="nav-buttons">
                 <a href="https://ky-secret-v3.pages.dev/status/index.html" class="nav-btn active">📊 状态</a>
                 <a href="https://ky-secret-v3.pages.dev/status/history.html" class="nav-btn">📋 历史</a>
-                <a href="https://ky-secret-v3.pages.dev/index.html" class="nav-btn">✉️ 投稿(BAN)</a>
+                <a href="https://ky-secret-v3.pages.dev/index.html" class="nav-btn">✉️ 投稿(有限度)</a>
             </div>
 
             <!-- 全局健康状态 -->
@@ -452,6 +452,11 @@
                 <span id="globalDot" class="global-dot"></span>
                 <span id="globalMessage">正在检测服务状态...</span>
             </div>
+            <div class="global-status-banner">
+                <span class="global-dot degraded"></span>
+                <span id="globalMessage">V3.1.78_PubTest_Alpha｜临时开放公测，非最终正式版</span>
+            </div>
+
         </div>
 
         <!-- ========= 前端托管 ========= -->
@@ -509,8 +514,7 @@
                     <div class="service-left">
                         <span class="status-indicator" id="indicator-status"></span>
                         <span class="service-name">Status API</span>
-                        <span
-                            class="service-endpoint">/api/status | /health</span>
+                        <span class="service-endpoint" id="api-endpoint">加载中...</span>
                     </div>
                     <div class="status-text">
                         <span id="status-badge-status" class="status-badge badge-unknown">检测中...</span>
@@ -678,9 +682,9 @@
         </div>
         <!-- 页脚导航 -->
         <div class="footer-note">
-            <a href="./index.html">📊 当前状态</a> ·
-            <a href="./history.html">📋 历史事件</a> ·
-            <a href="../index.html">✉️ 匿名投稿</a>
+            <a href="https://ky-secret-v3.pages.dev/status/index">📊 当前状态</a> ·
+            <a href="https://ky-secret-v3.pages.dev/status/history">📋 历史事件</a> ·
+            <a href="https://ky-secret-v3.pages.dev/index">✉️ 匿名投稿</a>
         </div>
     </div>
 
@@ -692,7 +696,7 @@
             // 配置加载
             async function loadConfig() {
                 try {
-                    const response = await fetch('https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json',{cache:"no-store"});
+                    const response = await fetch('https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json');
                     const config = await response.json();
                     return config;
                 } catch (e) {
@@ -1177,7 +1181,7 @@
             // 执行所有检测
             async function performHealthCheck() {
                 const config = await loadConfig();
-                backendUrl = config.backend || 'https://indirect-nationally-incentives-argued.trycloudflare.com';
+                backendUrl = config.backend;
 
                 // 更新API端点显示
                 const apiEndpoint = document.getElementById('api-endpoint');
