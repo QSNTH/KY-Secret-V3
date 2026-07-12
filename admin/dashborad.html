@@ -248,9 +248,11 @@ function rowErr(p){
 }
 
 var _evtSource=null;
-function startLogs(){ll();connectSSE();}
+function startLogs(){connectSSE();}
 function connectSSE(){
   if(_evtSource){_evtSource.close();_evtSource=null;}
+  _logLines=[];
+  var st=document.getElementById('logStreamStatus');if(st)st.textContent='连接中...';
   _evtSource=new EventSource(B+'/admin/logs/stream?_token='+encodeURIComponent(T));
   _evtSource.onmessage=function(e){
     if(!e.data)return;
@@ -260,11 +262,11 @@ function connectSSE(){
   };
   _evtSource.onerror=function(){
     if(_evtSource){_evtSource.close();_evtSource=null;}
-    var st=document.getElementById('logStreamStatus');if(st)st.textContent='已断开·5s后重连';
+    if(st)st.textContent='已断开·5s后重连';
     setTimeout(connectSSE,5000);
   };
   _evtSource.onopen=function(){
-    var st=document.getElementById('logStreamStatus');if(st)st.textContent='实时';
+    var s=document.getElementById('logStreamStatus');if(s)s.textContent='实时';
   };
 }
 function refreshLogs(){_logLines=[];ll();}
