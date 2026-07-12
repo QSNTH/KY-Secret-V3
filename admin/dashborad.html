@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
+<title>KY Secret V3 · 管理面板</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+body{background:#f7fafc;color:#222}
+.tb{background:#fff;color:#1a2a1a;padding:16px 28px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;border-bottom:1px solid #e2ecf5}
+.tb h1{font-size:20px;font-weight:900;letter-spacing:-0.02em}.tb .nv{display:flex;gap:6px;flex-wrap:wrap}
+.tb a,.tb button{border:1px solid #e2e8f0;border-radius:40px;background:#fff;color:#334155;padding:6px 16px;cursor:pointer;font-size:13px;font-weight:550;text-decoration:none;white-space:nowrap;transition:.15s}
+.tb a:hover,.tb button:hover{background:#eef2f6;border-color:#cbd5e1}
+.c{max-width:1300px;margin:0 auto;padding:20px 24px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
+.st{background:#fff;border-radius:14px;padding:22px 16px;box-shadow:0 1px 4px rgba(0,0,0,.04);text-align:center;transition:.15s}
+.st:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.06)}
+.st .n{font-size:32px;font-weight:800;line-height:1.2}.st .l{font-size:13px;color:#888;margin-top:4px}
+.s-g .n{color:#1a7a3a}.s-o .n{color:#e67e22}.s-r .n{color:#e74c3c}.s-b .n{color:#2980b9}.s-p .n{color:#7c3aed}
+.btns{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.btns a{padding:16px 28px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;text-decoration:none;color:#fff;display:inline-flex;align-items:center;gap:8px;transition:.15s}
+.btn-r{background:#1a7a3a;flex:1;min-width:200px}.btn-r:hover{background:#15632f;transform:translateY(-1px)}
+.btn-l{background:#e74c3c;flex:1;min-width:200px}.btn-l:hover{background:#c0392b;transform:translateY(-1px)}
+.panel{background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.04);padding:20px;margin-bottom:16px}
+.panel h3{font-size:16px;color:#1a5a2a;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.item{background:#f8fbf8;border-radius:12px;padding:16px 18px;border:1px solid #eef4ee;display:flex;flex-direction:column}
+.item .name{font-size:13px;font-weight:600;color:#1a7a3a;margin-bottom:8px}
+.item .dot{width:10px;height:10px;border-radius:50%;background:#94a3b8;display:inline-block}
+.item .info{font-size:12px;color:#888;line-height:1.6;flex:1}
+.hw-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px}
+.hw-label{color:#607b96}.hw-value{font-weight:600;color:#2d4b68}
+.bar{height:4px;background:#e8ede8;border-radius:4px;margin-top:auto;overflow:hidden}
+.hot{display:inline-block;background:#ffe6e5;color:#b11f1a;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:600;margin-left:4px}
+.bar-fill{height:100%;border-radius:4px;transition:width .3s}.bar-fill.g{background:#1a7a3a}.bar-fill.y{background:#e67e22}.bar-fill.r{background:#e74c3c}
+.toast{position:fixed;bottom:20px;right:20px;background:#222;color:#fff;padding:8px 18px;border-radius:8px;font-size:12px;z-index:999;opacity:0;transition:.3s;pointer-events:none}.toast.s{opacity:1}
+.rate-ctl{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.rate-ctl input{width:56px;padding:2px 4px;border-radius:4px;border:1px solid #ccc;font-size:11px;text-align:center}
+.rate-ctl button.set-btn{padding:2px 8px;border-radius:4px;border:1px solid #1a7a3a;background:#1a7a3a;color:#fff;font-size:11px;cursor:pointer}
+.rate-ctl span.r-unit{font-size:10px;color:#888}
+.rate-preset{padding:2px 6px;border-radius:4px;border:1px solid #d1d5db;background:#f3f4f6;color:#374151;font-size:10px;cursor:pointer;white-space:nowrap}
+.rate-preset:hover{background:#e5e7eb;border-color:#9ca3af}
+.ss-lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:2000;justify-content:center;align-items:center;cursor:pointer;flex-direction:column}
+.ss-lb.open{display:flex}
+.ss-lb img{max-width:95vw;max-height:90vh;border-radius:8px;cursor:default}
+.ss-lb .ss-lb-close{position:absolute;top:16px;right:20px;font-size:30px;color:#fff;cursor:pointer;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,255,255,.15);border:none}
+.ss-lb .ss-lb-close:hover{background:rgba(255,255,255,.3)}
+.ss-lb .ss-lb-ctl{position:absolute;bottom:20px;color:#fff;font-size:12px}
+@media(max-width:768px){.tb{padding:10px 12px;gap:8px}.tb h1{font-size:15px}.tb a,.tb button{font-size:11px;padding:5px 10px}.c{padding:10px 12px}.stats{grid-template-columns:repeat(2,1fr);gap:8px}.st{padding:14px 10px}.st .n{font-size:24px}.btns a{padding:12px 16px;font-size:14px}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="tb"><h1>KYSECRET · 管理面板</h1><div class="nv"><a href="../index.html">投稿</a> <a href="../status/index.html">状态</a> <button onclick="logout()">退出登录</button></div></div>
+<div class="c" id="main" style="display:none">
+  <div class="stats" id="sc"></div>
+  <div class="btns">
+    <a href="review.html" class="btn-r">审核工作站</a>
+    <a href="javascript:logout()" class="btn-l">退出登录</a>
+  </div>
+  <div class="panel"><h3>硬件 <span style="font-size:12px;font-weight:400;color:#888" id="ht"></span></h3><div class="grid" id="hw"></div></div>
+  <div class="panel"><h3>API 状态 <span style="font-size:12px;font-weight:400;color:#888" id="at"></span></h3><div class="grid" id="api"></div></div>
+  <div class="panel"><h3>服务器日志 <span style="font-size:12px;font-weight:400;color:#888" id="lt"></span><span class="rate-ctl"><button class="rate-preset" onclick="setLogRate(100)">100ms</button><button class="rate-preset" onclick="setLogRate(200)">200ms</button><button class="rate-preset" onclick="setLogRate(500)">500ms</button><button class="rate-preset" onclick="setLogRate(1000)">1000ms</button><button class="rate-preset" onclick="setLogRate(5000)">5000ms</button><input id="logMs" value="15000" title="刷新间隔(毫秒)"><span class="r-unit">ms</span><button class="set-btn" onclick="changeLogs()">设置</button></span></h3><pre id="logs" style="background:#1a1a2e;color:#0f0;padding:14px;border-radius:8px;font:11px/1.5 monospace;max-height:300px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;margin:0">加载中...</pre></div>
+  <div class="panel"><h3>服务器截屏 <span style="font-size:12px;font-weight:400;color:#888" id="st"></span><span class="rate-ctl"><button class="rate-preset" onclick="setSSRate(100)">100ms</button><button class="rate-preset" onclick="setSSRate(200)">200ms</button><button class="rate-preset" onclick="setSSRate(500)">500ms</button><button class="rate-preset" onclick="setSSRate(1000)">1000ms</button><button class="rate-preset" onclick="setSSRate(5000)">5000ms</button><input id="ssMs" value="5000" title="刷新间隔(毫秒)"><span class="r-unit">ms</span><button class="set-btn" onclick="changeSS()">设置</button></span></h3><img id="ss" src="" style="width:100%;border-radius:8px;cursor:pointer;display:none" onclick="openSS()" onerror="this.style.display='none'"><div id="ssPlaceholder" style="text-align:center;color:#888;font-size:13px;padding:20px">加载中...</div></div>
+</div>
+<div class="ss-lb" id="ssLb" onclick="closeSS()"><button class="ss-lb-close" onclick="event.stopPropagation();closeSS()">&times;</button><img id="ssLbImg" onclick="event.stopPropagation()"><div class="ss-lb-ctl" id="ssLbTime"></div></div>
+<div id="loading" style="text-align:center;padding:80px;color:#888;font-size:16px">加载中...</div>
+<div class="toast" id="toast"></div>
+<script>
+var T=localStorage.getItem('ky_token')||'';function hd(){return{'Authorization':'Bearer '+T};}
+var B='';
+
+(function initAll(){
+  if(!T){location.href='index.html';return;}
+  var load=function(){
+    fetch('/config.json').then(function(r){return r.json()}).then(function(c){B=(c.backend||'').trim()+c.api;show();})
+    .catch(function(){
+      fetch('https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json?t='+Date.now())
+      .then(function(r){return r.json()}).then(function(c){B=(c.backend||'').trim()+c.api;show();})
+      .catch(function(){document.getElementById('loading').textContent='配置加载失败，请检查网络';});
+    });
+  };
+  if(location.hostname==='127.0.0.1'||location.hostname==='localhost'){load();}
+  else{
+    fetch('https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json?t='+Date.now())
+    .then(function(r){return r.json()}).then(function(c){B=(c.backend||'').trim()+c.api;show();})
+    .catch(function(){load();});
+  }
+})();
+
+function show(){document.getElementById('loading').style.display='none';document.getElementById('main').style.display='block';ls();lh();la();startLogs();startSS();setInterval(lh,30000);setInterval(la,60000);setInterval(ls,2000);}
+
+function t(m){var e=document.getElementById('toast');e.textContent=m;e.classList.add('s');setTimeout(function(){e.classList.remove('s');},2000);}
+function logout(){fetch(B+'/admin/logout',{method:'POST',headers:hd()}).then(function(){}).catch(function(){});localStorage.removeItem('ky_token');location.href='index.html';}
+
+function ls(){
+  fetch(B+'/admin/stats',{headers:hd()}).then(function(r){if(r.status===401){localStorage.removeItem('ky_token');location.href='index.html';return}r.json().then(function(d){
+  document.getElementById('sc').innerHTML=
+  '<div class="st s-b"><div class="n">'+d.total+'</div><div class="l">全部</div></div>'+
+  '<div class="st s-o"><div class="n">'+d.reviewing+'</div><div class="l">待审核</div></div>'+
+  '<div class="st s-g"><div class="n">'+d.pass+'</div><div class="l">已通过</div></div>'+
+  '<div class="st s-r"><div class="n">'+d.reject+'</div><div class="l">已驳回</div></div>'+
+  '<div class="st s-p"><div class="n">'+d.published+'</div><div class="l">已发布</div></div>'+
+  '<div class="st s-o"><div class="n">'+d.pending_publish+'</div><div class="l">排队中</div></div>';
+  });}).catch(function(){});
+}
+
+function lh(){
+  fetch(B.replace(/\/api$/,'')+'/api/status',{headers:hd()}).then(function(r){if(!r.ok)return;r.json().then(function(d){
+  var pc=function(p){return p<60?'g':p<85?'y':'r';};
+  var ht=function(t){return t>50?' <span class="hot">高温</span>':'';};
+  document.getElementById('hw').innerHTML=
+  '<div class="item"><div class="name">⚡ CPU</div><div class="info"><div class="hw-row"><span class="hw-label">使用率</span><span class="hw-value">'+(d.cpu?.usage_percent??'?')+'%</span></div><div class="hw-row"><span class="hw-label">型号</span><span class="hw-value">'+(d.cpu?.name||'—')+'</span></div><div class="hw-row"><span class="hw-label">核心数</span><span class="hw-value">'+(d.cpu?.cores||'?')+' 核</span></div><div class="hw-row"><span class="hw-label">温度</span><span class="hw-value">'+(d.cpu?.temp_c||'—')+ht(d.cpu?.temp_c)+'</span></div></div><div class="bar"><div class="bar-fill '+pc(d.cpu?.usage_percent||0)+'" style="width:'+(d.cpu?.usage_percent||0)+'%"></div></div></div>'+
+  '<div class="item"><div class="name">📊 内存</div><div class="info"><div class="hw-row"><span class="hw-label">使用率</span><span class="hw-value">'+(d.memory?.usage_percent??'?')+'%</span></div><div class="hw-row"><span class="hw-label">总容量</span><span class="hw-value">'+(d.memory?.total_gb??'?')+' GB</span></div><div class="hw-row"><span class="hw-label">已使用</span><span class="hw-value">'+(d.memory?.used_gb??'?')+' GB</span></div></div><div class="bar"><div class="bar-fill '+pc(d.memory?.usage_percent||0)+'" style="width:'+(d.memory?.usage_percent||0)+'%"></div></div></div>'+
+  '<div class="item"><div class="name">💾 磁盘</div><div class="info"><div class="hw-row"><span class="hw-label">使用率</span><span class="hw-value">'+(d.disk?.usage_percent??'?')+'%</span></div><div class="hw-row"><span class="hw-label">总容量</span><span class="hw-value">'+(d.disk?.total_gb??'?')+' GB</span></div><div class="hw-row"><span class="hw-label">已使用</span><span class="hw-value">'+(d.disk?.used_gb??'?')+' GB</span></div></div><div class="bar"><div class="bar-fill '+pc(d.disk?.usage_percent||0)+'" style="width:'+(d.disk?.usage_percent||0)+'%"></div></div></div>'+
+  '<div class="item"><div class="name">🎮 GPU</div><div class="info"><div class="hw-row"><span class="hw-label">使用率</span><span class="hw-value">'+(d.gpu?.CUDA_usage_percent??d.gpu?.cuda_usage_percent??'?')+'%</span></div><div class="hw-row"><span class="hw-label">型号</span><span class="hw-value">'+(d.gpu?.name||'未检测到')+'</span></div><div class="hw-row"><span class="hw-label">温度</span><span class="hw-value">'+(d.gpu?.temp_c||'—')+ht(d.gpu?.temp_c)+'</span></div><div class="hw-row"><span class="hw-label">显存</span><span class="hw-value">'+(d.gpu?.mem_used_gb??'?')+' / '+(d.gpu?.mem_total_gb??'?')+' GB</span></div></div><div class="bar"><div class="bar-fill '+pc(d.gpu?.CUDA_usage_percent??d.gpu?.cuda_usage_percent??0)+'" style="width:'+(d.gpu?.CUDA_usage_percent??d.gpu?.cuda_usage_percent??0)+'%"></div></div></div>';
+  document.getElementById('ht').textContent=new Date().toLocaleTimeString();
+  });}).catch(function(){document.getElementById('hw').innerHTML='<div style="color:#e74c3c;font-size:13px;text-align:center;padding:20px">硬件数据加载失败</div>';});
+}
+
+function la(){
+  var base=B.replace(/\/api$/,'');
+  var eps=[
+    {n:'健康检查',p:'/health'},
+    {n:'状态',p:'/api/status'},
+    {n:'策略',p:'/api/policies'}
+  ];
+  var html='';
+  eps.forEach(function(ep){
+    html+='<div class="item" style="text-align:center;padding:14px"><div class="name"><span class="dot" id="dot_'+ep.n+'"></span> '+ep.n+'</div><div class="info">'+ep.p+'</div></div>';
+    fetch(base+ep.p,{method:'GET',headers:hd()}).then(function(r){
+      var c=r.status<400?'#1a7a3a':r.status<500?'#e67e22':'#e74c3c';
+      var el=document.getElementById('dot_'+ep.n);if(el)el.style.background=c;
+    }).catch(function(){var el=document.getElementById('dot_'+ep.n);if(el)el.style.background='#e74c3c';});
+  });
+  document.getElementById('api').innerHTML=html;
+  document.getElementById('at').textContent=new Date().toLocaleTimeString();
+}
+function ll(){
+  fetch(B+'/admin/logs',{headers:hd()}).then(function(r){
+    if(r.status===401){localStorage.removeItem('ky_token');location.href='index.html';return;}
+    if(!r.ok)throw new Error(r.status);
+    return r.json();
+  }).then(function(d){
+    document.getElementById('logs').textContent=d.lines.join('\n');
+    document.getElementById('lt').textContent=(d.file||'')+' '+new Date().toLocaleTimeString();
+  }).catch(function(e){
+    var m='加载失败';
+    if(e&&e.message)m+=' ('+e.message+')';
+    document.getElementById('logs').textContent=m;
+    document.getElementById('lt').textContent='错误 '+new Date().toLocaleTimeString();
+  });
+}
+
+var _logTimer=null, _ssTimer=null;
+function startLogs(){changeLogs();}
+function changeLogs(){
+  if(_logTimer)clearInterval(_logTimer);
+  var ms=parseInt(document.getElementById('logMs').value);
+  if(isNaN(ms)||ms<100)ms=15000;
+  document.getElementById('logMs').value=ms;
+  _logTimer=setInterval(ll,ms);
+  ll();
+}
+function setLogRate(ms){document.getElementById('logMs').value=ms;changeLogs();}
+function startSS(){changeSS();}
+function changeSS(){
+  if(_ssTimer)clearInterval(_ssTimer);
+  var ms=parseInt(document.getElementById('ssMs').value);
+  if(isNaN(ms)||ms<50)ms=5000;
+  document.getElementById('ssMs').value=ms;
+  _ssTimer=setInterval(lss,ms);
+  lss();
+}
+function setSSRate(ms){document.getElementById('ssMs').value=ms;changeSS();}
+function lss(){
+  fetch(B+'/admin/screenshot?t='+Date.now(),{headers:hd()})
+  .then(function(r){if(!r.ok)throw new Error(r.status);return r.blob();})
+  .then(function(b){
+    var u=URL.createObjectURL(b);
+    var img=document.getElementById('ss');
+    var ph=document.getElementById('ssPlaceholder');
+    img.src=u;img.style.display='block';ph.style.display='none';
+    document.getElementById('st').textContent=new Date().toLocaleTimeString();
+    var lb=document.getElementById('ssLb');
+    if(lb.classList.contains('open')){
+      document.getElementById('ssLbImg').src=u;
+      document.getElementById('ssLbTime').textContent=new Date().toLocaleTimeString();
+    }
+  })
+  .catch(function(){var img=document.getElementById('ss');img.style.display='none';document.getElementById('ssPlaceholder').textContent='截屏不可用';});
+}
+function openSS(){
+  document.getElementById('ssLb').classList.add('open');
+  document.getElementById('ssLbImg').src=document.getElementById('ss').src;
+  document.getElementById('ssLbTime').textContent=document.getElementById('st').textContent;
+}
+function closeSS(){document.getElementById('ssLb').classList.remove('open');}
+</script>
+</body>
+</html>

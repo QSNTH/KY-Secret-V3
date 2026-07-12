@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.85, maximum-scale=2.0">
+    <title>KY Secret · 历史事件</title>
+    <style>
+        /* ===== KY Secret V3 统一风格 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .span-white-space {
+            white-space: pre-line;
+        }
+
+        body {
+            background: #f7fafc;
+            padding: 2rem 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .ky-container {
+            max-width: 780px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .nav-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo {
+            font-size: 5rem;
+            font-weight: 900;
+            color: #000000;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-bottom: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 0.5rem 1.4rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 40px;
+            background: #ffffff;
+            color: #334155;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 550;
+            transition: 0.15s;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        .nav-btn:hover {
+            background: #eef2f6;
+            border-color: #cbd5e1;
+        }
+
+        .nav-btn.active {
+            background: #0f172a;
+            color: white;
+            border-color: #0f172a;
+        }
+
+        /* 月份分段标题 */
+        .month-section {
+            margin-top: 2.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .month-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0b1e2e;
+            letter-spacing: -0.3px;
+            border-bottom: 1.5px solid #edf2f7;
+            padding-bottom: 0.4rem;
+            display: flex;
+            align-items: baseline;
+        }
+
+        .month-title span {
+            background: #eef4ff;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #2563eb;
+            margin-left: 0.9rem;
+        }
+
+        /* 事件卡片 */
+        .incident-card {
+            margin-bottom: 2.2rem;
+            border: 1px solid #ecf1f7;
+            border-radius: 28px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 4px 14px rgba(0, 20, 40, 0.02);
+        }
+
+        .incident-header {
+            padding: 1rem 1.4rem;
+            color: white;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            font-size: 0.95rem;
+        }
+
+        @media (min-width: 550px) {
+            .incident-header {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+
+        .header-disruption {
+            background-color: #f59e0b;
+        }
+
+        .header-maintenance {
+            background-color: #2563eb;
+        }
+
+        .header-resolved {
+            background-color: #10b981;
+        }
+
+        .incident-title {
+            font-weight: 650;
+            letter-spacing: -0.2px;
+        }
+
+        .incident-tag {
+            font-size: 0.75rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.2rem 0.9rem;
+            border-radius: 60px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .incident-body {
+            padding: 1.4rem 1.4rem 1.2rem;
+            background: #ffffff;
+        }
+
+        .meta-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem 2rem;
+            margin-bottom: 1.4rem;
+            font-size: 0.85rem;
+            color: #334e68;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: baseline;
+            gap: 0.4rem;
+        }
+
+        .meta-label {
+            font-weight: 650;
+            color: #5e7180;
+            min-width: 70px;
+        }
+
+        .meta-value {
+            color: #0c2e4e;
+            font-weight: 500;
+        }
+
+        .location-badge {
+            background: #eef2f6;
+            padding: 0.2rem 0.7rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            color: #365874;
+            display: inline-block;
+            margin-right: 4px;
+        }
+
+        .timeline-events {
+            margin-top: 1.2rem;
+            border-top: 1px dashed #dce5ec;
+            padding-top: 1.2rem;
+        }
+
+        .event-item {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 1rem;
+            font-size: 0.82rem;
+        }
+
+        @media (min-width: 550px) {
+            .event-item {
+                flex-direction: row;
+                align-items: baseline;
+            }
+        }
+
+        .event-time {
+            font-family: 'SF Mono', 'Menlo', monospace;
+            color: #526f85;
+            min-width: 180px;
+            font-weight: 450;
+            letter-spacing: -0.2px;
+        }
+
+        .event-status {
+            font-weight: 650;
+            min-width: 110px;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.4px;
+            text-align: center;
+        }
+
+        .status-investigating {
+            color: #f59e0b;
+        }
+
+        .status-identified {
+            color: #10b981;
+        }
+
+        .status-monitoring {
+            color: #0b8a73;
+        }
+
+        .status-resolved {
+            color: #10b981;
+        }
+
+        .status-update {
+            color: #2563eb;
+        }
+
+        .event-description {
+            color: #2d4259;
+            flex: 1;
+        }
+
+        /* 页脚导航 - 统一风格 */
+        .footer-note {
+            text-align: center;
+            margin-top: 1.8rem;
+            font-size: 0.75rem;
+            color: #7996ae;
+            border-top: 1px solid #e2ecf5;
+            padding-top: 1.8rem;
+        }
+
+        .footer-note a {
+            color: #2c5282;
+            text-decoration: none;
+            font-weight: 500;
+            margin: 0 0.4rem;
+        }
+
+        .footer-note a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 550px) {
+            .logo { font-size: 4rem; }
+            .month-title { font-size: 1.05rem; }
+            /* --- 卡片缩小间距 --- */
+            .incident-card { border-radius: 20px; margin-bottom: 1.5rem; }
+            .incident-header { font-size: 0.8rem; padding: 0.6rem 1rem; border-radius: 20px 20px 0 0; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4rem; }
+            .incident-title { letter-spacing: 0; }
+            .incident-body { padding: 0.8rem 1rem 0.7rem; }
+            .incident-tag { font-size: 0.62rem; padding: 0.1rem 0.5rem; align-self: flex-start; }
+            /* --- meta 改为纵向排列，不再换行 --- */
+            .meta-grid { flex-direction: column; gap: 0.35rem; margin-bottom: 0.9rem; font-size: 0.75rem; }
+            .meta-item { justify-content: space-between; }
+            .meta-label { min-width: 0; flex-shrink: 0; margin-right: 0.6rem; }
+            .meta-value { text-align: right; flex: 1; }
+            /* --- 时间线纵向堆叠 --- */
+            .timeline-events { margin-top: 0.7rem; padding-top: 0.7rem; }
+            .event-item { flex-direction: column; font-size: 0.72rem; margin-bottom: 0.55rem; padding-left: 10px; border-left: 2px solid #e2ecf5; }
+            .event-time { min-width: 0; font-size: 0.65rem; margin-bottom: 1px; }
+            .event-status { min-width: 0; font-size: 0.62rem; text-align: left; margin-bottom: 2px; }
+            .event-description { font-size: 0.72rem; }
+            .location-badge { font-size: 0.62rem; }
+        }
+        .global-status-banner {
+            background: #f1f7fd;
+            border-radius: 60px;
+            padding: 0.9rem 1.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            margin: 0 auto 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 550;
+            color: #1e3f5c;
+            border: 1px solid #dde9f5;
+        }
+
+        .global-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 12px;
+            background: #94a3b8;
+        }
+
+
+
+        .global-dot.ok { background: #0f7b4b; }
+        .global-dot.degraded { background: #e68a2e; }
+        .global-dot.down { background: #c62a2a; }
+
+
+
+    </style>
+</head>
+
+<body>
+    <div class="ky-container">
+        <!-- 头部：统一导航，三个按钮齐全 -->
+        <div class="nav-header">
+            <div class="logo">KYSECRET</div>
+            <div class="nav-buttons">
+                <a href="https://ky-secret-v3.pages.dev/status/index" class="nav-btn">📊 状态</a>
+                <a href="https://ky-secret-v3.pages.dev/status/history" class="nav-btn active">📋 历史</a>
+                <a href="https://ky-secret-v3.pages.dev/" class="nav-btn">✉️ 投稿</a>
+                <a href="../result.html" class="nav-btn">🔍 查询</a>
+                <a href="../admin/index.html" class="nav-btn">⚙️ 管理</a>
+            </div>
+
+        </div>
+
+        <!-- 六月 2026 -->
+        <div class="month-section">
+            <div class="month-title">
+                June 2026 <span>4 个事件</span>
+            </div>
+        </div>
+
+        <!-- 事件：UI 翻新 + 移动端适配 + 版本发布 -->
+        <div class="incident-card">
+            <div class="incident-header header-resolved">
+                <span class="incident-title">UI 翻新 · 移动端适配 · 稳定版发布</span>
+                <span class="incident-tag">更新</span>
+            </div>
+            <div class="incident-body">
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <span class="meta-label">状态</span>
+                        <span class="meta-value" style="color: #10b981; font-weight: 650;">已完成</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">组件</span>
+                        <span class="meta-value">全端 UI + 后端修复</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">时间</span>
+                        <span class="meta-value">June 20, 2026</span>
+                    </div>
+                </div>
+
+                <div class="timeline-events">
+                    <div class="event-item">
+                        <span class="event-time">June 20, 2026 UTC+8</span>
+                        <span class="event-status status-resolved">管理面板</span>
+                        <span class="event-description">dashborad.html 全面中文化、移除误导性「失败」统计；review.html 重做列表项（图片/发布状态标识）+ 手机端侧边栏滑动审核体验 + 审核后自动跳下一条</span>
+                    </div>
+                    <div class="event-item">
+                        <span class="event-time">June 20, 2026 UTC+8</span>
+                        <span class="event-status status-resolved">移动端适配</span>
+                        <span class="event-description">全站 viewport 缩放从 0.45 提升至 0.85；导航按钮加 flex-wrap 防止挤叠；历史页手机端时间线重设计（左竖线 + 信息纵向排列）</span>
+                    </div>
+                    <div class="event-item">
+                        <span class="event-time">June 20, 2026 UTC+8</span>
+                        <span class="event-status status-resolved">后端修复</span>
+                        <span class="event-description">修复 run.py 日志文件十六进制计数器溢出 bug（0000000A 后不再递增）；用户图片 1:1 黑边扩展恢复按原始像素判定，不做 EXIF 扭转</span>
+                    </div>
+                    <div class="event-item">
+                        <span class="event-time">June 20, 2026 UTC+8</span>
+                        <span class="event-status status-update">版本发布</span>
+                        <span class="event-description">RV_1.21_Stable 稳定发行版发布；版本号从顶部横幅移至页脚；投稿按钮移除「有限度」标签</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 事件：架构重构 + 全功能上线 -->
+                <div class="incident-card">
+                    <div class="incident-header header-resolved">
+                        <span class="incident-title">架构重构 · 全功能上线</span>
+                        <span class="incident-tag">更新</span>
+                    </div>
+                    <div class="incident-body">
+                        <div class="meta-grid">
+                            <div class="meta-item">
+                                <span class="meta-label">状态</span>
+                                <span class="meta-value" style="color: #10b981; font-weight: 650;">已完成</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">组件</span>
+                                <span class="meta-value">全组件重构</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">时间</span>
+                                <span class="meta-value">June 16, 2026</span>
+                            </div>
+                        </div>
+                        <div class="timeline-events">
+                            <div class="event-item">
+                                <span class="event-time">June 16, 2026 UTC+8</span>
+                                <span class="event-status status-resolved">重构</span>
+                                <span class="event-description">代码模块化：拆分 text_to_img.py、igbot_selenium.py，main.py 只做调度</span>
+                            </div>
+                            <div class="event-item">
+                                <span class="event-time">June 16, 2026 UTC+8</span>
+                                <span class="event-status status-resolved">管理面板</span>
+                                <span class="event-description">登录页 + 管理面板 UI 全面重做（渐变、动效、硬件监控）</span>
+                            </div>
+                            <div class="event-item">
+                                <span class="event-time">June 16, 2026 UTC+8</span>
+                                <span class="event-status status-resolved">IG Bot</span>
+                                <span class="event-description">Selenium 浏览器自动发帖成功，支持用户图/TTI 降级策略</span>
+                            </div>
+                            <div class="event-item">
+                                <span class="event-time">June 16, 2026 UTC+8</span>
+                                <span class="event-status status-resolved">配置驱动</span>
+                                <span class="event-description">新增 backend_config.json：AI 审核开关、政策开关、文字生图开关</span>
+                            </div>
+                            <div class="event-item">
+                                <span class="event-time">June 16, 2026 UTC+8</span>
+                                <span class="event-status status-resolved">隧道自动化</span>
+                                <span class="event-description">start_tunnel_auto.py 全自动抓取 URL + 更新 config.json + GitHub push</span>
+                            </div>
+                            <div class="event-item">
+                                <span class="event-time">June 16, 2026 UTC+8</span>
+                                <span class="event-status status-resolved">修复</span>
+                                <span class="event-description">修复 12+ 项问题：导航链接、重复 ID、HID 搜索、标签字段、磁盘温度显示等</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+        <!-- 事件：Auth 重构 + 后端日志 + 隧道分离 -->
+        <div class="incident-card">
+            <div class="incident-header header-resolved">
+                <span class="incident-title">Auth Refactor · Structured Logging · Tunnel / App Decoupling</span>
+                <span class="incident-tag">Update</span>
+            </div>
+            <div class="incident-body">
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <span class="meta-label">Status</span>
+                        <span class="meta-value" style="color: #10b981; font-weight: 650;">Resolved</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Component</span>
+                        <span class="meta-value">FastAPI Backend + Vanilla JS Admin SPA</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Date</span>
+                        <span class="meta-value">June 18, 2026</span>
+                    </div>
+                </div>
+
+                <div class="timeline-events">
+                    <div class="event-item">
+                        <span class="event-time">June 18, 2026 UTC+8</span>
+                        <span class="event-status status-resolved">Bearer Auth</span>
+                        <span class="event-description">Migrated admin auth from session-cookie to HTTP Authorization: Bearer &lt;token&gt; scheme. FastAPI Depends() admin_required now resolves identity via triple fallback: Cookie introspection → _token query param → Bearer Header extraction. Vanilla JS admin SPA rewritten with fetch() Authorization interceptor; localStorage token lifecycle synchronized with server-side SQLite admin_token table. CORS middleware wrapped in try / except to guarantee Access-Control-Allow-Origin preflight headers even when downstream middleware raises 500.</span>
+                    </div>
+                    <div class="event-item">
+                        <span class="event-time">June 18, 2026 UTC+8</span>
+                        <span class="event-status status-resolved">Audit Logging</span>
+                        <span class="event-description">Instrumented check_token() with Python logging.Logger DEBUG-level probes: token row existence in SQLite → TTL expiration computed via datetime.utcnow() – created_at delta → final bool verdict. create_admin_token() / login endpoint now emit structured log records (token UUID prefix + username) for request trace correlation. Eliminates black-box login-flash debugging.</span>
+                    </div>
+                    <div class="event-item">
+                        <span class="event-time">June 18, 2026 UTC+8</span>
+                        <span class="event-status status-resolved">Tunnel Separation</span>
+                        <span class="event-description">Decoupled networking layer from application lifecycle: start_tunnel_separate.bat spawns cloudflared quick tunnel as a detached subprocess, independent of Uvicorn worker lifespan. FastAPI server launched with --notunnel flag so restarts never invalidate the public DNS record. Architecture now cleanly split: L4 tunnel (cloudflared) ↔ L7 application (Uvicorn + FastAPI).</span>
+                    </div>
+                    <div class="event-item">
+                        <span class="event-time">June 18, 2026 UTC+8</span>
+                        <span class="event-status status-resolved">Runtime Patches</span>
+                        <span class="event-description">Fixed StreamCatch stdout wrapper — forwarded isatty() / fileno() syscalls to underlying buffer, preventing recursive AttributeError spiral when Uvicorn probes terminal capabilities. Added missing typing.TypedDict import causing ImportError crash on cold start. Fixed StaticFiles Mount route precedence bug that swallowed admin subpath resolution. Repaired trailing } JSON syntax error in status / index.html breaking the whole script block. Added .trim() to config.json URL fetch to guard against trailing-whitespace → %20 percent-encoded fetch() 400.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 事件：项目重启更新 -->
+        <div class="incident-card">
+            <div class="incident-header header-resolved">
+                <span class="incident-title">项目重启 · 版本更新推送</span>
+                <span class="incident-tag">更新</span>
+            </div>
+            <div class="incident-body">
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <span class="meta-label">状态</span>
+                        <span class="meta-value" style="color: #10b981; font-weight: 650;">已完成</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">组件</span>
+                        <span class="meta-value">全组件（后端 + 前端 + IG Bot）</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">时间</span>
+                        <span class="meta-value">June 15, 2026</span>
+                    </div>
+                </div>
+
+                <div class="timeline-events">
+                    <div class="event-item">
+                        <span class="event-time">June 15, 2026 UTC+8</span>
+                        <span class="event-status status-update">重启</span>
+                        <span class="event-description">所有比赛已完结，开发者回归空闲，决定重启本项目并推进更新</span>
+                    </div>
+                    <div class="event-item">
+                        <span class="event-time">June 15, 2026 UTC+8</span>
+                        <span class="event-status status-resolved">推送</span>
+                        <span class="event-description">完成多项 Bug 修复、新增管理面板、IG 自动推送机器人、保活机制、优化标题/内容逻辑、更新前端页面</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 七月 2026 -->
+        <div class="month-section">
+            <div class="month-title">
+                July 2026 <span>3 个事件</span>
+            </div>
+        </div>
+
+        <!-- 事件：多管理员审核人追踪 + 自动刷新 -->
+        <div class="incident-card">
+            <div class="incident-header header-resolved">
+                <span class="incident-title">Multi-Admin Reviewer Attribution · Polling Auto-Refresh</span>
+                <span class="incident-tag">Update</span>
+            </div>
+            <div class="incident-body">
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <span class="meta-label">Status</span>
+                        <span class="meta-value" style="color: #10b981; font-weight: 650;">Resolved</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Component</span>
+                        <span class="meta-value">FastAPI Backend + Jinja2 Embedded Panel + Vanilla JS WebEnd</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Date</span>
+                        <span class="meta-value">July 08, 2026</span>
+                    </div>
+                </div>
+
+                <div class="timeline-events">
+                    <div class="event-item">
+                        <span class="event-time">July 08, 2026 UTC+8</span>
+                        <span class="event-status status-resolved">Reviewer Tracing</span>
+                        <span class="event-description">Extended admin_token SQLite schema with nullable username VARCHAR column via ALTER TABLE migration. Refactored check_token() return signature from Optional[bool] → Optional[str] — now returns authenticated username on success, None on rejection. FastAPI admin_required Depends() injects str identity directly into route handler signatures. POST /api/admin/review resolves reviewer server-side from token binding, discarding untrusted client-supplied field entirely. ReviewBody Pydantic model reviewer field demoted to Optional[str]. Embedded Jinja2 admin table and WebEnd review.html render 👤 reviewer badge per submission row + detail pane row.</span>
+                    </div>
+                    <div class="event-item">
+                        <span class="event-time">July 08, 2026 UTC+8</span>
+                        <span class="event-status status-resolved">Auto-Refresh</span>
+                        <span class="event-description">Implemented setInterval-based 15-second polling loop on both /admin embedded Jinja2 dashboard and review.html WebEnd panel. Each tick issues parallel fetch() → GET /api/admin/stats + /api/admin/submissions. Stats cards and submission table tbody patched via innerHTML swap on JSON response to avoid full-page repaint and preserve scroll position.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 事件：Edge Selenium 稳定性 + Emoji 发布修复 -->
+        <div class="incident-card">
+            <div class="incident-header header-resolved">
+                <span class="incident-title">Edge WebDriver Stability Hardening · Emoji Caption Injection Fix</span>
+                <span class="incident-tag">Fix</span>
+            </div>
+            <div class="incident-body">
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <span class="meta-label">Status</span>
+                        <span class="meta-value" style="color: #10b981; font-weight: 650;">Resolved</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Component</span>
+                        <span class="meta-value">Selenium WebDriver (msedgedriver) + Edge Chromium</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Date</span>
+                        <span class="meta-value">July 08, 2026</span>
+                    </div>
+                </div>
+
+                <div class="timeline-events">
+                    <div class="event-item">
+                        <span class="event-time">July 08, 2026 UTC+8</span>
+                        <span class="event-status status-resolved">Edge Stability</span>
+                        <span class="event-description">Provisioned isolated --user-data-dir=KYAutomation/ profile directory instead of sharing the user Default profile, preventing taskkill.exe-induced corruption on SingletonLock collision. Pre-launch cleanup of SingletonLock / SingletonSocket / SingletonCookie lockfiles before selenium.webdriver.Edge() constructor. Switched to --remote-debugging-port=0 for kernel-assigned ephemeral TCP port, eliminating fixed-port conflict across driver restarts. Enforced --window-size=1920,1080 to guarantee non-zero viewport dimensions for fresh profiles. Wrapped driver instantiation in 3-retry loop with EC.presence_of_element_located on about:blank body as liveness probe. Scoped taskkill to current user SID via /FI "USERNAME eq %USERNAME%" to avoid terminating system-wide Edge processes. Stripped deprecated flags: --no-sandbox (Edge 150+ no-op), --disable-dev-shm-usage (Linux-only), excludeSwitches / useAutomationExtension (Chromium-specific experimental, unsupported by EdgeDriver).</span>
+                    </div>
+                    <div class="event-item">
+                        <span class="event-time">July 08, 2026 UTC+8</span>
+                        <span class="event-status status-resolved">Emoji Fix</span>
+                        <span class="event-description">Replaced WebElement.send_keys() caption injection with driver.execute_script("arguments[0].textContent = caption") JavaScript DOM assignment. Root cause: msedgedriver IME backend enforces BMP-only codepoint range (U+0000–U+FFFF); astral-plane emoji such as 😆 (U+1F606) exceed this plane and trigger WebDriverException with no fallback. JS textContent setter bypasses the IME entirely, supporting full Unicode Supplementary Multilingual Plane (U+10000–U+1FFFF). Additionally dispatched synthetic input Event with { bubbles: true } so Instagram's React fiber reconciler detects the change via its controlled-component state sync, preventing caption ghosting where the DOM updates but React state does not.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 事件：日志轮转 + 错误标记 + AI 诊断摘要 -->
+        <div class="incident-card">
+            <div class="incident-header header-resolved">
+                <span class="incident-title">Hot Log Rotation · Error Suffix Tagging · AI Digest Generation</span>
+                <span class="incident-tag">Update</span>
+            </div>
+            <div class="incident-body">
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <span class="meta-label">Status</span>
+                        <span class="meta-value" style="color: #10b981; font-weight: 650;">Resolved</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Component</span>
+                        <span class="meta-value">run.py Launcher + Python logging Module + Uvicorn Worker Pool</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Date</span>
+                        <span class="meta-value">July 08, 2026</span>
+                    </div>
+                </div>
+
+                <div class="timeline-events">
+                    <div class="event-item">
+                        <span class="event-time">July 08, 2026 UTC+8</span>
+                        <span class="event-status status-resolved">Hot Rotation</span>
+                        <span class="event-description">Rewrote run.py as a multi-threaded log orchestration layer: a daemon threading.Timer loop fires every 3600 s (configurable via --rotate-interval N, disable with --no-rotate). threading.RLock guards StreamCatch.write() to serialize concurrent writes from Uvicorn's async worker pool. Rotation critical section (io.open new file descriptor → close old fd) executes under lock; regex analysis and file rename run post-unlock to minimize write-path blocking. Uvicorn.Server.run() remains on the main thread, decoupled from the rotation daemon lifecycle — no process restart required.</span>
+                    </div>
+                    <div class="event-item">
+                        <span class="event-time">July 08, 2026 UTC+8</span>
+                        <span class="event-status status-resolved">Suffix Tagging</span>
+                        <span class="event-description">Post-rotation analysis pipeline: full-content re.search across rotated log for ERROR | WARNING | Exception | Traceback | timeout patterns. Filename suffix convention: _E (errors present), _W (warnings present), _EW (both). WMI GPU sensor noise (recurring failed WMI query) excluded via negative-lookahead regex to prevent false-positive _W tagging on every rotation cycle. Context extraction captures ±1 line around each match for forensic correlation.</span>
+                    </div>
+                    <div class="event-item">
+                        <span class="event-time">July 08, 2026 UTC+8</span>
+                        <span class="event-status status-resolved">AI Digest</span>
+                        <span class="event-description">Synchronous digest generation alongside each rotation: {hex}_ai_digest.log written with structured plaintext metadata — time_range (first→last timestamp), total_lines, error_count, warning_count, status_label (CLEAN / _E / _W / _EW). Deduplicated error contexts with ±1 line window for each unique match. Deduplicated warning inventory. GET /api/admin/logs extended JSON response schema: files[] (recent 20 rotated log filenames), digests[] (recent 20 digest filenames), total_lines (current active log). Five logger.error() callsites in main.py upgraded to exc_info=True for automatic full Python traceback attachment in log stream output.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 二月 2026 -->
+        <div class="month-section">
+            <div class="month-title">
+                February 2026 <span>2 个事件</span>
+            </div>
+        </div>
+        
+
+        <!-- 事件 1：Backend API 服务中断（注释掉的） -->
+
+        <div class="incident-card">
+            <div class="incident-header header-disruption">
+                <span class="incident-title">Backend API 服务中断</span>
+                <span class="incident-tag">服务中断</span>
+            </div>
+            <div class="incident-body">
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <span class="meta-label">状态</span>
+                        <span class="meta-value" style="color: #10b981; font-weight: 650;">已解决</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">组件</span>
+                        <span class="meta-value">Backend API, 数据库</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">影响范围</span>
+                        <span class="meta-value">
+                            <span class="location-badge">API Server</span>
+                            <span class="location-badge">Database</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="timeline-events">
+                    <div class="event-item">
+                        <span class="event-time">February 22, 2026 3:24 UTC+8</span>
+                        <span class="event-status status-investigating">调查中</span>
+                        <span class="event-description">发现后端API服务异常，请求响应超时，正在排查根因</span>
+                    </div>
+
+                    <div class="event-item">
+                        <span class="event-time">February 23, 2026 3:49 UTC+8</span>
+                        <span class="event-status status-update">修复中</span>
+                        <span class="event-description">进网光纤光信号丢失, 己联系工程师</span>
+                    </div>
+                    <div class="event-item">
+                        <span class="event-time">February 23, 2026 4:51 UTC+8</span>
+                        <span class="event-status status-monitoring">监控中</span>
+                        <span class="event-description">已修复服务节点故障，api服务恢复，持续监控运行状态</span>
+                    </div>
+                    <div class="event-item">
+                        <span class="event-time">February 23, 2026 4:58 UTC+8</span>
+                        <span class="event-status status-resolved">已解决</span>
+                        <span class="event-description">所有API节点恢复正常，服务完全可用，故障已解决</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- 事件 2：KYsercet 计划性DEV（当前显示的事件） -->
+        <div class="incident-card">
+            <div class="incident-header header-maintenance">
+                <span class="incident-title">KYsercet 计划性DEV</span>
+                <span class="incident-tag">计划DEV</span>
+            </div>
+            <div class="incident-body">
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <span class="meta-label">描述</span>
+                        <span class="meta-value">还在做啦</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">组件</span>
+                        <span class="meta-value">前端到后端的发包</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">时间</span>
+                        <span class="meta-value">February 05, 2026 00:00 - March 07, 2026 00:00 CST</span>
+                    </div>
+                </div>
+
+                <div class="timeline-events">
+                    <div class="event-item">
+                        <span class="event-time">February 15, 2026 00:00 CST</span>
+                        <span class="event-status status-update">DEV</span>
+                        <span class="event-description">内测用户可以优先访问</span>
+                    </div>
+                    <!-- 注释掉的第二个事件
+          <div class="event-item">
+            <span class="event-time">February 15, 2026 02:00 CST</span>
+            <span class="event-status status-update">更新</span>
+            <span class="event-description">维护完成，管理后台恢复正常访问，新功能已上线</span>
+          </div>
+          -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 一月 2026（注释掉的） -->
+        <!--
+    <div class="month-section">
+      <div class="month-title">
+        January 2026 <span>1 个事件</span>
+      </div>
+    </div>
+    -->
+
+        <!-- 事件 3：投稿服务文件上传失败（注释掉的） -->
+        <!--
+    <div class="incident-card">
+      <div class="incident-header header-disruption">
+        <span class="incident-title">投稿服务文件上传失败</span>
+        <span class="incident-tag">服务中断</span>
+      </div>
+      <div class="incident-body">
+        <div class="meta-grid">
+          <div class="meta-item">
+            <span class="meta-label">状态</span>
+            <span class="meta-value" style="color: #10b981; font-weight: 650;">已解决</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">组件</span>
+            <span class="meta-value">Submission Service, 文件存储</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">影响范围</span>
+            <span class="meta-value">
+              <span class="location-badge">File Server</span>
+              <span class="location-badge">Upload Node</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="timeline-events">
+          <div class="event-item">
+            <span class="event-time">January 28, 2026 14:20 CST</span>
+            <span class="event-status status-identified">已定位</span>
+            <span class="event-description">定位到文件存储节点磁盘满，导致投稿图片/文件上传失败</span>
+          </div>
+          <div class="event-item">
+            <span class="event-time">January 28, 2026 15:05 CST</span>
+            <span class="event-status status-monitoring">监控中</span>
+            <span class="event-description">已清理磁盘空间，上传功能恢复，持续监控存储状态</span>
+          </div>
+          <div class="event-item">
+            <span class="event-time">January 28, 2026 15:30 CST</span>
+            <span class="event-status status-resolved">已解决</span>
+            <span class="event-description">存储节点运行正常，所有投稿上传功能恢复</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    -->
+
+        <!-- 十二月 2025（注释掉的） -->
+        <!--
+    <div class="month-section">
+      <div class="month-title">
+        December 2025 <span>1 个事件</span>
+      </div>
+    </div>
+    -->
+
+        <!-- 事件 4：图片生成服务异常（注释掉的） -->
+        <!--
+    <div class="incident-card">
+      <div class="incident-header header-disruption">
+        <span class="incident-title">图片生成服务异常</span>
+        <span class="incident-tag">服务中断</span>
+      </div>
+      <div class="incident-body">
+        <div class="meta-grid">
+          <div class="meta-item">
+            <span class="meta-label">状态</span>
+            <span class="meta-value" style="color: #10b981; font-weight: 650;">已解决</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">组件</span>
+            <span class="meta-value">文字图生成服务</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">原因</span>
+            <span class="meta-value">字体文件权限问题</span>
+          </div>
+        </div>
+
+        <div class="timeline-events">
+          <div class="event-item">
+            <span class="event-time">December 5, 2025 10:30 CST</span>
+            <span class="event-status status-investigating">调查中</span>
+            <span class="event-description">用户反馈投稿后文字图生成失败，服务日志显示字体加载错误</span>
+          </div>
+          <div class="event-item">
+            <span class="event-time">December 5, 2025 11:15 CST</span>
+            <span class="event-status status-identified">已定位</span>
+            <span class="event-description">字体文件权限被修改，导致PIL无法读取字体</span>
+          </div>
+          <div class="event-item">
+            <span class="event-time">December 5, 2025 11:45 CST</span>
+            <span class="event-status status-resolved">已解决</span>
+            <span class="event-description">修复字体权限，文字图生成恢复正常</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    -->
+
+        <!-- 页脚导航 - 在容器最底部，所有事件卡片之后 -->
+        <div class="footer-note">
+            <a href="../status/index.html">📊 实时状态</a> ·
+            <a href="../status/history.html">📋 历史事件</a> ·
+            <a href="../index.html">✉️ 匿名投稿</a>
+            <br><span style="font-size:0.7rem;color:#94a3b8">RV_1.21_Stable</span>
+        </div>
+    </div>
+</body>
+
+</html>

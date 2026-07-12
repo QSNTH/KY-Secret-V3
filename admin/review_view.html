@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>审核工作台 · 预览</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+body{background:#f0faf3;color:#222;display:flex;height:100vh;overflow:hidden}
+/* ===== 左侧列表 ===== */
+.list-panel{width:420px;min-width:360px;background:#fff;border-right:1px solid #e2ecf5;display:flex;flex-direction:column;overflow:hidden}
+.list-header{padding:16px 18px;border-bottom:1px solid #e2ecf5;background:#f8fbf9}
+.list-header h2{font-size:16px;color:#1a5a2a}
+.list-header .stats{font-size:12px;color:#888;margin-top:2px}
+.list-toolbar{padding:10px 14px;border-bottom:1px solid #eef3f0;display:flex;gap:6px}
+.list-toolbar select{padding:5px 8px;border:1px solid #ccc;border-radius:6px;font-size:12px;flex:1}
+.list-toolbar .badge{background:#e8f5e9;color:#1a5a2a;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;white-space:nowrap}
+.list-items{flex:1;overflow-y:auto;padding:6px}
+.post-item{display:flex;gap:10px;padding:12px 14px;border-radius:10px;cursor:pointer;transition:.1s;border:2px solid transparent;margin-bottom:4px}
+.post-item:hover{background:#f5fdf7}
+.post-item.active{border-color:#1a7a3a;background:#edf7f0}
+.post-item .avatar{width:36px;height:36px;border-radius:50%;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.post-item .info{flex:1;min-width:0}
+.post-item .info .hid{font-size:11px;color:#888;font-family:monospace}
+.post-item .info .title{font-size:13px;font-weight:600;margin:1px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.post-item .info .preview{font-size:12px;color:#666;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.post-item .meta{text-align:right;font-size:10px;color:#aaa;white-space:nowrap;flex-shrink:0}
+.post-item .meta .tag{background:#eef4ff;padding:1px 6px;border-radius:4px;color:#2563eb;font-size:10px}
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.status-dot.reviewing{background:#e67e22}
+.status-dot.pass{background:#1a7a3a}
+.status-dot.reject{background:#e74c3c}
+/* ===== 右侧详情 ===== */
+.detail-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#f8fbf9}
+.detail-top{display:none;flex-direction:column;height:100%}
+.detail-top.show{display:flex}
+.detail-placeholder{display:flex;flex:1;align-items:center;justify-content:center;color:#aaa;font-size:15px;flex-direction:column;gap:8px}
+.detail-header{padding:16px 24px;border-bottom:1px solid #e2ecf5;background:#fff;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.detail-header .hid-big{font-size:18px;font-weight:700;color:#1a5a2a}
+.detail-header .status-badge{font-size:12px;padding:3px 12px;border-radius:12px;font-weight:600}
+.detail-header .status-badge.reviewing{background:#fef3cd;color:#856404}
+.detail-header .status-badge.pass{background:#d4edda;color:#155724}
+.detail-header .status-badge.reject{background:#f8d7da;color:#721c24}
+.detail-scroll{flex:1;overflow-y:auto;padding:20px 24px}
+.detail-field{margin-bottom:14px}
+.detail-field .label{font-size:11px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.detail-field .value{font-size:14px;color:#333;line-height:1.6}
+.detail-field .value.content-box{background:#fff;border:1px solid #e2ecf5;border-radius:10px;padding:14px;white-space:pre-wrap;max-height:200px;overflow-y:auto}
+.detail-field .img-box{background:#fff;border:1px solid #e2ecf5;border-radius:10px;padding:10px;text-align:center}
+.detail-field .img-box img{max-width:100%;max-height:260px;border-radius:6px}
+.detail-actions{display:flex;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid #e2ecf5}
+.detail-actions button{padding:10px 24px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:.15s;flex:1}
+.btn-pass{background:#1a7a3a;color:#fff}
+.btn-pass:hover{background:#15632f}
+.btn-reject{background:#e74c3c;color:#fff}
+.btn-reject:hover{background:#c0392b}
+.btn-ignore{background:#e2e8f0;color:#666}
+.btn-ignore:hover{background:#cbd5e1}
+.toast{position:fixed;bottom:24px;right:24px;background:#333;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- 左侧列表 -->
+<div class="list-panel">
+  <div class="list-header" style="display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <h2>📋 审核工作台</h2>
+      <div class="stats">共 12 条 · 待审核 5 · 已通过 4 · 已驳回 3</div>
+    </div>
+    <a href="dashborad_view.html" style="font-size:12px;color:#1a7a3a;text-decoration:none;font-weight:600;padding:4px 10px;border:1px solid #1a7a3a;border-radius:6px">← 返回面板</a>
+  </div>
+  <div class="list-toolbar">
+    <select><option selected>全部状态</option><option>待审核</option><option>已通过</option><option>已驳回</option></select>
+    <span class="badge">按时间 ↓</span>
+  </div>
+  <div class="list-items" id="postList">
+    <!-- 由 JS 渲染 -->
+  </div>
+</div>
+
+<!-- 右侧详情 -->
+<div class="detail-panel">
+  <div class="detail-placeholder" id="placeholder">
+    <span style="font-size:40px">👈</span>
+    <span>从左侧选择一条投稿进行审核</span>
+  </div>
+  <div class="detail-top" id="detailPanel">
+    <div class="detail-header">
+      <div>
+        <span class="hid-big" id="dHid">KYSV3-XXXXXXXX</span>
+        <span class="status-badge" id="dStatusBadge">待审核</span>
+      </div>
+      <span style="font-size:12px;color:#888" id="dTime">2026-06-15 14:22</span>
+    </div>
+    <div class="detail-scroll">
+      <div class="detail-field">
+        <div class="label">📌 标题</div>
+        <div class="value" id="dTitle"></div>
+      </div>
+      <div class="detail-field">
+        <div class="label">🏷️ 标签</div>
+        <div class="value" id="dTag"></div>
+      </div>
+      <div class="detail-field">
+        <div class="label">📄 内容</div>
+        <div class="value content-box" id="dContent"></div>
+      </div>
+      <div class="detail-field" id="dImageWrap" style="display:none">
+        <div class="label">🖼️ 用户图片</div>
+        <div class="img-box" id="dImageBox"></div>
+      </div>
+      <div class="detail-actions" id="dActions">
+        <button class="btn-pass" onclick="mockAction('pass')">✅ 通过</button>
+        <button class="btn-reject" onclick="mockAction('reject')">❌ 驳回</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== 模拟数据 =====
+const POSTS = [
+  { id:1, hid:'KYSV3-A3F2C1D0', title:'图书馆闭馆音乐太早', tag:'校园', content:'每天晚上9点就关灯放音乐，考研党真的需要多学一小时...\n希望学校能延迟到10点。', time:'2026-06-15 14:22', status:'reviewing', hasImage:false },
+  { id:2, hid:'KYSV3-B7E8912F', title:'表白计算机学院李老师', tag:'感谢', content:'李老师讲课真的太清晰了！虽然这门课很难，但您让我觉得编程很有意思。谢谢您！🌹', time:'2026-06-15 13:05', status:'reviewing', hasImage:false },
+  { id:3, hid:'KYSV3-1C4D9E0A', title:'宿舍楼下流浪猫', tag:'日常', content:'附一张猫猫照片，超可爱！', time:'2026-06-15 11:30', status:'reviewing', hasImage:true, imgUrl:'https://placecats.com/300/200' },
+  { id:4, hid:'KYSV3-8F6A2B33', title:'食堂涨价了', tag:'吐槽', content:'一荤一素要15块了，这也太贵了吧...\n以前12块就能吃挺好', time:'2026-06-14 20:10', status:'reviewing', hasImage:false },
+  { id:5, hid:'KYSV3-5D0E1F2C', title:'深夜emo', tag:'情感', content:'还有两个月就毕业了，有点舍不得。希望大家都能前程似锦吧。', time:'2026-06-14 23:15', status:'reviewing', hasImage:false },
+  { id:6, hid:'KYSV3-9C1A2B77', title:'考试周求好运', tag:'校园', content:'连续考了三门了，还有两门。加油！', time:'2026-06-14 18:00', status:'pass', hasImage:false },
+  { id:7, hid:'KYSV3-4E5F6A78', title:'二手书交易', tag:'交易', content:'出高数教材，有需要的私聊', time:'2026-06-13 15:20', status:'reject', hasImage:false },
+];
+let selectedId = null;
+
+function renderList(filter) {
+  const el = document.getElementById('postList');
+  let items = POSTS;
+  if (filter === 'reviewing') items = items.filter(p => p.status === 'reviewing');
+  else if (filter === 'pass') items = items.filter(p => p.status === 'pass');
+  else if (filter === 'reject') items = items.filter(p => p.status === 'reject');
+  el.innerHTML = items.map(p => {
+    const statusMap = { reviewing:'待审核', pass:'已通过', reject:'已驳回' };
+    return `<div class="post-item ${selectedId === p.id ? 'active' : ''}" onclick="selectPost(${p.id})">
+      <div class="avatar">${p.hasImage ? '🖼️' : '📝'}</div>
+      <div class="info">
+        <div class="hid"><span class="status-dot ${p.status}"></span>${p.hid}</div>
+        <div class="title">${p.title}</div>
+        <div class="preview">${p.content.substring(0, 30)}${p.content.length > 30 ? '...' : ''}</div>
+      </div>
+      <div class="meta">
+        <div>${p.time.substring(5, 16)}</div>
+        <div class="tag">${statusMap[p.status]}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectPost(id) {
+  selectedId = id;
+  const p = POSTS.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('placeholder').style.display = 'none';
+  document.getElementById('detailPanel').classList.add('show');
+  // 更新详情
+  document.getElementById('dHid').textContent = p.hid;
+  const statusMap = { reviewing:'待审核', pass:'已通过', reject:'已驳回' };
+  const badge = document.getElementById('dStatusBadge');
+  badge.textContent = statusMap[p.status];
+  badge.className = 'status-badge ' + p.status;
+  document.getElementById('dTime').textContent = p.time;
+  document.getElementById('dTitle').textContent = p.title;
+  document.getElementById('dTag').textContent = '#' + p.tag;
+  document.getElementById('dContent').textContent = p.content;
+  // 图片
+  const imgWrap = document.getElementById('dImageWrap');
+  if (p.hasImage) {
+    imgWrap.style.display = 'block';
+    document.getElementById('dImageBox').innerHTML = `<img src="${p.imgUrl}" alt="用户图片">`;
+  } else {
+    imgWrap.style.display = 'none';
+  }
+  // 审核按钮 — 仅待审核显示
+  document.getElementById('dActions').style.display = p.status === 'reviewing' ? 'flex' : 'none';
+  renderList(document.querySelector('.list-toolbar select').value);
+}
+
+function mockAction(action) {
+  const el = document.getElementById('toast');
+  el.textContent = (action === 'pass' ? '✅ 已通过' : '❌ 已驳回') + '（演示交互，实际需连接后端）';
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+  if (selectedId) {
+    const p = POSTS.find(x => x.id === selectedId);
+    if (p) {
+      p.status = action;
+      renderList(document.querySelector('.list-toolbar select').value);
+      const next = POSTS.find(x => x.status === 'reviewing' && x.id !== selectedId);
+      if (next) setTimeout(() => selectPost(next.id), 400);
+      else document.getElementById('detailPanel').classList.remove('show');
+    }
+  }
+}
+
+// 工具栏筛选
+document.querySelector('.list-toolbar select').addEventListener('change', function() {
+  renderList(this.value);
+});
+
+renderList('reviewing');
+// 默认选中第一条
+if (POSTS.length) selectPost(POSTS[0].id);
+</script>
+</body>
+</html>

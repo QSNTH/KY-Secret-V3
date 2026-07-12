@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.85, maximum-scale=2.0">
+    <title>KY Secret · 投稿状态查询</title>
+    <style>
+        /* ===== KY Secret 全站视觉系统 V3 — 状态查询页 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background: #f7fafc;
+            color: #0f2a40;
+            padding: 2rem 1rem;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .ky-container {
+            max-width: 780px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* ===== 全局导航 — 与全站100%一致 ===== */
+        .nav-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo {
+            font-size: 5rem;
+            font-weight: 900;
+            color: #000000;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-bottom: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 0.5rem 1.4rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 40px;
+            background: #ffffff;
+            color: #334155;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 550;
+            transition: 0.15s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
+
+        .nav-btn:hover {
+            background: #eef2f6;
+            border-color: #cbd5e1;
+        }
+
+        .nav-btn.active {
+            background: #0f172a;
+            color: white;
+            border-color: #0f172a;
+        }
+
+        /* ===== 状态查询卡片 ===== */
+        .query-card {
+            background: white;
+            border-radius: 28px;
+            border: 1px solid #ecf1f7;
+            box-shadow: 0 4px 14px rgba(0, 20, 40, 0.02);
+            padding: 2rem 2rem 2.2rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .card-header {
+            margin-bottom: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .card-header h1 {
+            font-size: 1.65rem;
+            font-weight: 700;
+            color: #0f2a40;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .card-header h1::before {
+            content: "🔍";
+            font-size: 1.8rem;
+        }
+
+        .status-badge {
+            background: #eef4ff;
+            padding: 0.35rem 1rem;
+            border-radius: 60px;
+            font-size: 0.75rem;
+            font-weight: 650;
+            color: #2563eb;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border: 1px solid #dbeafe;
+        }
+
+        /* 查询区域 */
+        .search-section {
+            background: #fafeff;
+            border: 1px solid #e2ecf5;
+            border-radius: 24px;
+            padding: 1.6rem 1.8rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .search-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1e3f5c;
+            margin-bottom: 1rem;
+        }
+
+        .search-input-group {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 240px;
+            padding: 0.9rem 1.2rem;
+            border: 1.5px solid #e2ecf5;
+            border-radius: 60px;
+            font-size: 0.95rem;
+            background: white;
+            transition: all 0.15s;
+            color: #1f3a57;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.08);
+        }
+
+        .search-input::placeholder {
+            color: #9bb1c4;
+        }
+
+        .search-btn {
+            background: #0f172a;
+            color: white;
+            border: none;
+            padding: 0.9rem 2rem;
+            border-radius: 60px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid #1e2a44;
+        }
+
+        .search-btn:hover {
+            background: #1e2f45;
+            transform: scale(1.01);
+        }
+
+        .search-hint {
+            margin-top: 0.8rem;
+            font-size: 0.72rem;
+            color: #6f8faa;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        /* ===== 结果展示卡片 — 审核状态 ===== */
+        .result-card {
+            background: white;
+            border-radius: 28px;
+            border: 1px solid #ecf1f7;
+            padding: 1.8rem 2rem;
+            margin-top: 1.2rem;
+            display: none; /* 默认隐藏，查询后显示 */
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.4rem;
+            flex-wrap: wrap;
+        }
+
+        .result-icon {
+            font-size: 2.2rem;
+        }
+
+        .result-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0f2a40;
+        }
+
+        /* 状态颜色标识 */
+        .status-pending {
+            background: #fff3e0;
+            color: #b45b0f;
+            padding: 0.4rem 1.2rem;
+            border-radius: 60px;
+            font-weight: 650;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .status-approved {
+            background: #e0f2e6;
+            color: #0b6e4f;
+            padding: 0.4rem 1.2rem;
+            border-radius: 60px;
+            font-weight: 650;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .status-rejected {
+            background: #ffe6e5;
+            color: #b11f1a;
+            padding: 0.4rem 1.2rem;
+            border-radius: 60px;
+            font-weight: 650;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .status-notfound {
+            background: #edf2f7;
+            color: #4a627a;
+            padding: 0.4rem 1.2rem;
+            border-radius: 60px;
+            font-weight: 650;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* 投稿信息卡片 */
+        .submission-detail {
+            background: #fafeff;
+            border: 1px solid #e2ecf5;
+            border-radius: 20px;
+            padding: 1.4rem 1.6rem;
+            margin: 1.2rem 0;
+        }
+
+        .detail-row {
+            display: flex;
+            margin-bottom: 0.8rem;
+        }
+
+        .detail-label {
+            min-width: 80px;
+            color: #657e96;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        .detail-value {
+            color: #0f2a40;
+            font-size: 0.95rem;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .divider {
+            border-top: 1px dashed #dce5ec;
+            margin: 1.2rem 0;
+        }
+
+        .visit-link {
+            background: #f1f7fd;
+            border-radius: 60px;
+            padding: 0.8rem 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-top: 0.8rem;
+        }
+
+        .visit-url {
+            color: #2563eb;
+            font-size: 0.85rem;
+            word-break: break-all;
+            font-family: monospace;
+        }
+
+        .copy-btn {
+            background: white;
+            border: 1px solid #cde0ed;
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #1c4e6e;
+            cursor: pointer;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .copy-btn:hover {
+            background: #e7f0f9;
+            border-color: #95b3cc;
+        }
+
+        /* 示例提示 */
+        .example-note {
+            background: #f4faff;
+            border-radius: 16px;
+            padding: 1rem 1.4rem;
+            font-size: 0.8rem;
+            color: #4e748b;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-top: 1.2rem;
+        }
+
+        /* 页脚 */
+        .footer-note {
+            text-align: center;
+            margin-top: 2.5rem;
+            font-size: 0.75rem;
+            color: #7996ae;
+            border-top: 1px solid #e2ecf5;
+            padding-top: 1.8rem;
+        }
+
+        .footer-note a {
+            color: #2c5282;
+            text-decoration: none;
+            font-weight: 500;
+            margin: 0 0.4rem;
+        }
+
+        /* 全局状态横幅 */
+        .global-status-banner {
+            background: #f1f7fd;
+            border-radius: 60px;
+            padding: 0.9rem 1.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            margin: 0 auto 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 550;
+            color: #1e3f5c;
+            border: 1px solid #dde9f5;
+        }
+        .global-dot {
+            width: 12px; height: 12px;
+            border-radius: 12px;
+            background: #94a3b8;
+        }
+        .global-dot.degraded { background: #e68a2e; }
+
+        /* 移动端优化 */
+        @media (max-width: 550px) {
+            .logo { font-size: 4rem; }
+            .query-card { padding: 1.5rem; }
+            .search-input-group { flex-direction: column; }
+            .search-btn { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="ky-container">
+        <!-- 全局导航 — 与全站统一 -->
+        <div class="nav-header">
+            <div class="logo">KYSECRET</div>
+            <div class="nav-buttons">
+                <a href="./status/index.html" class="nav-btn">📊 状态</a>
+                <a href="./status/history.html" class="nav-btn">📋 历史</a>
+                <a href="./index.html" class="nav-btn">✉️ 投稿</a>
+                <a href="#" class="nav-btn active">🔍 查询</a>
+                <a href="./admin/index.html" class="nav-btn">⚙️ 管理</a>
+            </div>
+        </div>
+
+        <!-- 状态查询主卡片 -->
+        <div class="query-card">
+            <div class="card-header">
+                <h1>投稿状态查询</h1>
+                <span class="status-badge">RESULT</span>
+            </div>
+
+            <!-- 查询区域 -->
+            <div class="search-section" id="querySection">
+                <div class="search-label">
+                    <span>🔑</span> 输入你的投稿UUID
+                </div>
+                <div class="search-input-group">
+                    <input type="text" id="postIdInput" class="search-input" placeholder="例如: 181b559c-2a89-4cc6-aa64-a6f06f4947f4">
+                    <button class="search-btn" id="queryBtn">
+                        <span>🔍</span> 查询状态
+                    </button>
+                </div>
+                <div class="search-hint">
+                    <span>💡</span> 投稿成功后会自动跳转至此页面，你也可以手动输入UUID查询
+                </div>
+            </div>
+
+            <!-- ===== 结果展示区域 (动态显示) ===== -->
+            <div id="resultContainer" class="result-card">
+                <!-- 内容由 JavaScript 动态渲染 -->
+            </div>
+
+            <!-- 结果会动态显示在这里 -->
+        </div>
+
+        <!-- 全站统一页脚 -->
+        <div class="footer-note">
+            <a href="./index.html">← 当前状态</a> · 
+            <a href="https://ky-secret-v3.pages.dev/status/history">📋 历史事件</a> · 
+            <a href="#">📡 订阅</a>
+            <br><span style="font-size:0.7rem;color:#94a3b8">RV_1.21_Stable</span>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            "use strict";
+
+            // ========= KY Config =========
+            window.KY_CONFIG = { backendUrl: '', apiPrefix: '/api', endpoints: {} };
+            (async function initConfig() {
+                try {
+                    const r = await fetch('/config.json'); const c = await r.json();
+                    window.KY_CONFIG.backendUrl = (c.backend || '').trim(); window.KY_CONFIG.apiPrefix = c.api || '/api'; window.KY_CONFIG.endpoints = c;
+                } catch(e) {
+                    window.KY_CONFIG.backendUrl = location.hostname === '127.0.0.1' || location.hostname === 'localhost'
+                        ? 'http://127.0.0.1:8000' : 'http://192.168.254.246:8000';
+                    window.KY_CONFIG.apiPrefix = '/api';
+                }
+                window.KY_CONFIG.getUrl = function(ep, params = {}) {
+                    let path = window.KY_CONFIG.endpoints[ep];
+                    if (!path) path = ep.startsWith('/') ? ep : '/' + ep;
+                    Object.keys(params).forEach(k => { path = path.replace('{' + k + '}', params[k]); });
+                    return window.KY_CONFIG.backendUrl + window.KY_CONFIG.apiPrefix + path;
+                };
+                window.dispatchEvent(new Event('configLoaded'));
+            })();
+
+            // ---------- 通过 UUID 从后端查询 ----------
+            async function fetchByUUID(uuid) {
+                const url = window.KY_CONFIG.getUrl('lookup', {uuid});
+                const r = await fetch(url);
+                if (!r.ok) return null;
+                return r.json();
+            }
+
+            // ---------- 渲染结果 ----------
+            async function renderResultFromUUID(uuid, hid) {
+                const container = document.getElementById('resultContainer');
+                container.style.display = 'block';
+                container.innerHTML = `<div style="text-align:center;padding:1.5rem;color:#657e96;"><span style="font-size:2rem;display:block;margin-bottom:0.8rem;">⏳</span>正在查询投稿状态...</div>`;
+
+                let info;
+                try {
+                    info = await fetchByUUID(uuid);
+                } catch(e) {}
+                if (!info) {
+                    container.innerHTML = `
+                        <div class="result-header"><span class="result-icon">❓</span><span class="result-title">未找到投稿</span><span class="status-notfound">NOT FOUND</span></div>
+                        <div style="color:#4f6f8f;padding:0.8rem 0;">没有找到对应的投稿记录，请检查链接是否正确</div>`;
+                    return;
+                }
+
+                const st = info.status || 'reviewing';
+                const statusMap = { reviewing: ['status-pending', '⏳', '审核中'], pass: ['status-approved', '✅', '已通过'], reject: ['status-rejected', '❌', '未通过'] };
+                const [stCls, stIcon, stText] = statusMap[st] || ['status-notfound', '⚠️', '未知'];
+
+                const statusUrl = window.location.href;
+                let html = `
+                    <div class="result-header"><span class="result-icon">📋</span><span class="result-title">投稿状态</span><span class="${stCls}">${stIcon} ${stText}</span></div>
+                    <div class="submission-detail">
+                        <div class="detail-row"><span class="detail-label">HID</span><span class="detail-value">${escapeHtml(info.hid || '—')}</span></div>
+                        <div class="detail-row"><span class="detail-label">标题</span><span class="detail-value">${escapeHtml(info.title || '无标题')}</span></div>
+                        <div class="detail-row"><span class="detail-label">标签</span><span class="detail-value">${escapeHtml(info.tag || '—')}</span></div>
+                        <div class="detail-row"><span class="detail-label">时间</span><span class="detail-value">${escapeHtml(info.submit_time || '—')}</span></div>
+                        <div class="detail-row"><span class="detail-label">图片</span><span class="detail-value">${info.has_user_image ? '🖼️ 有' : '无'}</span></div>
+                    </div>
+                    <div class="visit-link" style="margin-top:1rem;">
+                        <span style="font-size:0.8rem;color:#1e3f5c;">🔗 状态查询链接</span>
+                        <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
+                            <span class="visit-url">${escapeHtml(statusUrl)}</span>
+                            <button class="copy-btn" onclick="copyToClipboard('${escapeHtml(statusUrl)}')"><span>📋</span> 复制</button>
+                        </div>
+                    </div>`;
+
+                if (st === 'reviewing') {
+                    html += `<div style="margin-top:1.2rem;background:#fff3e0;border-radius:60px;padding:0.8rem 1.2rem;color:#b45b0f;display:flex;align-items:center;gap:0.6rem;"><span>⏳</span><span style="font-weight:500;">审核中，请耐心等待。管理员审核通过后将发布到 Instagram。</span></div>`;
+                } else if (st === 'pass') {
+                    const pubStatus = info.published ? '✅ 已发布到 Instagram' : '📤 发布任务已加入后台，请稍后查看';
+                    html += `<div style="margin-top:1.2rem;background:#d4edda;border-radius:60px;padding:0.8rem 1.2rem;color:#155724;display:flex;align-items:center;gap:0.6rem;"><span>✅</span><span style="font-weight:500;">${pubStatus}</span></div>`;
+                } else if (st === 'reject') {
+                    html += `<div style="margin-top:1.2rem;background:#ffe6e5;border-radius:60px;padding:0.8rem 1.2rem;color:#b11f1a;display:flex;align-items:center;gap:0.6rem;"><span>❌</span><span style="font-weight:500;">未通过审核：${escapeHtml(info.error || '不符合社区规范')}</span></div>`;
+                }
+
+                container.innerHTML = html;
+            }
+
+            function escapeHtml(text) {
+                if (!text) return '';
+                return String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+            }
+
+            window.copyToClipboard = function(text) {
+                navigator.clipboard.writeText(text).then(() => { alert('链接已复制到剪贴板'); }).catch(() => {
+                    const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); alert('链接已复制');
+                });
+            };
+
+            // ---------- 启动 ----------
+            async function init() {
+                const params = new URLSearchParams(window.location.search);
+                const uuid = params.get('uuid');
+                const hid = params.get('hid');
+                if (uuid) {
+                    document.getElementById('postIdInput').value = hid || uuid;
+                    document.getElementById('querySection').style.display = 'none';
+                    await renderResultFromUUID(uuid, hid);
+                } else {
+                    document.getElementById('resultContainer').innerHTML =
+                        `<div class="example-note"><span>💡</span> 提交投稿后将自动跳转至此页面查看状态，你也可以在下方输入 UUID 手动查询。</div>`;
+                }
+
+                // 手动查询
+                document.getElementById('queryBtn').addEventListener('click', async () => {
+                    const q = document.getElementById('postIdInput').value.trim();
+                    if (!q) return alert('请输入 UUID');
+                    await renderResultFromUUID(q, q);
+                });
+                document.getElementById('postIdInput').addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('queryBtn').click(); });
+            }
+
+            // 等 config 加载完再 init
+            function waitAndInit() {
+                if (window.KY_CONFIG && window.KY_CONFIG.backendUrl) { init(); return; }
+                window.addEventListener('configLoaded', init);
+                setTimeout(init, 3000);
+            }
+            waitAndInit();
+        })();
+    </script>
+
+    <!-- 
+        设计说明：
+        1. 完全符合文件夹结构预期：此页面为 result.html
+        2. 核心流程：用户输入ID → 查询状态 → 审核中/通过/拒绝/未找到
+        3. 审核通过 → 显示可访问的帖子URL + 复制按钮
+        4. 审核中 → 显示“审核中”状态及提示
+        5. 视觉100%统一：导航、卡片、圆角、色彩均继承自状态/历史/投稿/管理页
+        6. 模拟数据库演示，真实使用需替换为API调用
+    -->
+</body>
+</html>

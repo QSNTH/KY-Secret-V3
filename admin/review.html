@@ -1,0 +1,244 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
+<title>KY Secret V3 · 审核工作台</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+body{background:#f7fafc;color:#222;display:flex;height:100vh;overflow:hidden}
+.lp{width:420px;min-width:320px;background:#fff;border-right:1px solid #e2ecf5;display:flex;flex-direction:column;overflow:hidden}
+.lh{padding:14px 16px;border-bottom:1px solid #e2ecf5;background:#fff;display:flex;justify-content:space-between;align-items:center}
+.lh h2{font-size:15px;color:#1a2a1a;font-weight:700}.lh .st{font-size:11px;color:#888;margin-top:2px}
+.lh a{font-size:11px;color:#334155;text-decoration:none;font-weight:550;padding:4px 12px;border:1px solid #e2e8f0;border-radius:40px;white-space:nowrap;transition:.15s}
+.lh a:hover{background:#eef2f6}
+.lt{padding:8px 12px;border-bottom:1px solid #eef3f0;display:flex;gap:6px;align-items:center}
+.lt select,.lt input{padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;outline:0;flex:1}
+.lt select:focus,.lt input:focus{border-color:#1a7a3a}
+.li{flex:1;overflow-y:auto;padding:4px}
+.pi{display:flex;gap:8px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:.1s;border:2px solid transparent;margin-bottom:2px;user-select:none}
+.pi:hover{background:#f5fdf7}.pi.a{border-color:#1a7a3a;background:#edf7f0}
+.pi.ms{background:#e8f0fe;border-color:#4a80f0}.pi.a.ms{border-color:#1a7a3a;background:#dce8f8}
+.pi .chk{display:none;width:18px;height:18px;border:2px solid #bbb;border-radius:4px;flex-shrink:0;align-self:center;position:relative;margin-right:-2px}
+.pi.ms .chk,.pi.ms:hover .chk,.li:hover .pi .chk,.pi .chk.sel{display:flex;align-items:center;justify-content:center}
+.pi.ms .chk{background:#4a80f0;border-color:#4a80f0}
+.pi.ms .chk::after{content:'✓';color:#fff;font-size:12px;font-weight:700}
+/* floating bar */
+.fb{position:fixed;bottom:0;left:0;right:0;background:#fff;box-shadow:0 -3px 16px rgba(0,0,0,.1);padding:10px 20px;display:flex;align-items:center;gap:12px;z-index:100;transform:translateY(100%);transition:transform .25s cubic-bezier(.4,0,.2,1)}
+.fb.on{transform:translateY(0)}
+.fb .fbl{font-size:13px;font-weight:600;color:#333;white-space:nowrap;flex-shrink:0}
+.fb button{padding:8px 18px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:.1s}
+.fb .fbp{background:#1a7a3a;color:#fff;flex:1}.fb .fbp:hover{background:#15632f}
+.fb .fbr{background:#e74c3c;color:#fff;flex:1}.fb .fbr:hover{background:#c0392b}
+.fb .fbc{background:#e2e8f0;color:#555;flex-shrink:0}.fb .fbc:hover{background:#cbd5e1}
+@media(max-width:768px){.fb{display:none!important}}
+.pi .if{flex:1;min-width:0}
+.pi .if .hid{font-size:10px;color:#888;font-family:monospace}
+.pi .if .tl{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pi .if .in{font-size:10px;color:#888;display:flex;gap:8px;align-items:center;margin-top:2px;flex-wrap:wrap}
+.pi .if .in .ico{font-size:11px}.pi .if .in .pub-ok{color:#1a7a3a}.pi .if .in .pub-err{color:#e74c3c}.pi .if .in .pub-no{color:#ccc}
+.pi .mt{text-align:right;font-size:9px;color:#aaa;white-space:nowrap;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.pi .mt .stag{display:inline-block;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:600;white-space:nowrap}
+.pi .mt .stag.rv{background:#fef3cd;color:#856404}.pi .mt .stag.ps{background:#d4edda;color:#155724}.pi .mt .stag.rj{background:#f8d7da;color:#721c24}
+.sd{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px}.sd.rv{background:#e67e22}.sd.ps{background:#1a7a3a}.sd.rj{background:#e74c3c}
+.dp{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#f8fbf9}
+.ph{display:flex;flex:1;align-items:center;justify-content:center;color:#aaa;font-size:14px;flex-direction:column;gap:6px}
+.dt{display:none;flex-direction:column;height:100%}.dt.s{display:flex}
+.dh{padding:12px 20px;border-bottom:1px solid #e2ecf5;background:#fff;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.dh .hi{font-size:16px;font-weight:700;color:#1a2a1a}
+.sb{font-size:11px;padding:3px 10px;border-radius:10px;font-weight:600}.sb.rv{background:#fef3cd;color:#856404}.sb.ps{background:#d4edda;color:#155724}.sb.rj{background:#f8d7da;color:#721c24}
+.ds{flex:1;overflow-y:auto;padding:16px 20px}
+.df{margin-bottom:10px}
+.df .lb{font-size:10px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px}
+.df .vl{font-size:13px;color:#333;line-height:1.6}
+.df .cb{background:#fff;border:1px solid #e2ecf5;border-radius:8px;padding:12px;white-space:pre-wrap;max-height:180px;overflow-y:auto;font-size:13px;line-height:1.6}
+.df .imgs{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.df .imgs img{max-width:180px;max-height:180px;border-radius:6px;border:1px solid #eee;cursor:pointer}
+.act{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #e2ecf5}
+.act button{padding:8px 18px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:.1s;flex:1}
+.bp{background:#1a7a3a;color:#fff}.bp:hover{background:#15632f}
+.br{background:#e74c3c;color:#fff}.br:hover{background:#c0392b}
+.bpu{background:#2980b9;color:#fff}.bpu:hover{background:#216397}
+.brp{background:#e67e22;color:#fff}.brp:hover{background:#c0651f}
+.bnav{background:#6c757d;color:#fff}.bnav:hover{background:#545b62}
+.m-back{display:none!important;font-size:13px;color:#334155;text-decoration:none;font-weight:550;cursor:pointer;padding:4px 12px;border:1px solid #e2e8f0;border-radius:40px;background:#fff}
+.toast{position:fixed;bottom:20px;right:20px;background:#222;color:#fff;padding:8px 18px;border-radius:8px;font-size:12px;z-index:999;opacity:0;transition:.3s;pointer-events:none}
+.toast.s{opacity:1}
+.lb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;justify-content:center;align-items:center;cursor:pointer}
+.lb-overlay.open{display:flex}
+.lb-overlay img{max-width:90vw;max-height:90vh;border-radius:8px;cursor:default}
+.lb-overlay .lb-close{position:absolute;top:20px;right:24px;font-size:32px;color:#fff;cursor:pointer;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,255,255,.15);border:none}
+.lb-overlay .lb-close:hover{background:rgba(255,255,255,.3)}
+@media(max-width:768px){
+  body{flex-direction:column;position:relative}
+  .lp{width:100%;min-width:0;flex-shrink:0;transition:transform .25s}
+  .dp{width:100%;flex:1;display:none;flex-direction:column;overflow-y:auto}
+  body.m-list .lp{display:flex}
+  body.m-list .dp{display:none}
+  body.m-detail .lp{display:none}
+  body.m-detail .dp{display:flex}
+  .m-back{display:inline-block!important}
+  .dh{flex-wrap:wrap;gap:6px}
+  .dh .hi{font-size:14px}
+  .ds{padding:10px 14px}
+  .df .vl{font-size:12px}
+  .df .imgs img{max-width:100px;max-height:100px}
+  .act button{font-size:12px;padding:10px 8px}
+  .ph{font-size:13px}
+}
+@media(min-width:769px){
+  body.m-list .lp,.dp{display:flex}
+}
+</style>
+</head>
+<body>
+<div class="lp">
+  <div class="lh"><div><h2>审核工作台</h2><div class="st" id="sh"></div></div><a href="dashborad.html">← 面板</a></div>
+  <div class="lt">
+    <select id="fs" onchange="ld()"><option value="reviewing" selected>待审核</option><option value="">全部</option><option value="pass">已通过</option><option value="reject">已驳回</option></select>
+    <input type="text" id="sq" placeholder="搜索..." oninput="clearTimeout(stt);stt=setTimeout(ld,300)">
+  </div>
+  <div class="li" id="li"></div>
+</div>
+<div class="dp">
+  <div class="ph" id="ph"><span style="font-size:36px">←</span><span>从左侧选择一条投稿</span></div>
+  <div class="dt" id="dt">
+    <div class="dh"><a class="m-back" onclick="backToList()">← 列表</a><span class="hi" id="hi"></span><span class="sb rv" id="sb"></span><span style="font-size:11px;color:#888" id="tm"></span></div>
+    <div class="ds">
+      <div class="df"><div class="lb">标题</div><div class="vl" id="tl"></div></div>
+      <div class="df"><div class="lb">标签</div><div class="vl" id="tg"></div></div>
+      <div class="df"><div class="lb">审核人</div><div class="vl" id="rv"></div></div>
+      <div class="df"><div class="lb">内容</div><div class="cb" id="ct"></div></div>
+      <div class="df"><div class="lb">图片</div><div class="imgs" id="im"></div></div>
+      <div class="act" id="ac">
+        <button class="bnav" onclick="navItem(-1)" title="上一项">◀</button>
+        <button class="bp" onclick="act('pass')">通过</button>
+        <button class="br" onclick="act('reject')">驳回</button>
+        <button class="bpu" onclick="act('push')" style="display:none" id="bp">推送</button>
+        <button class="brp" onclick="act('repush')">重推</button>
+        <button class="bnav" onclick="navItem(1)" title="下一项">▶</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="fb" id="fb"><span class="fbl" id="fbl"></span><button class="fbp" onclick="batAct('pass')">通过所选</button><button class="fbr" onclick="batAct('reject')">驳回所选</button><button class="fbc" onclick="clearSel()">取消选取</button></div>
+<div class="lb-overlay" id="lb"><button class="lb-close">&times;</button><img id="lbImg" onclick="event.stopPropagation()"></div>
+<script>
+var T=localStorage.getItem('ky_token')||'';function hd(){return{'Authorization':'Bearer '+T};}
+var B='',stt=null,all=[];
+var selSet=new Set(),anchorIdx=null,focusIdx=null;
+
+(function initAll(){if(!T){location.href='index.html';return;}
+  if(window.innerWidth<=768)document.body.classList.add('m-list');
+  window.addEventListener('resize',function(){if(window.innerWidth>768){document.body.classList.remove('m-list','m-detail');}});
+  fetch('https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json?t='+Date.now()).then(function(r){return r.json()}).then(function(c){B=(c.backend||'').trim()+c.api;ld();setInterval(ld,15000);}).catch(function(){fetch('/config.json').then(function(r){return r.json()}).then(function(c){B=(c.backend||'').trim()+c.api;ld();setInterval(ld,15000);}).catch(function(){document.getElementById('li').innerHTML='<div style="text-align:center;padding:20px;color:#e74c3c">无法加载配置</div>';});});
+})();
+
+function t(m){var e=document.getElementById('toast');e.textContent=m;e.classList.add('s');setTimeout(function(){e.classList.remove('s');},2000);}
+
+function ld(){
+  var s=document.getElementById('fs').value,q=document.getElementById('sq').value.trim();
+  var u=B+'/admin/submissions?size=200&page=1';if(s)u+='&status='+s;if(q)u+='&search='+encodeURIComponent(q);
+  fetch(u,{headers:hd()}).then(function(r){if(r.status===401){localStorage.removeItem('ky_token');location.href='index.html';return}r.json().then(function(d){all=d.items;var lm={reviewing:'待审核',pass:'已通过',reject:'已驳回'};document.getElementById('sh').textContent='共 '+d.total+' 条';
+  // reset selection on filter/search change
+  clearSel(true);
+  var el=document.getElementById('li');el.innerHTML=all.map(function(p,i){var st=p.status||'reviewing';return '<div class="pi'+(focusIdx===i?' a':'')+(selSet.has(i)?' ms':'')+'" onclick="sl('+i+',event)"><div class="chk"></div><div class="if"><div class="hid"><span class="sd '+(st==='reviewing'?'rv':st==='pass'?'ps':'rj')+'"></span>'+escapeHtml(p.hid||'?')+'</div><div class="tl">'+escapeHtml((p.title||'无标题').substring(0,30))+'</div><div class="in"><span class="ico">'+(p.has_user_image?'🖼️有图':'—无图')+'</span><span class="ico '+(p.published?'pub-ok':p.publish_error?'pub-err':'pub-no')+'">'+(p.published?'✅已发布':p.publish_error?'❌失败':'—未发布')+'</span><span style="color:#2563eb">'+(p.tag||'')+'</span>'+(p.reviewer?'<span style="color:#555;font-size:10px">👤'+escapeHtml(p.reviewer)+'</span>':'')+'</div></div><div class="mt"><span class="stag '+st+'">'+(lm[st]||st)+'</span><div>'+((p.submit_time||'').substring(5,16))+'</div></div></div>';}).join('');
+  showPlaceholder();updFloatBar();}).catch(function(){});
+  });
+}
+
+function escapeHtml(t){if(!t)return'';return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function isMobile(){return window.innerWidth<=768;}
+function sl(i,ev){
+  if(!all[i])return;
+  if(isMobile()){
+    // mobile: just show detail, no multi-select
+    selSet.clear();selSet.add(i);focusIdx=i;
+    showDetail(i);updListUI();updFloatBar();
+    return;
+  }
+  if(ev&&ev.ctrlKey){
+    // Ctrl+click: toggle selection
+    if(selSet.has(i)){selSet.delete(i);}else{selSet.add(i);}
+    anchorIdx=i;
+    if(selSet.has(i))focusIdx=i; else if(selSet.size>0)focusIdx=selSet.values().next().value; else focusIdx=null;
+  }else if(ev&&ev.shiftKey&&anchorIdx!=null){
+    // Shift+click: range select
+    var lo=Math.min(anchorIdx,i),hi=Math.max(anchorIdx,i);
+    for(var j=lo;j<=hi;j++)selSet.add(j);
+    focusIdx=anchorIdx;
+  }else{
+    // Normal click: single select
+    selSet.clear();selSet.add(i);anchorIdx=i;focusIdx=i;
+  }
+  // after any selection change, update UI
+  if(typeof focusIdx==='number'&&selSet.has(focusIdx)){
+    // show detail for focused item
+    showDetail(focusIdx);
+  }else if(selSet.size>0){
+    // focused item was removed from set, pick first in set
+    focusIdx=selSet.values().next().value;showDetail(focusIdx);
+  }else{
+    // nothing selected
+    showPlaceholder();
+  }
+  updListUI();updFloatBar();
+}
+
+function showDetail(i){
+  var p=all[i];if(!p)return;
+  document.getElementById('ph').style.display='none';document.getElementById('dt').classList.add('s');
+  var st=p.status||'reviewing',lm={reviewing:'待审核',pass:'已通过',reject:'已驳回'};
+  document.getElementById('hi').textContent=p.hid||'?';var sb=document.getElementById('sb');sb.textContent=lm[st]||st;sb.className='sb '+st;
+  document.getElementById('tm').textContent=p.submit_time||'';document.getElementById('tl').textContent=p.title||'无';
+  document.getElementById('tg').textContent=p.tag||'—';document.getElementById('rv').textContent=p.reviewer||'—';
+  document.getElementById('ct').textContent=p.content||'(空)';document.getElementById('ac').style.display='flex';
+  document.querySelectorAll('.act .bp,.act .br').forEach(function(b){b.style.display=st==='reviewing'?'':'none';});
+  document.getElementById('bp').style.display=st==='pass'?'':'none';
+  if(window.innerWidth<=768){document.body.classList.remove('m-list');document.body.classList.add('m-detail');}
+  var im=document.getElementById('im');im.innerHTML='<span style="color:#aaa;font-size:12px">加载图片...</span>';
+  fetch(B+'/lookup/'+p.uuid,{headers:hd()}).then(function(r){return r.json()}).then(function(d){if(d.images&&d.images.length){im.innerHTML=d.images.map(function(img){return '<img src="'+B+img.url+'" title="'+img.name+'" class="lb-img">';}).join('');}else{im.innerHTML='<span style="color:#aaa;font-size:12px">无图片</span>';}}).catch(function(){im.innerHTML='<span style="color:#aaa;font-size:12px">加载失败</span>';});
+}
+
+function showPlaceholder(){
+  document.getElementById('dt').classList.remove('s');document.getElementById('ph').style.display='flex';
+  if(window.innerWidth<=768){document.body.classList.add('m-list');document.body.classList.remove('m-detail');}
+}
+
+function updListUI(){
+  document.querySelectorAll('.pi').forEach(function(el,j){el.classList.toggle('a',j===focusIdx);el.classList.toggle('ms',selSet.has(j));});
+}
+
+function updFloatBar(){
+  var fb=document.getElementById('fb'),fbl=document.getElementById('fbl');
+  if(selSet.size>0){fb.classList.add('on');fbl.textContent='已选取 '+selSet.size+' 项';}else{fb.classList.remove('on');}
+}
+
+function clearSel(silent){
+  selSet.clear();anchorIdx=null;focusIdx=null;
+  if(!silent){showPlaceholder();updListUI();updFloatBar();}
+}
+
+function batAct(a){
+  if(selSet.size===0)return;
+  if(!confirm((a==='pass'?'确认通过':'确认驳回')+'所选 '+selSet.size+' 项?'))return;
+  var ids=[];selSet.forEach(function(i){if(all[i]&&all[i].status==='reviewing')ids.push(i);});
+  if(ids.length===0){t('所选项目中没有待审核的投稿');return;}
+  var done=0,err=0,total=ids.length;
+  function next(){if(ids.length===0){t((a==='pass'?'已通过':'已驳回')+' '+done+' 项'+(err>0?'，'+err+' 项失败':''));ld();clearSel();return;}
+    var i=ids.shift(),p=all[i];var h=hd();h['Content-Type']='application/json';
+    fetch(B+'/admin/review',{method:'POST',headers:h,body:JSON.stringify({uuid:p.uuid,status:a})}).then(function(){done++;next();}).catch(function(){err++;next();});
+  }next();
+}
+
+function act(a){if(typeof focusIdx!=='number')return;var p=all[focusIdx];if(a==='pass'||a==='reject'){if(!confirm(a==='pass'?'确认通过?':'确认驳回?'))return;var h=hd();h['Content-Type']='application/json';fetch(B+'/admin/review',{method:'POST',headers:h,body:JSON.stringify({uuid:p.uuid,status:a})}).then(function(){t(a==='pass'?'已通过':'已驳回');selSet.delete(focusIdx);ld();setTimeout(function(){var fs=document.getElementById('fs').value;if(fs==='reviewing'){var nx=all.findIndex(function(x,i){return x.status==='reviewing';});if(nx>=0){sl(nx);}else{clearSel();}}else{var nx=null;for(var ni=focusIdx+1;ni<all.length;ni++){if(all[ni]){nx=ni;break;}}if(nx!=null)sl(nx);else clearSel();}},400);}).catch(function(){t('操作失败');});}if(a==='push'){fetch(B+'/admin/push/'+p.uuid,{method:'POST',headers:hd()}).then(function(){t('已加入队列');ld();}).catch(function(){t('推送失败');});}if(a==='repush'){if(!confirm('强制重新推送?'))return;fetch(B+'/admin/repush/'+p.uuid,{method:'POST',headers:hd()}).then(function(){t('已加入重推队列');ld();}).catch(function(){t('重推失败');});}}
+
+function navItem(dir){if(typeof focusIdx!=='number')return;var ni=focusIdx+dir;if(ni>=0&&ni<all.length)sl(ni);}
+function backToList(){clearSel();}
+document.addEventListener('click',function(e){var t=e.target;if(t.classList.contains('lb-img')){document.getElementById('lb').classList.add('open');document.getElementById('lbImg').src=t.src;return;}if(t.id==='lb'||t.classList.contains('lb-close')){document.getElementById('lb').classList.remove('open');}});
+// prevent browser text-selection when shift-clicking in the list
+document.getElementById('li').addEventListener('mousedown',function(e){if(e.shiftKey)e.preventDefault();});
+</script>
+</body>
+</html>

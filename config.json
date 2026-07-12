@@ -1,0 +1,20 @@
+{
+    "backend": "http://127.0.0.1:8000",
+    "api": "/api",
+    "status": "/status",
+    "submit": "/submit",
+    "lookup": "/lookup/{uuid}",
+    "admin_login": "/admin/login",
+    "admin_logout": "/admin/logout",
+    "admin_find": "/admin/find",
+    "admin_review": "/admin/review",
+    "admin_history": "/admin/history",
+    "admin_submissions": "/admin/submissions",
+    "admin_stats": "/admin/stats",
+    "admin_push": "/admin/push/{uuid}",
+    "admin_repush": "/admin/repush/{uuid}",
+    "admin_queue": "/admin/queue",
+    "admin_logs": "/admin/logs",
+    "health": "/health",
+    "policies": "/policies"
+}

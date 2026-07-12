@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.85, maximum-scale=2.0">
+    <title>KY Secret V3 · 匿名投稿</title>
+    <script>
+    // ========= KY Secret V3 动态配置加载 =========
+    window.KY_CONFIG = {
+        backendUrl: '',
+        apiPrefix: '/api',
+        endpoints: {}
+    };
+
+    // 使用立即执行函数，保证配置在DOM加载前启动
+    (async function initConfig() {
+        // 先挂载 getUrl 工具函数（后面所有路径都会用到）
+        window.KY_CONFIG.getUrl = function(endpoint, params = {}) {
+            let path = window.KY_CONFIG.endpoints[endpoint];
+            if (!path) path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+            Object.keys(params).forEach(key => { path = path.replace(`{${key}}`, params[key]); });
+            return `${window.KY_CONFIG.backendUrl}${window.KY_CONFIG.apiPrefix}${path}`;
+        };
+
+        // 如果通过 localhost 访问，直接读本地 config.json，跳过 GitHub
+        if (location.hostname === '127.0.0.1' || location.hostname === 'localhost') {
+            try {
+                const localResponse = await fetch('/config.json');
+                const localConfig = await localResponse.json();
+                window.KY_CONFIG.backendUrl = (localConfig.backend || '').trim();
+                window.KY_CONFIG.apiPrefix = localConfig.api || '/api';
+                window.KY_CONFIG.endpoints = localConfig;
+                console.log('✅ 本地配置加载成功');
+                window.dispatchEvent(new CustomEvent('configLoaded', { detail: window.KY_CONFIG }));
+                return;
+            } catch (e) {
+                console.warn('本地配置加载失败，尝试GitHub');
+            }
+        }
+        try {
+            // 尝试从GitHub加载
+            const githubResponse = await fetch('https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json?t=' + Date.now());
+            const githubConfig = await githubResponse.json();
+            
+            window.KY_CONFIG.backendUrl = githubConfig.backend || githubConfig.backendBaseUrl;
+            window.KY_CONFIG.apiPrefix = githubConfig.api || '/api';
+            window.KY_CONFIG.endpoints = githubConfig;
+            
+            console.log('✅ 配置加载成功:', window.KY_CONFIG.backendUrl);
+        } catch (e) {
+            console.warn('⚠️ GitHub配置加载失败，尝试本地配置...');
+            
+            try {
+                const localResponse = await fetch('/config.json');
+                const localConfig = await localResponse.json();
+                
+                window.KY_CONFIG.backendUrl = (localConfig.backend || '').trim();
+                window.KY_CONFIG.apiPrefix = localConfig.api || '/api';
+                window.KY_CONFIG.endpoints = localConfig;
+                
+                console.log('✅ 本地配置加载成功');
+            } catch (e2) {
+                console.warn('⚠️ 本地配置也失败，使用硬编码备份');
+                
+                window.KY_CONFIG.backendUrl = 'https://pvc-coins-productivity-dropped.trycloudflare.com';
+                window.KY_CONFIG.apiPrefix = '/api';
+                window.KY_CONFIG.endpoints = {
+                    submit: '/submit',
+                    lookup: '/lookup/{uuid}',
+                    status: '/status',
+                    admin_login: '/admin/login',
+                    admin_logout: '/admin/logout',
+                    admin_find: '/admin/find',
+                    admin_review: '/admin/review',
+                    admin_history: '/admin/history'
+                };
+            }
+        }
+        
+        // 配置加载完成后触发表单可以提交
+        window.dispatchEvent(new CustomEvent('configLoaded', { detail: window.KY_CONFIG }));
+    })();
+    </script>
+    <style>
+        /* 您的原有样式保持不变 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background: #f7fafc;
+            padding: 2rem 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .ky-container {
+            max-width: 780px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .nav-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo {
+            font-size: 5rem;
+            font-weight: 900;
+            color: #000000;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+            line-height: 1;
+            text-align: center;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-bottom: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 0.5rem 1.4rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 40px;
+            background: #ffffff;
+            color: #334155;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 550;
+            transition: 0.15s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
+
+        .nav-btn:hover {
+            background: #eef2f6;
+            border-color: #cbd5e1;
+        }
+
+        .nav-btn.active {
+            background: #0f172a;
+            color: white;
+            border-color: #0f172a;
+        }
+
+        .submit-card {
+            background: white;
+            border-radius: 28px;
+            border: 1px solid #ecf1f7;
+            box-shadow: 0 4px 14px rgba(0, 20, 40, 0.02);
+            padding: 2rem 2rem 2.2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-header {
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .form-header h1 {
+            font-size: 1.65rem;
+            font-weight: 700;
+            color: #0f2a40;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .form-header h1::before {
+            content: "✍️";
+            font-size: 1.8rem;
+        }
+
+        .form-badge {
+            background: #eef4ff;
+            padding: 0.35rem 1rem;
+            border-radius: 60px;
+            font-size: 0.75rem;
+            font-weight: 650;
+            color: #2563eb;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border: 1px solid #dbeafe;
+        }
+
+        .form-item {
+            margin-bottom: 1.8rem;
+        }
+
+        .form-item label {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.6rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1e3f5c;
+            letter-spacing: -0.2px;
+        }
+
+        .label-left {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .char-counter {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #6f8a9f;
+            background: #f1f7fd;
+            padding: 0.25rem 0.8rem;
+            border-radius: 60px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 0.9rem 1.2rem;
+            border: 1.5px solid #e2ecf5;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            background: #ffffff;
+            transition: all 0.15s;
+            color: #1f3a57;
+            outline: none;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.08);
+            background: #ffffff;
+        }
+
+        textarea {
+            min-height: 200px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .field-hint {
+            margin-top: 0.4rem;
+            font-size: 0.72rem;
+            color: #6f8faa;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: #f4faff;
+            padding: 0.3rem 0.9rem;
+            border-radius: 60px;
+            width: fit-content;
+        }
+        
+        .image-zone {
+            background: #fafeff;
+            border: 1.5px dashed #cde0ed;
+            border-radius: 24px;
+            padding: 1.2rem 1.2rem 1rem;
+            transition: background 0.1s;
+        }
+
+        .image-zone:hover {
+            background: #f2f9ff;
+            border-color: #91b8d9;
+        }
+
+        .image-upload-btn {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .custom-file-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.4rem;
+            background: #eef2f6;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1e3f5c;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid #dbe2ec;
+        }
+
+        .custom-file-label:hover {
+            background: #e2eaf1;
+            border-color: #9fb8d0;
+        }
+
+        .file-hint {
+            color: #557a99;
+            font-size: 0.8rem;
+        }
+
+        .image-preview {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            margin-top: 1.2rem;
+            padding-top: 0.8rem;
+            border-top: 1px solid #e2ecf5;
+        }
+
+        .preview-item {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+
+        .preview-item img {
+            display: block;
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 14px;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        .preview-item .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 16px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-item .remove-btn:hover {
+            background: rgba(255,0,0,0.8);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: #0f172a;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            font-size: 1.1rem;
+            font-weight: 650;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            margin-top: 1.2rem;
+            border: 1px solid #1e2a44;
+        }
+
+        .submit-btn:hover {
+            background: #1e2f45;
+            transform: scale(1.01);
+            box-shadow: 0 8px 18px rgba(15,35,60,0.12);
+        }
+
+        .submit-btn:active {
+            transform: scale(0.99);
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 1.8rem;
+            font-size: 0.75rem;
+            color: #7996ae;
+            border-top: 1px solid #e2ecf5;
+            padding-top: 1.8rem;
+        }
+
+        .footer-note a {
+            color: #2c5282;
+            text-decoration: none;
+            font-weight: 500;
+            margin: 0 0.4rem;
+        }
+
+        .footer-note a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 550px) {
+            .logo { font-size: 4rem; }
+            .submit-card { padding: 1.5rem; }
+            .form-header { flex-direction: column; align-items: flex-start; gap: 0.6rem; }
+        }
+
+        /* ✦ 开屏广告 ✦ */
+        .splash-overlay {
+          position: fixed; inset: 0;
+          background: rgba(0,0,0,0.78);
+          display: flex; align-items: center; justify-content: center;
+          z-index: 9999;
+          cursor: pointer;
+          padding: 40px 20px;
+        }
+        .splash-overlay.hidden { display: none; }
+        .splash-box {
+          position: relative;
+          max-width: 600px; max-height: 80vh;
+          border-radius: 12px;
+          overflow: hidden;
+          cursor: default;
+          box-shadow: 0 8px 40px rgba(0,0,0,.5);
+        }
+        .splash-box img { display: block; max-width: 100%; max-height: 80vh; width: auto; height: auto; }
+        @media(max-width:768px){
+          .splash-overlay{padding: 50px 16px}
+          .splash-box{max-width:92vw;max-height:65vh}
+          .splash-box img{max-height:65vh}
+        }
+        .splash-close {
+          position: absolute; top: 8px; right: 8px;
+          width: 30px; height: 30px;
+          border: none; border-radius: 50%;
+          background: rgba(0,0,0,.55); color: #fff;
+          font-size: 16px; line-height: 1;
+          cursor: pointer; z-index: 10;
+          display: flex; align-items: center; justify-content: center;
+          transition: .2s;
+        }
+        .splash-close:hover { background: rgba(200,30,30,.7); }
+
+        /* ===== 投稿表单 ===== */
+
+        .tip-text {
+            background: #f1f9f0;
+            color: #1f6e4a;
+            border-radius: 60px;
+            padding: 0.2rem 0.8rem;
+            font-size: 0.7rem;
+        }
+
+        .required-star {
+            color: #c53030;
+            margin-left: 4px;
+            font-size: 0.9rem;
+        }
+
+        .or-divider {
+            text-align: center;
+            margin: 1rem 0;
+            position: relative;
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        .or-divider::before,
+        .or-divider::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: #e2e8f0;
+        }
+
+        .or-divider::before {
+            left: 0;
+        }
+
+        .or-divider::after {
+            right: 0;
+        }
+
+        .global-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 12px;
+            background: #94a3b8;
+        }
+        .global-dot.ok { background: #0f7b4b; }
+        .global-dot.degraded { background: #e68a2e; }
+        .global-dot.down { background: #c62a2a; }
+
+        .global-status-banner {
+            background: #f1f7fd;
+            border-radius: 60px;
+            padding: 0.9rem 1.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            margin: 0 auto 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 550;
+            color: #1e3f5c;
+            border: 1px solid #dde9f5;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </style>
+</head>
+<body>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div class="ky-container">
+        <div class="logo">KYSECRET</div>
+        <div class="nav-header">
+            <div class="nav-buttons">
+                <a href="./status/index.html" class="nav-btn">📊 状态</a>
+                <a href="https://ky-secret-v3.pages.dev/status/history" class="nav-btn">📋 历史</a>
+                <a href="" class="nav-btn active">✉️ 投稿</a>
+                <a href="./result.html" class="nav-btn">🔍 查询</a>
+                <a href="./admin/index.html" class="nav-btn">⚙️ 管理</a>
+            </div>
+        </div>
+
+        <div class="submit-card">
+            <div class="form-header">
+                <h1>匿名投稿</h1>
+            </div>
+
+            <form id="kySubmitForm" enctype="multipart/form-data">
+                <div class="form-item">
+                    <label>
+                        <span class="label-left">
+                            <span>📌 标题</span>
+                            <span class="required-star" style="color:#c53030">*</span>
+                        </span>
+                        <span class="char-counter" id="titleCounter">0/80</span>
+                        <input type="text" id="title" maxlength="80" placeholder="标题必填 · 将生成在图片上（80字以内）" autocomplete="off">
+                    </label>
+                    </div>
+                <div class="form-item">
+                    <label>
+                        <span class="label-left">
+                            <span>📑 标签</span>
+                            <span class="tip-text">选填</span>
+                        </span>
+                    </label>
+                    <input type="text" id="tag" maxlength="20" placeholder="例如: 校园、吐槽、情感（选填）" autocomplete="off">
+                </div>
+                <div class="form-item">
+                    <label>
+                        <span class="label-left">
+                            <span>📄 匿名内容</span>
+                        <span class="tip-text" id="contentRequired">选填</span>
+                    </span>
+                    <span class="char-counter" id="contentCounter">0/200</span>
+                </label>
+                    <textarea id="content" maxlength="200" placeholder="写下你想分享的一切…… 支持200字"></textarea>
+                    <div class="field-hint" id="contentHint">
+                        <span>✍️</span> 和图片二选一即可
+                    </div>
+                </div>
+
+                <div class="or-divider">或者</div>
+
+                <div class="form-item">
+                    <label>
+                            <span class="label-left">
+                            <span>🖼️ 上传图片</span>
+                        </span>
+                    </label>
+                    <div class="image-zone">
+                        <div class="image-upload-btn">
+                            <input type="file" id="imageFiles" class="file-input" accept="image/*">
+                            <label for="imageFiles" class="custom-file-label">
+                                <span style="font-size:1.2rem;">📎</span> 选择图片
+                            </label>
+                            <span class="file-hint" id="fileCountHint">未选择任何文件</span>
+                        </div>
+                        <div class="image-preview" id="imagePreviewContainer"></div>
+                    </div>
+                    <div class="field-hint">
+                        <span>🖼️</span> 只支持1张图片 · 有图片时上传用户图片，无图片时用标题生成图片
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn" onclick="handleSubmit(event)">
+                    <span>✈️</span> 匿名提交
+                </button>
+            </form>
+
+            <div style="margin-top: 1.8rem; font-size: 0.7rem; color: #6a889b; text-align: center; border-top: 1px solid #ecf5fa; padding-top: 1.2rem;">
+                ⚡ 投稿后经过人工审核展示 · 不会公开你的任何个人信息
+            </div>
+        </div>
+
+        <div class="footer-note">当前状态
+                <a href="https://ky-secret-v3.pages.dev/status/index">📊 当前状态</a> ·
+                <a href="https://ky-secret-v3.pages.dev/status/history">📋 历史事件</a> ·
+                <a href="https://ky-secret-v3.pages.dev/index">✉️ 匿名投稿</a>
+                <br><span style="font-size:0.7rem;color:#94a3b8">RV_1.21_Stable</span>
+        </div>
+    </div>
+
+
+
+    <!-- ✦ 开屏广告 ✦ -->
+    <div id="splashOverlay" class="splash-overlay" onclick="closeSplash()">
+      <div class="splash-box">
+        <button class="splash-close" onclick="event.stopPropagation();closeSplash()">✕</button>
+        <a id="splashLink" href="https://ys.mihoyo.com/" target="_blank" onclick="event.stopPropagation()">
+          <img id="splashImg" src="https://upload-bbs.miyoushe.com/upload/2026/06/18/75276539/808b90fb762003786c30ca2b3c9e820b_6351823761887449680.jpg?x-oss-process=image//resize,s_600/quality,q_80/auto-orient,0/interlace,1/format,jpg" alt="广告" onerror="this.style.display='none';closeSplash()">
+        </a>
+      </div>
+    </div>
+
+ <script>
+        (function() {
+            "use strict";
+
+            // DOM 元素
+            const titleInput = document.getElementById('title');
+            const contentInput = document.getElementById('content');
+            const titleCounter = document.getElementById('titleCounter');
+            const contentCounter = document.getElementById('contentCounter');
+            const fileInput = document.getElementById('imageFiles');
+            const fileHint = document.getElementById('fileCountHint');
+            const previewContainer = document.getElementById('imagePreviewContainer');
+            const form = document.getElementById('kySubmitForm');
+            const contentRequired = document.getElementById('contentRequired');
+            
+            let isSubmitting = false;
+            let currentPreviewFile = null;
+
+            // 字数统计
+            function updateTitleCounter() {
+                titleCounter.innerText = `${titleInput.value.length}/80`;
+            }
+            
+            function updateContentCounter() {
+                contentCounter.innerText = `${contentInput.value.length}/200`;
+                updateRequiredFields();
+            }
+
+            // 更新提示：标题必填，内容/图片选填
+            function updateRequiredFields() {
+                const hasTitle = titleInput.value.trim().length > 0;
+                const hasContent = contentInput.value.trim().length > 0;
+                document.getElementById('contentHint').textContent = hasTitle
+                    ? (hasContent ? '✅ 标题 + 内容' : '✅ 标题已填，可选填内容')
+                    : '✍️ 标题必填 · 内容选填';
+            }
+
+            titleInput.addEventListener('input', updateTitleCounter);
+            contentInput.addEventListener('input', updateContentCounter);
+            
+            // 初始化
+            updateTitleCounter();
+            updateContentCounter();
+            updateRequiredFields();
+
+            // 图片预览（只允许1张）
+            fileInput.addEventListener('change', function(e) {
+                const files = Array.from(fileInput.files);
+                
+                if (files.length === 0) {
+                    fileHint.innerText = '未选择任何文件';
+                    previewContainer.innerHTML = '';
+                    currentPreviewFile = null;
+                    updateRequiredFields();
+                    return;
+                }
+
+                // 只取第一张
+                const file = files[0];
+                
+                // 如果选了多张，提示并只保留第一张
+                if (files.length > 1) {
+                    alert('只支持上传1张图片，已自动选择第一张');
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    fileInput.files = dt.files;
+                }
+
+                fileHint.innerText = `已选择 1 个文件: ${file.name}`;
+                previewContainer.innerHTML = '';
+                currentPreviewFile = file;
+
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        const previewItem = document.createElement('div');
+                        previewItem.className = 'preview-item';
+                        
+                        const img = document.createElement('img');
+                        img.src = ev.target.result;
+                        
+                        const removeBtn = document.createElement('button');
+                        removeBtn.className = 'remove-btn';
+                        removeBtn.innerHTML = '×';
+                        removeBtn.onclick = function() {
+                            fileInput.value = '';
+                            previewContainer.innerHTML = '';
+                            fileHint.innerText = '未选择任何文件';
+                            currentPreviewFile = null;
+                            updateRequiredFields();
+                        };
+                        
+                        previewItem.appendChild(img);
+                        previewItem.appendChild(removeBtn);
+                        previewContainer.appendChild(previewItem);
+                    };
+                    reader.readAsDataURL(file);
+                }
+                
+                updateRequiredFields();
+            });
+
+    // ========== 🥷 开发者模式 ==========
+    // F12 → Console → 输入 enableDevMode() 开启
+    // 所有 fetch 请求及响应会在控制台输出
+    window.enableDevMode = function() {
+      localStorage.setItem('ky_dev_mode', 'true');
+      const b = document.getElementById('devBadge');
+      if (b) b.style.display = 'block';
+      console.log('%c🥷 开发者模式已开启 · 所有 fetch 请求将被记录', 'background:#000;color:#0f0;padding:4px 8px;border-radius:4px');
+    };
+    window.disableDevMode = function() {
+      localStorage.setItem('ky_dev_mode', 'false');
+      const b = document.getElementById('devBadge');
+      if (b) b.style.display = 'none';
+      console.log('%c🥷 开发者模式已关闭', 'background:#000;color:#f00;padding:4px 8px;border-radius:4px');
+    };
+    window.toggleDevMode = function() {
+      if (localStorage.getItem('ky_dev_mode') === 'true') window.disableDevMode();
+      else window.enableDevMode();
+    };
+
+    // 初始化
+    if (localStorage.getItem('ky_dev_mode') === 'true') {
+      setTimeout(function() { window.enableDevMode(); }, 100);
+    }
+
+    // 拦截 fetch 记录日志
+    const _origFetch = window.fetch;
+    window.fetch = function() {
+      if (localStorage.getItem('ky_dev_mode') === 'true') {
+        const url = arguments[0], opts = arguments[1] || {};
+        console.log(`[DEV] ➡ ${opts.method || 'GET'} ${url}`, opts.body instanceof FormData ? [...opts.body.entries()] : opts.body || '');
+      }
+      return _origFetch.apply(this, arguments).then(function(r) {
+        if (localStorage.getItem('ky_dev_mode') === 'true') {
+          const clone = r.clone();
+          clone.text().then(function(t) { console.log(`[DEV] ⬅ ${r.status} ${r.url}`, t.substring(0, 300)); });
+        }
+        return r;
+      });
+    };
+
+    // 浮动指示器
+    const _devBadge = document.createElement('div');
+    _devBadge.id = 'devBadge';
+    _devBadge.style.cssText = 'display:none;position:fixed;bottom:8px;left:8px;background:#000;color:#0f0;font:11px monospace;padding:2px 6px;border-radius:4px;z-index:9999;pointer-events:none;opacity:.7';
+    _devBadge.textContent = '🥷 DEV';
+    document.body.appendChild(_devBadge);
+    if (localStorage.getItem('ky_dev_mode') === 'true') _devBadge.style.display = 'block';
+
+    // 开屏广告：从 config.json 读取 ad_delay（秒）控制弹出间隔，ad_link 控制跳转
+    window.closeSplash = function() {
+      var el=document.getElementById('splashOverlay');
+      if(el)el.classList.add('hidden');
+      try{localStorage.setItem('ky_splash_closed',Date.now().toString());}catch(e){}
+    };
+    (function(){
+      var a=document.getElementById('splashLink');
+      fetch('./config.json').then(function(r){return r.json()}).then(function(c){
+        // 广告链接
+        if(c.ad_link&&c.ad_link.trim()){a.href=c.ad_link.trim();}else{a.href='#';a.onclick=function(e){e.preventDefault();closeSplash();};}
+        // 弹出延迟（秒），默认 1800s = 30min
+        var delay=(parseInt(c.ad_delay)||1800)*1000;
+        try{
+          var last=localStorage.getItem('ky_splash_closed');
+          if(last&&(Date.now()-parseInt(last)<delay)){
+            document.getElementById('splashOverlay').classList.add('hidden');
+          }
+        }catch(e){}
+      }).catch(function(){
+        a.href='#';a.onclick=function(e){e.preventDefault();closeSplash();};
+      });
+      a.onclick=function(e){
+        if(a.getAttribute('href')==='#'||!a.getAttribute('href')){
+          e.preventDefault();closeSplash();
+        }
+      };
+    })();
+
+    // 等待配置加载完成再允许提交
+    async function waitForConfig() {
+                if (window.KY_CONFIG && window.KY_CONFIG.backendUrl) {
+                    return true;
+                }
+                // 最多等待3秒
+                for (let i = 0; i < 30; i++) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    if (window.KY_CONFIG && window.KY_CONFIG.backendUrl) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            // 表单提交（全局函数供 onclick 和 addEventListener 共用）
+            window.handleSubmit = async function(e) {
+                if (e) e.preventDefault();
+
+                if (isSubmitting) return;
+                
+                const hasTitle = titleInput.value.trim().length > 0;
+                const hasContent = contentInput.value.trim().length > 0;
+                const hasImage = fileInput.files.length > 0;
+
+                if (!hasTitle) {
+                    alert('请填写标题（标题将生成在图片上）');
+                    titleInput.focus();
+                    return;
+                }
+
+                // 等待配置加载
+                const configReady = await waitForConfig();
+                if (!configReady) {
+                    alert('配置加载失败，请刷新页面重试');
+                    return;
+                }
+
+                // 构建 FormData
+                const formData = new FormData();
+                
+                // 标题（选填）
+                if (titleInput.value.trim()) {
+                    formData.append('title', titleInput.value.trim());
+                }
+                
+                // 内容（选填，不填则后端用标题生图）
+                if (hasContent) {
+                    formData.append('content', contentInput.value.trim());
+                }
+
+                // 标签（选填）
+                const tagVal = document.getElementById('tag').value.trim();
+                if (tagVal) formData.append('tag', tagVal);
+
+                // 图片（最多1张）
+                if (hasImage) {
+                    formData.append('user_image', fileInput.files[0]);
+                }
+
+                // 使用动态配置构建URL
+                const SUBMIT_ENDPOINT = window.KY_CONFIG.getUrl('submit');
+                console.log('📤 提交到:', SUBMIT_ENDPOINT, 'FormData keys:', [...formData.keys()]);
+
+                const submitBtn = document.querySelector('.submit-btn');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<span>⏳</span> 提交中...';
+                submitBtn.disabled = true;
+                isSubmitting = true;
+
+                try {
+                    const response = await fetch(SUBMIT_ENDPOINT, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('后端返回错误:', response.status, errorText);
+                        alert('❌ 提交失败 (HTTP ' + response.status + ')\n' + errorText);
+                        return;
+                    }
+
+                    const data = await response.json();
+                    const uuid = data.uuid || '';
+                    const hid = data.hid || '';
+                    // 跳转到结果页，带上 uuid 和 hid
+                    window.location.href = 'result.html?uuid=' + encodeURIComponent(uuid) + '&hid=' + encodeURIComponent(hid);
+                    
+                } catch (error) {
+                    console.error('提交失败:', error);
+                    alert('❌ 投稿提交失败\nURL: ' + SUBMIT_ENDPOINT + '\n' + (error.message || error));
+                } finally {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    isSubmitting = false;
+                }
+            };
+            form.addEventListener('submit', window.handleSubmit);
+
+        })();
+    </script>
+</body>
+</html>
+
+
+
