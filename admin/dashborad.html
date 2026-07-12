@@ -46,7 +46,25 @@ body{background:#f7fafc;color:#222}
 .ss-lb .ss-lb-close:hover{background:rgba(255,255,255,.3)}
 .ss-lb .ss-lb-ctl{position:absolute;bottom:20px;color:#fff;font-size:12px}
 @media(max-width:768px){.tb{padding:10px 12px;gap:8px}.tb h1{font-size:15px}.tb a,.tb button{font-size:11px;padding:5px 10px}.c{padding:10px 12px}.stats{grid-template-columns:repeat(2,1fr);gap:8px}.st{padding:14px 10px}.st .n{font-size:24px}.btns a{padding:12px 16px;font-size:14px}.grid{grid-template-columns:1fr}}
-</style>
+.log-tabs{display:flex;gap:4px;margin-bottom:0;flex-wrap:wrap}
+.log-tab{padding:5px 14px;border-radius:8px 8px 0 0;border:1px solid #e2e8f0;border-bottom:none;background:#f8fafc;font-size:12px;cursor:pointer;color:#64748b;transition:.15s;outline:none}
+.log-tab:hover{background:#eef2f6;color:#1a1a2e}
+.log-tab.on{background:#fff;color:#1a7a3a;font-weight:600;border-color:#cbd5e1;box-shadow:0 -2px 0 #1a7a3a}
+.log-tab .cnt{font-size:10px;color:#94a3b8;margin-left:3px;font-weight:400}
+.log-panel{border:1px solid #e2e8f0;border-radius:0 8px 8px 8px;max-height:380px;overflow-y:auto;padding:10px 12px;background:#fff}
+.log-panel pre{margin:0;font:12px/1.6 SFMono-Regular,Consolas,"Liberation Mono",Menlo,monospace;white-space:pre-wrap;word-break:break-all;color:#1e293b;background:transparent;padding:0}
+.log-row{display:flex;gap:8px;align-items:baseline;padding:3px 6px;font:12px/1.5 SFMono-Regular,Consolas,"Liberation Mono",Menlo,monospace;border-bottom:1px solid #f1f5f9}
+.log-row:last-child{border-bottom:none}
+.log-row:hover{background:#f8fafc}
+.log-ts{color:#94a3b8;font-size:10px;white-space:nowrap;flex-shrink:0;width:85px}
+.log-badge{font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;white-space:nowrap;flex-shrink:0;text-align:center;min-width:44px}
+.log-badge.GET{background:#dcfce7;color:#166534}.log-badge.POST{background:#dbeafe;color:#1e40af}
+.log-badge.PUT{background:#fef3c7;color:#92400e}.log-badge.DELETE{background:#fee2e2;color:#991b1b}
+.log-badge.PATCH{background:#f3e8ff;color:#6b21a8}.log-badge.HEAD,.log-badge.OPTIONS{background:#f1f5f9;color:#475569}
+.log-badge.ERR{background:#fee2e2;color:#991b1b}.log-badge.WARN{background:#fef3c7;color:#92400e}
+.log-badge.INFO{background:#f1f5f9;color:#475569}.log-badge.SYS{background:#e0f2fe;color:#075985}
+.log-msg{flex:1;min-width:0;word-break:break-all;color:#334155}
+@media(max-width:768px){.log-tab{padding:4px 10px;font-size:11px}.log-ts{width:70px;font-size:9px}.log-panel{max-height:280px}}</style>
 </head>
 <body>
 <div class="tb"><h1>KYSECRET · 管理面板</h1><div class="nv"><a href="../index.html">投稿</a> <a href="../status/index.html">状态</a> <button onclick="logout()">退出登录</button></div></div>
@@ -58,7 +76,7 @@ body{background:#f7fafc;color:#222}
   </div>
   <div class="panel"><h3>硬件 <span style="font-size:12px;font-weight:400;color:#888" id="ht"></span></h3><div class="grid" id="hw"></div></div>
   <div class="panel"><h3>API 状态 <span style="font-size:12px;font-weight:400;color:#888" id="at"></span></h3><div class="grid" id="api"></div></div>
-  <div class="panel"><h3>服务器日志 <span style="font-size:12px;font-weight:400;color:#888" id="lt"></span><span class="rate-ctl"><button class="rate-preset" onclick="setLogRate(100)">100ms</button><button class="rate-preset" onclick="setLogRate(200)">200ms</button><button class="rate-preset" onclick="setLogRate(500)">500ms</button><button class="rate-preset" onclick="setLogRate(1000)">1000ms</button><button class="rate-preset" onclick="setLogRate(5000)">5000ms</button><input id="logMs" value="15000" title="刷新间隔(毫秒)"><span class="r-unit">ms</span><button class="set-btn" onclick="changeLogs()">设置</button></span></h3><div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap"><label style="font-size:12px;display:flex;align-items:center;gap:3px;cursor:pointer;user-select:none"><input type="checkbox" id="logFilterOn" onchange="applyLogFilter()">筛选</label><input id="logFilterKw" placeholder="隐藏含这些关键词的行(逗号分隔)" style="font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid #ccc;flex:1;min-width:140px" oninput="applyLogFilter()"><button onclick="document.getElementById('logFilterKw').value='HTTP/1.,\"GET,\"POST,\"PUT,\"DELETE,\"HEAD,\"OPTIONS,\"PATCH';applyLogFilter()" style="font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid #d1d5db;background:#f3f4f6;cursor:pointer;white-space:nowrap">隐藏HTTP</button><button onclick="document.getElementById('logFilterKw').value='';applyLogFilter()" style="font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid #d1d5db;background:#f3f4f6;cursor:pointer;white-space:nowrap">清除</button><span id="logFilterCount" style="font-size:11px;color:#888;white-space:nowrap"></span></div><pre id="logs" style="background:#1a1a2e;color:#0f0;padding:14px;border-radius:8px;font:11px/1.5 monospace;max-height:300px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;margin:0">加载中...</pre></div>
+  <div class="panel"><h3>服务器日志 <span style="font-size:12px;font-weight:400;color:#888" id="lt"></span><span class="rate-ctl"><button class="rate-preset" onclick="setLogRate(100)">100ms</button><button class="rate-preset" onclick="setLogRate(200)">200ms</button><button class="rate-preset" onclick="setLogRate(500)">500ms</button><button class="rate-preset" onclick="setLogRate(1000)">1000ms</button><button class="rate-preset" onclick="setLogRate(5000)">5000ms</button><input id="logMs" value="15000" title="刷新间隔(毫秒)"><span class="r-unit">ms</span><button class="set-btn" onclick="changeLogs()">设置</button></span></h3><div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap"><label style="font-size:12px;display:flex;align-items:center;gap:3px;cursor:pointer;user-select:none"><input type="checkbox" id="logFilterOn" onchange="applyLogFilter()">筛选</label><input id="logFilterKw" placeholder="隐藏含这些关键词的行(逗号分隔)" style="font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid #ccc;flex:1;min-width:140px" oninput="applyLogFilter()"><button onclick="document.getElementById('logFilterKw').value='HTTP/1.,\"GET,\"POST,\"PUT,\"DELETE,\"HEAD,\"OPTIONS,\"PATCH';applyLogFilter()" style="font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid #d1d5db;background:#f3f4f6;cursor:pointer;white-space:nowrap">隐藏HTTP</button><button onclick="document.getElementById('logFilterKw').value='';applyLogFilter()" style="font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid #d1d5db;background:#f3f4f6;cursor:pointer;white-space:nowrap">清除</button><span id="logFilterCount" style="font-size:11px;color:#888;white-space:nowrap"></span></div><div class="log-tabs" id="logTabs"><button class="log-tab on" data-tab="all" onclick="switchLogTab('all')">全部<span class="cnt" id="logCntAll"></span></button><button class="log-tab" data-tab="http" onclick="switchLogTab('http')">🌐 请求<span class="cnt" id="logCntHttp"></span></button><button class="log-tab" data-tab="sys" onclick="switchLogTab('sys')">⚙️ 系统<span class="cnt" id="logCntSys"></span></button><button class="log-tab" data-tab="err" onclick="switchLogTab('err')">❌ 异常<span class="cnt" id="logCntErr"></span></button></div><div class="log-panel" id="logPanelAll"><pre id="logs">加载中...</pre></div><div class="log-panel" id="logPanelHttp" style="display:none"><div id="logHttp" style="color:#94a3b8;font-size:12px;text-align:center;padding:12px">—</div></div><div class="log-panel" id="logPanelSys" style="display:none"><div id="logSys" style="color:#94a3b8;font-size:12px;text-align:center;padding:12px">—</div></div><div class="log-panel" id="logPanelErr" style="display:none"><div id="logErr" style="color:#94a3b8;font-size:12px;text-align:center;padding:12px">—</div></div></div>
   <div class="panel"><h3>服务器截屏 <span style="font-size:12px;font-weight:400;color:#888" id="st"></span><span class="rate-ctl"><button class="rate-preset" onclick="setSSRate(100)">100ms</button><button class="rate-preset" onclick="setSSRate(200)">200ms</button><button class="rate-preset" onclick="setSSRate(500)">500ms</button><button class="rate-preset" onclick="setSSRate(1000)">1000ms</button><button class="rate-preset" onclick="setSSRate(5000)">5000ms</button><input id="ssMs" value="5000" title="刷新间隔(毫秒)"><span class="r-unit">ms</span><button class="set-btn" onclick="changeSS()">设置</button></span></h3><img id="ss" src="" style="width:100%;border-radius:8px;cursor:pointer;display:none" onclick="openSS()" onerror="this.style.display='none'"><div id="ssPlaceholder" style="text-align:center;color:#888;font-size:13px;padding:20px">加载中...</div></div>
 </div>
 <div class="ss-lb" id="ssLb" onclick="closeSS()"><button class="ss-lb-close" onclick="event.stopPropagation();closeSS()">&times;</button><img id="ssLbImg" onclick="event.stopPropagation()"><div class="ss-lb-ctl" id="ssLbTime"></div></div>
@@ -134,7 +152,7 @@ function la(){
   document.getElementById('api').innerHTML=html;
   document.getElementById('at').textContent=new Date().toLocaleTimeString();
 }
-var _logLines=[];
+var _logLines=[],_logTab='all';
 function ll(){
   fetch(B+'/admin/logs',{headers:hd()}).then(function(r){
     if(r.status===401){localStorage.removeItem('ky_token');location.href='index.html';return;}
@@ -143,7 +161,7 @@ function ll(){
   }).then(function(d){
     _logLines=d.lines;
     document.getElementById('lt').textContent=(d.file||'')+' '+new Date().toLocaleTimeString();
-    applyLogFilter();
+    renderAllTabs();
   }).catch(function(e){
     var m='加载失败';
     if(e&&e.message)m+=' ('+e.message+')';
@@ -152,9 +170,20 @@ function ll(){
   });
 }
 
-function applyLogFilter(){
+function applyLogFilter(){renderAllTabs();}
+
+function switchLogTab(tab){
+  _logTab=tab;
+  var tabs=document.querySelectorAll('.log-tab');
+  tabs.forEach(function(t){t.classList.toggle('on',t.getAttribute('data-tab')===tab);});
+  document.getElementById('logPanelAll').style.display=tab==='all'?'block':'none';
+  document.getElementById('logPanelHttp').style.display=tab==='http'?'block':'none';
+  document.getElementById('logPanelSys').style.display=tab==='sys'?'block':'none';
+  document.getElementById('logPanelErr').style.display=tab==='err'?'block':'none';
+}
+
+function getFilteredLines(){
   var lines=_logLines||[];
-  var total=lines.length;
   var cb=document.getElementById('logFilterOn');
   var kw=document.getElementById('logFilterKw');
   if(cb&&cb.checked&&kw.value.trim()){
@@ -163,9 +192,59 @@ function applyLogFilter(){
       return !words.some(function(w){return line.indexOf(w)!==-1;});
     });
   }
+  return lines;
+}
+
+function parseLine(line){
+  var m=line.match(/^\[(\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3})\]\s*(.*)/);
+  var ts=m?m[1]:'';
+  var msg=m?m[2]:line;
+  var hm=msg.match(/"([A-Z]+)\s+(\S+)\s+HTTP\/1\.\d"\s+(\d+)/);
+  if(hm)return{ts:ts,cat:'http',method:hm[1],path:hm[2],status:hm[3],msg:msg};
+  if(/error|exception|traceback|fail|crash|critical|fatal/i.test(msg))return{ts:ts,cat:'err',msg:msg};
+  if(/warn|warning|timeout|retry|unavailable/i.test(msg))return{ts:ts,cat:'warn',msg:msg};
+  return{ts:ts,cat:'info',msg:msg};
+}
+
+function renderAllTabs(){
+  var lines=getFilteredLines();
+  var http=[],sys=[],err=[];
+  lines.forEach(function(line){
+    var p=parseLine(line);
+    if(p.cat==='http')http.push(p);else sys.push(p);
+    if(p.cat==='err'||p.cat==='warn')err.push(p);
+  });
+  var total=_logLines.length;
+  var hidden=total-lines.length;
+  document.getElementById('logCntAll').textContent=lines.length;
+  document.getElementById('logCntHttp').textContent=http.length;
+  document.getElementById('logCntSys').textContent=sys.length;
+  document.getElementById('logCntErr').textContent=err.length;
   var cnt=document.getElementById('logFilterCount');
-  if(cnt)cnt.textContent=total!==lines.length?'隐藏 '+(total-lines.length)+' 行':'';
+  if(cnt)cnt.textContent=hidden>0?'隐藏 '+hidden+' 行':'';
   document.getElementById('logs').textContent=lines.join('\n');
+  document.getElementById('logHttp').innerHTML=http.length?http.map(rowHttp).join(''):'<div style="color:#94a3b8;font-size:12px;text-align:center;padding:12px">无请求</div>';
+  document.getElementById('logSys').innerHTML=sys.length?sys.map(rowSys).join(''):'<div style="color:#94a3b8;font-size:12px;text-align:center;padding:12px">无消息</div>';
+  document.getElementById('logErr').innerHTML=err.length?err.map(rowErr).join(''):'<div style="color:#94a3b8;font-size:12px;text-align:center;padding:12px">无异常</div>';
+}
+
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function rowHttp(p){
+  var sc='';
+  if(p.status){
+    var c=p.status[0]==='2'?'#166534':p.status[0]==='3'?'#2563eb':p.status[0]==='4'?'#d97706':'#dc2626';
+    sc=' <span style="font-weight:700;margin-left:4px;font-size:11px;color:'+c+'">'+esc(p.status)+'</span>';
+  }
+  return '<div class="log-row"><span class="log-ts">'+esc(p.ts)+'</span><span class="log-badge '+esc(p.method)+'">'+esc(p.method)+'</span><span class="log-msg">'+esc(p.path)+sc+'</span></div>';
+}
+function rowSys(p){
+  var b=p.cat==='warn'?'WARN':p.cat==='err'?'ERR':'INFO';
+  return '<div class="log-row"><span class="log-ts">'+esc(p.ts)+'</span><span class="log-badge '+b+'">'+b+'</span><span class="log-msg">'+esc(p.msg)+'</span></div>';
+}
+function rowErr(p){
+  var b=p.cat==='err'?'ERR':'WARN';
+  return '<div class="log-row"><span class="log-ts">'+esc(p.ts)+'</span><span class="log-badge '+b+'">'+b+'</span><span class="log-msg">'+esc(p.msg)+'</span></div>';
 }
 
 var _logTimer=null, _ssTimer=null;
