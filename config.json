@@ -1,5 +1,5 @@
 {
-    "backend": "https://for-amsterdam-yourself-families.trycloudflare.com",
+    "backend": "https://starter-properties-scholarships-lions.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
