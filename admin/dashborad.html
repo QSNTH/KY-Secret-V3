@@ -269,7 +269,7 @@ function connectSSE(){
     var s=document.getElementById('logStreamStatus');if(s)s.textContent='实时';
   };
 }
-function refreshLogs(){_logLines=[];ll();}
+function refreshLogs(){connectSSE();}
 function changeLogs(){refreshLogs();}
 function setLogRate(ms){refreshLogs();}
 var _ssTimer=null;
