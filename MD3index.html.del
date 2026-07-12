@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KY Secret V3</title>
+    <!-- 引入Google MD3官方CSS -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/material-components-web@14.0.0/dist/material-components-web.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 导航区 */
+        .ky-nav {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .ky-logo {
+            font-size: 24px;
+            font-weight: 500;
+            color: #6200ee;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ky-nav-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* 核心卡片 */
+        .ky-card {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        /* 状态提示条 */
+        .ky-status {
+            width: 100%;
+            max-width: 600px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            background-color: #e8f0fe;
+            color: #0277bd;
+            font-size: 14px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        /* 表单区域 */
+        .ky-form-group {
+            margin-bottom: 20px;
+        }
+
+        .ky-form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .ky-required {
+            color: #d32f2f;
+        }
+
+        .ky-input,
+        .ky-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .ky-input:focus,
+        .ky-textarea:focus {
+            border-color: #6200ee;
+            box-shadow: 0 0 0 2px rgba(98, 0, 238, 0.2);
+        }
+
+        .ky-textarea {
+            min-height: 120px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+
+        .ky-word-count {
+            font-size: 12px;
+            color: #757575;
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        /* 图片上传区 */
+        .ky-upload-area {
+            border: 2px dashed #e0e0e0;
+            border-radius: 8px;
+            padding: 32px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 12px;
+        }
+
+        .ky-upload-area:hover {
+            border-color: #6200ee;
+            background-color: #faf5ff;
+        }
+
+        .ky-upload-icon {
+            font-size: 48px;
+            color: #9e9e9e;
+            margin-bottom: 16px;
+        }
+
+        .ky-upload-text {
+            font-size: 16px;
+            color: #757575;
+        }
+
+        .ky-img-preview {
+            width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            border-radius: 8px;
+            margin: 16px 0;
+            display: none;
+        }
+
+        .ky-img-preview.show {
+            display: block;
+        }
+
+        .ky-remove-img {
+            color: #d32f2f;
+            font-size: 14px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .ky-remove-img.show {
+            display: inline-flex;
+        }
+
+        /* 按钮样式 */
+        .mdc-button {
+            text-transform: none !important;
+            border-radius: 8px !important;
+        }
+
+        .ky-submit-btn {
+            width: 100%;
+            height: 48px;
+            font-size: 16px !important;
+            font-weight: 500 !important;
+            background-color: #6200ee !important;
+            color: white !important;
+        }
+
+        .ky-submit-btn:disabled {
+            background-color: #c29fff !important;
+            cursor: not-allowed;
+        }
+
+        .ky-tip {
+            font-size: 12px;
+            color: #757575;
+            text-align: center;
+            margin-top: 16px;
+            line-height: 1.5;
+        }
+
+        /* 页脚 */
+        .ky-footer {
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            font-size: 14px;
+            color: #757575;
+            margin-top: auto;
+            padding: 16px 0;
+        }
+
+        .ky-footer a {
+            color: #6200ee;
+            text-decoration: none;
+            margin: 0 8px;
+        }
+
+        .ky-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 550px) {
+            .ky-nav {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+
+            .ky-card {
+                padding: 16px;
+            }
+
+            .ky-upload-area {
+                padding: 24px 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 导航区 -->
+    <div class="ky-nav">
+        <div class="ky-logo">
+            <span class="material-symbols-outlined">lock</span>
+            KY Secret V3
+        </div>
+        <div class="ky-nav-buttons">
+            <button class="mdc-button" id="statusBtn">
+                <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 4px;">info</span>
+                状态
+            </button>
+            <button class="mdc-button" id="historyBtn">
+                <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 4px;">history</span>
+                历史
+            </button>
+        </div>
+    </div>
+
+    <!-- 全局状态提示 -->
+    <div class="ky-status" id="globalStatus">KY Secret V3 - 服务运行中 | HTTPS加密</div>
+
+    <!-- 核心投稿卡片 -->
+    <div class="ky-card">
+        <form id="kyForm" enctype="multipart/form-data">
+            <!-- 标题输入 -->
+            <div class="ky-form-group">
+                <label class="ky-form-label" for="title">标题 <span class="ky-word-count"
+                        id="titleCount">0/20</span></label>
+                <input type="text" class="ky-input" id="title" maxlength="20" placeholder="选填，简短描述你的内容">
+            </div>
+
+            <!-- 内容输入 -->
+            <div class="ky-form-group">
+                <label class="ky-form-label" for="content">匿名内容 <span class="ky-required">*</span> <span
+                        class="ky-word-count" id="contentCount">0/200</span></label>
+                <textarea class="ky-textarea" id="content" maxlength="200" placeholder="必填/与图片二选一，最多200字"></textarea>
+            </div>
+
+            <!-- 图片上传 -->
+            <div class="ky-form-group">
+                <label class="ky-form-label">图片上传 <span class="ky-required">*</span></label>
+                <label class="ky-upload-area" for="imgUpload">
+                    <span class="material-symbols-outlined ky-upload-icon">cloud_upload</span>
+                    <div class="ky-upload-text">点击上传图片（仅支持1张，与文字二选一）</div>
+                    <input type="file" id="imgUpload" accept="image/*" style="display: none;">
+                </label>
+                <img src="" alt="图片预览" class="ky-img-preview" id="imgPreview">
+                <div class="ky-remove-img" id="removeImg">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+                    移除图片
+                </div>
+            </div>
+
+            <!-- 提交按钮 -->
+            <button type="submit" class="mdc-button ky-submit-btn" id="submitBtn">提交投稿</button>
+            <div class="ky-tip">投稿后将进入审核队列，审核通过后将匿名展示 | 请勿发布违法、违规、色情等内容</div>
+        </form>
+    </div>
+
+    <!-- 页脚 -->
+    <div class="ky-footer">
+        <a href="./">首页</a> | <a href="./STATUSindex.html">状态</a> | <a href="./history.html">历史</a>
+        <p>KY Secret V3 © 2025 匿名投稿平台</p>
+    </div>
+
+    <!-- 引入MD3 JS -->
+    <script
+        src="https://cdn.jsdelivr.net/npm/material-components-web@14.0.0/dist/material-components-web.min.js"></script>
+    <script>
+        // 初始化MD3按钮组件
+        mdc.ripple.MDCRipple.attachTo(document.getElementById('statusBtn'));
+        mdc.ripple.MDCRipple.attachTo(document.getElementById('historyBtn'));
+        mdc.ripple.MDCRipple.attachTo(document.getElementById('submitBtn'));
+        mdc.ripple.MDCRipple.attachTo(document.getElementById('removeImg'));
+        mdc.ripple.MDCRipple.attachTo(document.getElementById('imgUpload').parentNode);
+
+        // 原有配置加载逻辑（完全保留）
+        const KY_CONFIG = {
+            config: null,
+            getUrl: function (path, params = {}) {
+                let url = this.config.apiBase + this.config.apiPrefix + path;
+                for (const [key, value] of Object.entries(params)) {
+                    url = url.replace(`{${key}}`, value);
+                }
+                return url;
+            }
+        };
+
+        // 加载配置
+        (async function loadConfig() {
+            try {
+                // 优先远程加载
+                const res = await fetch('https://raw.githubusercontent.com/xxx/config.json');
+                if (res.ok) KY_CONFIG.config = await res.json();
+                else throw new Error('远程配置加载失败');
+            } catch (e) {
+                try {
+                    // 本地加载
+                    const res = await fetch('./config.json');
+                    if (res.ok) KY_CONFIG.config = await res.json();
+                    else throw new Error('本地配置加载失败');
+                } catch (err) {
+                    // 硬编码备份配置
+                    KY_CONFIG.config = {
+                        apiBase: 'https://api.ky-secret.com',
+                        apiPrefix: '/v3',
+                        submitPath: '/submit'
+                    };
+                    document.getElementById('globalStatus').textContent = '配置加载降级 - 服务运行中 | HTTPS加密';
+                }
+            }
+            // 触发配置加载完成事件
+            document.dispatchEvent(new CustomEvent('configLoaded'));
+        })();
+
+        // 原有交互逻辑（完全保留，仅修改DOM选择器适配）
+        let isSubmitting = false;
+        const titleInput = document.getElementById('title');
+        const contentInput = document.getElementById('content');
+        const imgUpload = document.getElementById('imgUpload');
+        const imgPreview = document.getElementById('imgPreview');
+        const removeImg = document.getElementById('removeImg');
+        const titleCount = document.getElementById('titleCount');
+        const contentCount = document.getElementById('contentCount');
+        const submitBtn = document.getElementById('submitBtn');
+        const kyForm = document.getElementById('kyForm');
+        const globalStatus = document.getElementById('globalStatus');
+
+        // 字数统计
+        titleInput.addEventListener('input', () => {
+            titleCount.textContent = `${titleInput.value.length}/20`;
+        });
+        contentInput.addEventListener('input', () => {
+            contentCount.textContent = `${contentInput.value.length}/200`;
+            checkRequired();
+        });
+
+        // 图片上传预览
+        imgUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                if (e.target.files.length > 1) {
+                    alert('仅支持上传1张图片');
+                    imgUpload.value = '';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (r) => {
+                    imgPreview.src = r.target.result;
+                    imgPreview.classList.add('show');
+                    removeImg.classList.add('show');
+                };
+                reader.readAsDataURL(file);
+                checkRequired();
+            }
+        });
+
+        // 移除图片
+        removeImg.addEventListener('click', () => {
+            imgUpload.value = '';
+            imgPreview.src = '';
+            imgPreview.classList.remove('show');
+            removeImg.classList.remove('show');
+            checkRequired();
+        });
+
+        // 检查二选一必填
+        function checkRequired() {
+            const hasContent = contentInput.value.trim().length > 0;
+            const hasImg = imgUpload.files.length > 0;
+            submitBtn.disabled = !(hasContent || hasImg);
+        }
+
+        // 导航按钮跳转
+        document.getElementById('statusBtn').addEventListener('click', () => {
+            window.location.href = './STATUSindex.html';
+        });
+        document.getElementById('historyBtn').addEventListener('click', () => {
+            window.location.href = './history.html';
+        });
+
+        // 表单提交核心逻辑
+        kyForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (isSubmitting) return;
+            isSubmitting = true;
+            submitBtn.disabled = true;
+            submitBtn.textContent = '提交中...';
+
+            try {
+                // 等待配置加载（最多3秒）
+                if (!KY_CONFIG.config) {
+                    await new Promise((resolve, reject) => {
+                        const timer = setTimeout(reject, 3000);
+                        document.addEventListener('configLoaded', () => {
+                            clearTimeout(timer);
+                            resolve();
+                        });
+                    });
+                }
+
+                // 构建FormData
+                const formData = new FormData();
+                if (titleInput.value.trim()) formData.append('title', titleInput.value.trim());
+                if (contentInput.value.trim()) formData.append('content', contentInput.value.trim());
+                if (imgUpload.files.length > 0) formData.append('image', imgUpload.files[0]);
+
+                // 提交请求
+                const res = await fetch(KY_CONFIG.getUrl(KY_CONFIG.config.submitPath), {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'cors'
+                });
+
+                const result = await res.json();
+                if (res.ok && result.code === 200) {
+                    globalStatus.textContent = '投稿成功！已进入审核队列 | HTTPS加密';
+                    globalStatus.style.backgroundColor = '#e8f5e9';
+                    globalStatus.style.color = '#2e7d32';
+                    // 清空表单
+                    kyForm.reset();
+                    imgPreview.src = '';
+                    imgPreview.classList.remove('show');
+                    removeImg.classList.remove('show');
+                    titleCount.textContent = '0/20';
+                    contentCount.textContent = '0/200';
+                } else {
+                    throw new Error(result.msg || '投稿失败，请稍后重试');
+                }
+            } catch (err) {
+                alert('提交失败：' + err.message);
+                globalStatus.textContent = '投稿失败：' + err.message + ' | 请检查网络或重试';
+                globalStatus.style.backgroundColor = '#ffebee';
+                globalStatus.style.color = '#d32f2f';
+            } finally {
+                isSubmitting = false;
+                submitBtn.disabled = false;
+                submitBtn.textContent = '提交投稿';
+                // 重置状态条样式
+                setTimeout(() => {
+                    globalStatus.textContent = 'KY Secret V3 - 服务运行中 | HTTPS加密';
+                    globalStatus.style.backgroundColor = '#e8f0fe';
+                    globalStatus.style.color = '#0277bd';
+                }, 3000);
+            }
+        });
+
+        // 初始化检查
+        checkRequired();
+    </script>
+</body>
+
+</html>
