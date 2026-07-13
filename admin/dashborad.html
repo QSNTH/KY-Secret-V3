@@ -65,7 +65,20 @@ body{background:#f7fafc;color:#222}
 .log-badge.ERR{background:#fee2e2;color:#991b1b}.log-badge.WARN{background:#fef3c7;color:#92400e}
 .log-badge.INFO{background:#f1f5f9;color:#475569}.log-badge.SYS{background:#e0f2fe;color:#075985}
 .log-msg{flex:1;min-width:0;word-break:break-all;color:#334155}
-@media(max-width:768px){.log-tab{padding:4px 10px;font-size:11px}.log-ts{width:70px;font-size:9px}.log-panel{max-height:280px}}</style>
+@media(max-width:768px){.log-tab{padding:4px 10px;font-size:11px}.log-ts{width:70px;font-size:9px}.log-panel{max-height:280px}}
+.acct-panel{border:2px solid #e74c3c;background:#fffbfb}
+.acct-form{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px}
+.acct-form label{font-size:11px;color:#666;display:block;margin-bottom:3px}
+.acct-form input,.acct-form select{padding:7px 10px;border:1px solid #ccc;border-radius:6px;font-size:13px}
+.acct-form button{padding:7px 16px;border:none;border-radius:6px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;background:#1a7a3a}
+.acct-form button:hover{background:#15632f}
+.role-super{color:#e74c3c;font-weight:700}.role-admin{color:#2980b9}
+.acct-tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+.acct-tbl th,.acct-tbl td{padding:8px 12px;text-align:left;border-bottom:1px solid #eee}
+.acct-tbl th{background:#fef2f2;color:#b11f1a;font-size:11px}
+.acct-btn-del{background:#e74c3c;color:#fff;border:none;padding:3px 12px;border-radius:4px;cursor:pointer;font-size:11px}
+.acct-btn-del:hover{background:#c0392b}
+.acct-err{color:#e74c3c;font-size:12px;margin-bottom:8px;display:none}</style>
 </head>
 <body>
 <div class="tb"><h1>KYSECRET · 管理面板</h1><div class="nv"><a href="../index.html">投稿</a> <a href="../status/index.html">状态</a> <button onclick="logout()">退出登录</button></div></div>
@@ -74,6 +87,16 @@ body{background:#f7fafc;color:#222}
   <div class="btns">
     <a href="review.html" class="btn-r">审核工作站</a>
     <a href="javascript:logout()" class="btn-l">退出登录</a>
+  </div>
+  <div class="panel acct-panel" id="acctPanel" style="display:none"><h3>👑 账号管理 <span style="font-size:11px;color:#e74c3c;font-weight:400">超级管理员</span><span style="font-size:12px;font-weight:400;color:#888" id="acctTime"></span></h3>
+    <div class="acct-form">
+      <div><label>用户名</label><input type="text" id="newUser" placeholder="新管理员用户名"></div>
+      <div><label>密码</label><input type="password" id="newPass" placeholder="至少6位"></div>
+      <div><label>角色</label><select id="newRole"><option value="admin">普通管理员</option><option value="super_admin">超级管理员</option></select></div>
+      <div><button onclick="addAccount()">添加账号</button></div>
+    </div>
+    <div class="acct-err" id="acctErr"></div>
+    <table class="acct-tbl"><thead><tr><th>用户名</th><th>角色</th><th>来源</th><th>操作</th></tr></thead><tbody id="acctBody"><tr><td colspan="4" style="text-align:center;color:#888">加载中...</td></tr></tbody></table>
   </div>
   <div class="panel"><h3>硬件 <span style="font-size:12px;font-weight:400;color:#888" id="ht"></span></h3><div class="grid" id="hw"></div></div>
   <div class="panel"><h3>API 状态 <span style="font-size:12px;font-weight:400;color:#888" id="at"></span></h3><div class="grid" id="api"></div></div>
@@ -105,7 +128,7 @@ var B='';
   }
 })();
 
-function show(){document.getElementById('loading').style.display='none';document.getElementById('main').style.display='block';ls();lh();la();startLogs();startSS();setInterval(lh,30000);setInterval(la,60000);setInterval(ls,2000);}
+function show(){document.getElementById('loading').style.display='none';document.getElementById('main').style.display='block';ls();lh();la();checkRole();startLogs();startSS();setInterval(lh,30000);setInterval(la,60000);setInterval(ls,2000);}
 
 function t(m){var e=document.getElementById('toast');e.textContent=m;e.classList.add('s');setTimeout(function(){e.classList.remove('s');},2000);}
 function logout(){fetch(B+'/admin/logout',{method:'POST',headers:hd()}).then(function(){}).catch(function(){});localStorage.removeItem('ky_token');location.href='index.html';}
@@ -304,6 +327,69 @@ function openSS(){
   document.getElementById('ssLbTime').textContent=document.getElementById('st').textContent;
 }
 function closeSS(){document.getElementById('ssLb').classList.remove('open');}
+
+var currentRole='';
+function checkRole(){
+  fetch(B+'/admin/whoami',{headers:hd()}).then(function(r){if(!r.ok)return;r.json().then(function(d){
+    currentRole=d.role;
+    if(d.role==='super_admin'){
+      document.getElementById('acctPanel').style.display='block';
+      loadAccounts();
+    }
+  });}).catch(function(){});
+}
+
+function loadAccounts(){
+  var tbody=document.getElementById('acctBody');
+  fetch(B+'/admin/accounts',{headers:hd()}).then(function(r){
+    if(!r.ok)throw new Error(r.status);
+    return r.json();
+  }).then(function(d){
+    document.getElementById('acctTime').textContent=new Date().toLocaleTimeString();
+    tbody.innerHTML=d.map(function(a){
+      var roleLabel=a.role==='super_admin'?'<span class="role-super">超级管理员</span>':'<span class="role-admin">普通管理员</span>';
+      var delBtn=a.username!=='QQQ'?'<button class="acct-btn-del" onclick="delAccount(\''+a.username+'\')">删除</button>':'—';
+      var src=a.is_seed?'main.py 内置':'动态添加';
+      return '<tr><td>'+a.username+'</td><td>'+roleLabel+'</td><td style="font-size:11px;color:#888">'+src+'</td><td>'+delBtn+'</td></tr>';
+    }).join('');
+  }).catch(function(e){
+    tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:#e74c3c">加载失败 ('+(e.message||'')+')</td></tr>';
+  });
+}
+
+function addAccount(){
+  var u=document.getElementById('newUser').value.trim();
+  var p=document.getElementById('newPass').value.trim();
+  var r=document.getElementById('newRole').value;
+  var err=document.getElementById('acctErr');
+  err.style.display='none';
+  if(!u||!p){err.textContent='用户名和密码不能为空';err.style.display='block';return;}
+  if(u.length<2){err.textContent='用户名至少2个字符';err.style.display='block';return;}
+  if(p.length<6){err.textContent='密码至少6个字符';err.style.display='block';return;}
+  fetch(B+'/admin/accounts',{method:'POST',headers:Object.assign({},hd(),{'Content-Type':'application/json'}),body:JSON.stringify({username:u,password:p,role:r})})
+  .then(function(resp){
+    if(!resp.ok)return resp.json().then(function(d){throw new Error(d.detail||'添加失败');});
+    return resp.json();
+  }).then(function(){
+    t('账号添加成功');
+    document.getElementById('newUser').value='';
+    document.getElementById('newPass').value='';
+    loadAccounts();
+  }).catch(function(e){
+    err.textContent=e.message||'添加失败';
+    err.style.display='block';
+  });
+}
+
+function delAccount(username){
+  if(!confirm('确定删除管理员 "'+username+'"？此操作不可撤销。'))return;
+  fetch(B+'/admin/accounts/'+encodeURIComponent(username),{method:'DELETE',headers:hd()})
+  .then(function(r){
+    if(!r.ok)return r.json().then(function(d){throw new Error(d.detail||'删除失败');});
+    t('已删除 '+username);
+    loadAccounts();
+  }).catch(function(e){t('删除失败: '+(e.message||''));});
+}
 </script>
 </body>
 </html>
