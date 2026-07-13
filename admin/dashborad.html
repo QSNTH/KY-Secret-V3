@@ -247,13 +247,18 @@ function rowErr(p){
   return '<div class="log-row"><span class="log-ts">'+esc(p.ts)+'</span><span class="log-badge '+b+'">'+b+'</span><span class="log-msg">'+esc(p.msg)+'</span></div>';
 }
 
-var _evtSource=null;
+var _evtSource=null,_reconnectTimer=null;
 function startLogs(){connectSSE();}
 function connectSSE(){
+  if(_reconnectTimer){clearTimeout(_reconnectTimer);_reconnectTimer=null;}
   if(_evtSource){_evtSource.close();_evtSource=null;}
   _logLines=[];
-  var st=document.getElementById('logStreamStatus');if(st)st.textContent='连接中...';
+  document.getElementById('logStreamStatus').textContent='连接中...';
   _evtSource=new EventSource(B+'/admin/logs/stream?_token='+encodeURIComponent(T));
+  _evtSource.onopen=function(){
+    document.getElementById('logStreamStatus').textContent='实时';
+    _logLines=[];
+  };
   _evtSource.onmessage=function(e){
     if(!e.data)return;
     _logLines.push(e.data);
@@ -261,12 +266,9 @@ function connectSSE(){
     renderAllTabs();
   };
   _evtSource.onerror=function(){
+    document.getElementById('logStreamStatus').textContent='已断开·5s后重连';
     if(_evtSource){_evtSource.close();_evtSource=null;}
-    if(st)st.textContent='已断开·5s后重连';
-    setTimeout(connectSSE,5000);
-  };
-  _evtSource.onopen=function(){
-    var s=document.getElementById('logStreamStatus');if(s)s.textContent='实时';
+    if(!_reconnectTimer)_reconnectTimer=setTimeout(function(){_reconnectTimer=null;connectSSE();},5000);
   };
 }
 function refreshLogs(){connectSSE();}
