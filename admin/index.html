@@ -57,7 +57,7 @@ async function doLogin(){
   if(!u||!p){err.textContent='请输入用户名和密码';err.style.display='block';return;}
   btn.disabled=true;btn.textContent='';ld.style.display='block';
   try{
-    const r=await fetch(BACKEND+'/admin/login?username='+encodeURIComponent(u)+'&password='+encodeURIComponent(p),{method:'POST'});
+    const r=await fetch(BACKEND+'/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
     const d=await r.json();
     if(!r.ok||!d.ok){err.textContent=d.detail||'登录失败';err.style.display='block';btn.disabled=false;btn.textContent='登 录';ld.style.display='none';return;}
     localStorage.setItem('ky_token',d.token);
