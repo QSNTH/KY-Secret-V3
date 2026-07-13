@@ -56,7 +56,8 @@ body{background:#f7fafc;color:#222}
 .log-row{display:flex;gap:8px;align-items:baseline;padding:3px 6px;font:12px/1.5 SFMono-Regular,Consolas,"Liberation Mono",Menlo,monospace;border-bottom:1px solid #f1f5f9}
 .log-row:last-child{border-bottom:none}
 .log-row:hover{background:#f8fafc}
-.log-ts{color:#94a3b8;font-size:10px;white-space:nowrap;flex-shrink:0;width:85px}
+.log-row:nth-child(even){background:#fafbfc}
+.log-ts{color:#64748b;font-size:10px;white-space:nowrap;flex-shrink:0;width:85px;font-weight:500}
 .log-badge{font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;white-space:nowrap;flex-shrink:0;text-align:center;min-width:44px}
 .log-badge.GET{background:#dcfce7;color:#166534}.log-badge.POST{background:#dbeafe;color:#1e40af}
 .log-badge.PUT{background:#fef3c7;color:#92400e}.log-badge.DELETE{background:#fee2e2;color:#991b1b}
@@ -222,7 +223,7 @@ function renderAllTabs(){
   document.getElementById('logCntErr').textContent=err.length;
   var cnt=document.getElementById('logFilterCount');
   if(cnt)cnt.textContent=hidden>0?'隐藏 '+hidden+' 行':'';
-  document.getElementById('logs').textContent=lines.join('\n');
+  document.getElementById('logs').innerHTML=colorLines(lines);
   document.getElementById('logHttp').innerHTML=http.length?http.map(rowHttp).join(''):'<div style="color:#94a3b8;font-size:12px;text-align:center;padding:12px">无请求</div>';
   document.getElementById('logSys').innerHTML=sys.length?sys.map(rowSys).join(''):'<div style="color:#94a3b8;font-size:12px;text-align:center;padding:12px">无消息</div>';
   document.getElementById('logErr').innerHTML=err.length?err.map(rowErr).join(''):'<div style="color:#94a3b8;font-size:12px;text-align:center;padding:12px">无异常</div>';
@@ -230,21 +231,34 @@ function renderAllTabs(){
 
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
+function colorLines(lines){
+  return lines.map(function(l){
+    var c='#475569';
+    if(/error|exception|traceback|fail|crash|critical|fatal/i.test(l))c='#dc2626';
+    else if(/warn|warning|timeout|retry/i.test(l))c='#d97706';
+    else if(/"GET|"POST|"PUT|"DELETE|"PATCH|"HEAD|"OPTIONS/.test(l))c='#2563eb';
+    else if(/success|成功|✓|passed|完成/i.test(l))c='#166534';
+    return '<span style="color:'+c+'">'+esc(l)+'</span>';
+  }).join('\n');
+}
+
 function rowHttp(p){
   var sc='';
   if(p.status){
     var c=p.status[0]==='2'?'#166534':p.status[0]==='3'?'#2563eb':p.status[0]==='4'?'#d97706':'#dc2626';
-    sc=' <span style="font-weight:700;margin-left:4px;font-size:11px;color:'+c+'">'+esc(p.status)+'</span>';
+    sc=' <span style="font-weight:700;font-size:11px;color:'+c+'">'+esc(p.status)+'</span>';
   }
-  return '<div class="log-row"><span class="log-ts">'+esc(p.ts)+'</span><span class="log-badge '+esc(p.method)+'">'+esc(p.method)+'</span><span class="log-msg">'+esc(p.path)+sc+'</span></div>';
+  return '<div class="log-row"><span class="log-ts">'+esc(p.ts)+'</span><span class="log-badge '+esc(p.method)+'">'+esc(p.method)+'</span><span class="log-msg"><span style="color:#2563eb">'+esc(p.path)+'</span>'+sc+'</span></div>';
 }
 function rowSys(p){
   var b=p.cat==='warn'?'WARN':p.cat==='err'?'ERR':'INFO';
-  return '<div class="log-row"><span class="log-ts">'+esc(p.ts)+'</span><span class="log-badge '+b+'">'+b+'</span><span class="log-msg">'+esc(p.msg)+'</span></div>';
+  var mc=p.cat==='err'?'#dc2626':p.cat==='warn'?'#d97706':'#334155';
+  return '<div class="log-row"><span class="log-ts">'+esc(p.ts)+'</span><span class="log-badge '+b+'">'+b+'</span><span class="log-msg" style="color:'+mc+'">'+esc(p.msg)+'</span></div>';
 }
 function rowErr(p){
   var b=p.cat==='err'?'ERR':'WARN';
-  return '<div class="log-row"><span class="log-ts">'+esc(p.ts)+'</span><span class="log-badge '+b+'">'+b+'</span><span class="log-msg">'+esc(p.msg)+'</span></div>';
+  var mc=p.cat==='err'?'#dc2626':'#d97706';
+  return '<div class="log-row"><span class="log-ts">'+esc(p.ts)+'</span><span class="log-badge '+b+'">'+b+'</span><span class="log-msg" style="color:'+mc+'">'+esc(p.msg)+'</span></div>';
 }
 
 var _logTimer=null;
