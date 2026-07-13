@@ -258,6 +258,7 @@ function connectSSE(){
   _evtSource.onopen=function(){
     document.getElementById('logStreamStatus').textContent='实时';
     _logLines=[];
+    renderAllTabs();
   };
   _evtSource.onmessage=function(e){
     if(!e.data)return;
