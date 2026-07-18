@@ -1,5 +1,5 @@
 {
-    "backend": "https://maintained-tapes-most-vsnet.trycloudflare.com",
+    "backend": "https://pike-surrounded-ppc-symposium.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
