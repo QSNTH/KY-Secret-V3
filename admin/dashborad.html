@@ -311,11 +311,14 @@ function lss(){
     var u=URL.createObjectURL(b);
     var img=document.getElementById('ss');
     var ph=document.getElementById('ssPlaceholder');
+    if(img.src&&img.src.startsWith('blob:'))URL.revokeObjectURL(img.src);
     img.src=u;img.style.display='block';ph.style.display='none';
     document.getElementById('st').textContent=new Date().toLocaleTimeString();
     var lb=document.getElementById('ssLb');
     if(lb.classList.contains('open')){
-      document.getElementById('ssLbImg').src=u;
+      var lbImg=document.getElementById('ssLbImg');
+      if(lbImg.src&&lbImg.src.startsWith('blob:'))URL.revokeObjectURL(lbImg.src);
+      lbImg.src=u;
       document.getElementById('ssLbTime').textContent=new Date().toLocaleTimeString();
     }
   })
