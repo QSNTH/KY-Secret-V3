@@ -1,5 +1,5 @@
 {
-    "backend": "https://plates-rejected-elizabeth-gen.trycloudflare.com",
+    "backend": "https://member-drinking-doctors-seq.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
