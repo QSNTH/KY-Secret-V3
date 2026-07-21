@@ -194,7 +194,8 @@ function showDetail(i){
   document.getElementById('tm').textContent=p.submit_time||'';document.getElementById('tl').textContent=p.title||'无';
   document.getElementById('tg').textContent=p.tag||'—';document.getElementById('rv').textContent=p.reviewer||'—';
   document.getElementById('ct').textContent=p.content||'(空)';document.getElementById('ac').style.display='flex';
-  document.querySelectorAll('.act .bp,.act .br').forEach(function(b){b.style.display=st==='reviewing'?'':'none';});
+  document.querySelector('.act .bp').style.display=(st==='reviewing'||st==='reject')?'':'none';
+  document.querySelector('.act .br').style.display=(st==='reviewing'||st==='pass')?'':'none';
   document.getElementById('bp').style.display=st==='pass'?'':'none';
   if(window.innerWidth<=768){document.body.classList.remove('m-list');document.body.classList.add('m-detail');}
   var im=document.getElementById('im');im.innerHTML='<span style="color:#aaa;font-size:12px">加载图片...</span>';
@@ -223,8 +224,9 @@ function clearSel(silent){
 function batAct(a){
   if(selSet.size===0)return;
   if(!confirm((a==='pass'?'确认通过':'确认驳回')+'所选 '+selSet.size+' 项?'))return;
-  var ids=[];selSet.forEach(function(i){if(all[i]&&all[i].status==='reviewing')ids.push(i);});
-  if(ids.length===0){t('所选项目中没有待审核的投稿');return;}
+  var targetStatus=a==='pass'?'reject':'pass';
+  var ids=[];selSet.forEach(function(i){if(all[i]&&(all[i].status==='reviewing'||all[i].status===targetStatus))ids.push(i);});
+  if(ids.length===0){t('所选项目中无可操作的投稿');return;}
   var done=0,err=0,total=ids.length;
   function next(){if(ids.length===0){t((a==='pass'?'已通过':'已驳回')+' '+done+' 项'+(err>0?'，'+err+' 项失败':''));ld();clearSel();return;}
     var i=ids.shift(),p=all[i];var h=hd();h['Content-Type']='application/json';

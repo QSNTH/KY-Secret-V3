@@ -146,7 +146,7 @@ function ls(){
 }
 
 function lh(){
-  fetch(B.replace(/\/api$/,'')+'/api/status',{headers:hd()}).then(function(r){if(!r.ok)return;r.json().then(function(d){
+  fetch(B.replace(/\/api$/,'')+'/api/status?_t='+Date.now(),{headers:hd()}).then(function(r){if(!r.ok)return;r.json().then(function(d){
   var pc=function(p){return p<60?'g':p<85?'y':'r';};
   var ht=function(t){return t>50?' <span class="hot">高温</span>':'';};
   document.getElementById('hw').innerHTML=
