@@ -1,5 +1,5 @@
 {
-    "backend": "https://api.trycloudflare.com",
+    "backend": "https://labels-aged-exhaust-vote.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
