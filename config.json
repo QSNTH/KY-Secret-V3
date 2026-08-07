@@ -1,5 +1,5 @@
 {
-    "backend": "https://synthesis-maritime-horizontal-challenges.trycloudflare.com",
+    "backend": "https://europe-frequencies-warnings-arabia.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
