@@ -1,5 +1,5 @@
 {
-    "backend": "https://europe-frequencies-warnings-arabia.trycloudflare.com",
+    "backend": "https://drink-angela-ports-huge.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
