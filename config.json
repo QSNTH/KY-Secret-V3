@@ -1,5 +1,5 @@
 {
-    "backend": "https://steam-wiring-mentioned-talks.trycloudflare.com",
+    "backend": "https://begin-madrid-tile-dozens.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
