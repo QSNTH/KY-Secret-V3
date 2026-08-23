@@ -662,20 +662,48 @@
     (function() {
       "use strict";
 
-      // 配置加载
-      async function loadConfig() {
-        try {
-          const response = await fetch('https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json?t=' + Date.now());
-          const config = await response.json();
-          config.backend = (config.backend || '').trim();
-          return config;
-        } catch (e) {
-          console.warn('无法加载配置，使用默认值');
-          return {
-            backend: 'https://chapel-compounds-currency-socket.trycloudflare.com',
-            api: '/api'
-          };
+      // 配置加载（带超时重试：连续 5 次超时 → 重新获取 URL）
+      // 唯一数据源：GitHub 上的 config.json（后端 Tunnel 自动推送当前 URL），无本地/硬编码兜底
+      const CONFIG_URL = 'https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json';
+      const CONFIG_FETCH_TIMEOUT = 5000;
+      const CONFIG_MAX_TIMEOUTS = 5;
+      let lastKnownConfig = null;
+
+      function fetchWithTimeout(url, ms) {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), ms);
+        return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(timer));
+      }
+
+      // 校验 backend URL：拦截 "https://.trycloudflare.com" 这类前缀丢失的坏 URL
+      function isValidBackendUrl(url) {
+        if (!url) return false;
+        url = String(url).trim();
+        if (!/^https?:\/\//i.test(url)) return false;
+        if (/^https?:\/\/\./i.test(url)) return false;
+        if (/\.trycloudflare\.com/i.test(url)) {
+          return /^https:\/\/[a-z0-9-]+\.trycloudflare\.com\/?$/i.test(url);
         }
+        return /^https?:\/\/[^\s\/]+(\/.*)?$/i.test(url);
+      }
+
+      async function loadConfig() {
+        for (let attempt = 1; attempt <= CONFIG_MAX_TIMEOUTS; attempt++) {
+          try {
+            const response = await fetchWithTimeout(CONFIG_URL + '?t=' + Date.now(), CONFIG_FETCH_TIMEOUT);
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            const config = await response.json();
+            const backend = String(config.backend || '').trim();
+            if (!isValidBackendUrl(backend)) throw new Error('无效 backend URL: ' + backend);
+            config.backend = backend;
+            lastKnownConfig = config;
+            return config;
+          } catch (e) {
+            console.warn(`配置获取失败 (${attempt}/${CONFIG_MAX_TIMEOUTS}):`, e.message);
+          }
+        }
+        console.warn('无法加载配置，等待下一轮自动重试');
+        return lastKnownConfig || { backend: '', api: '/api' };
       }
 
       // 服务状态枚举

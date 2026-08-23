@@ -13,7 +13,15 @@
     };
 
     // 使用立即执行函数，保证配置在DOM加载前启动
+    // 唯一数据源：GitHub 上的 config.json（由后端 Tunnel 自动推送当前 URL）
+    // 断网/超时时只重试，不做任何本地或硬编码兜底
     (async function initConfig() {
+        const CONFIG_URL = 'https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json';
+        const FETCH_TIMEOUT_MS = 8000;  // 单次请求超时
+        const MAX_TIMEOUTS = 5;         // 连续超时 5 次 → 重新获取 URL
+        const RETRY_DELAY_MS = 1500;    // 每次重试间隔
+        const ROUND_DELAY_MS = 3000;    // 一轮失败后、开始新一轮前的间隔
+
         // 先挂载 getUrl 工具函数（后面所有路径都会用到）
         window.KY_CONFIG.getUrl = function(endpoint, params = {}) {
             let path = window.KY_CONFIG.endpoints[endpoint];
@@ -22,63 +30,78 @@
             return `${window.KY_CONFIG.backendUrl}${window.KY_CONFIG.apiPrefix}${path}`;
         };
 
-        // 如果通过 localhost 访问，直接读本地 config.json，跳过 GitHub
-        if (location.hostname === '127.0.0.1' || location.hostname === 'localhost') {
-            try {
-                const localResponse = await fetch('/config.json');
-                const localConfig = await localResponse.json();
-                window.KY_CONFIG.backendUrl = (localConfig.backend || '').trim();
-                window.KY_CONFIG.apiPrefix = localConfig.api || '/api';
-                window.KY_CONFIG.endpoints = localConfig;
-                console.log('✅ 本地配置加载成功');
-                window.dispatchEvent(new CustomEvent('configLoaded', { detail: window.KY_CONFIG }));
-                return;
-            } catch (e) {
-                console.warn('本地配置加载失败，尝试GitHub');
+        // 带超时的 fetch（防止断网时请求无限挂起）
+        function fetchWithTimeout(url, ms) {
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), ms);
+            return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(timer));
+        }
+
+        // 校验 backend URL：拦截 "https://.trycloudflare.com" 这类前缀丢失的坏 URL
+        function isValidBackendUrl(url) {
+            if (!url) return false;
+            url = String(url).trim();
+            if (!/^https?:\/\//i.test(url)) return false;
+            if (/^https?:\/\/\./i.test(url)) return false;
+            if (/\.trycloudflare\.com/i.test(url)) {
+                return /^https:\/\/[a-z0-9-]+\.trycloudflare\.com\/?$/i.test(url);
+            }
+            return /^https?:\/\/[^\s\/]+(\/.*)?$/i.test(url);
+        }
+
+        // 单次获取并校验配置
+        async function fetchConfigFrom(url) {
+            const resp = await fetchWithTimeout(url + '?t=' + Date.now(), FETCH_TIMEOUT_MS);
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const cfg = await resp.json();
+            const backend = String(cfg.backend || cfg.backendBaseUrl || '').trim();
+            if (!isValidBackendUrl(backend)) throw new Error('无效 backend URL: ' + backend);
+            return cfg;
+        }
+
+        function applyConfig(cfg) {
+            window.KY_CONFIG.backendUrl = (cfg.backend || cfg.backendBaseUrl || '').trim();
+            window.KY_CONFIG.apiPrefix = cfg.api || '/api';
+            window.KY_CONFIG.endpoints = cfg;
+        }
+
+        // 每轮最多 MAX_TIMEOUTS 次超时重试；一轮失败 → 重新获取 URL（新的一轮），直到成功
+        let round = 0;
+        while (!window.KY_CONFIG.backendUrl) {
+            round++;
+            let loaded = false;
+            for (let attempt = 1; attempt <= MAX_TIMEOUTS; attempt++) {
+                try {
+                    const cfg = await fetchConfigFrom(CONFIG_URL);
+                    applyConfig(cfg);
+                    loaded = true;
+                    console.log(`✅ 配置加载成功 (第${round}轮/第${attempt}次):`, window.KY_CONFIG.backendUrl);
+                    break;
+                } catch (e) {
+                    console.warn(`⚠️ 配置获取失败 (第${round}轮 ${attempt}/${MAX_TIMEOUTS}):`, e.message);
+                    await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+                }
+            }
+            if (!loaded) {
+                console.warn(`⛔ 连续 ${MAX_TIMEOUTS} 次超时 → 重新获取 URL（第 ${round + 1} 轮）...`);
+                await new Promise(r => setTimeout(r, ROUND_DELAY_MS));
             }
         }
-        try {
-            // 尝试从GitHub加载
-            const githubResponse = await fetch('https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json?t=' + Date.now());
-            const githubConfig = await githubResponse.json();
-            
-            window.KY_CONFIG.backendUrl = githubConfig.backend || githubConfig.backendBaseUrl;
-            window.KY_CONFIG.apiPrefix = githubConfig.api || '/api';
-            window.KY_CONFIG.endpoints = githubConfig;
-            
-            console.log('✅ 配置加载成功:', window.KY_CONFIG.backendUrl);
-        } catch (e) {
-            console.warn('⚠️ GitHub配置加载失败，尝试本地配置...');
-            
-            try {
-                const localResponse = await fetch('/config.json');
-                const localConfig = await localResponse.json();
-                
-                window.KY_CONFIG.backendUrl = (localConfig.backend || '').trim();
-                window.KY_CONFIG.apiPrefix = localConfig.api || '/api';
-                window.KY_CONFIG.endpoints = localConfig;
-                
-                console.log('✅ 本地配置加载成功');
-            } catch (e2) {
-                console.warn('⚠️ 本地配置也失败，使用硬编码备份');
-                
-                window.KY_CONFIG.backendUrl = 'https://pvc-coins-productivity-dropped.trycloudflare.com';
-                window.KY_CONFIG.apiPrefix = '/api';
-                window.KY_CONFIG.endpoints = {
-                    submit: '/submit',
-                    lookup: '/lookup/{uuid}',
-                    status: '/status',
-                    admin_login: '/admin/login',
-                    admin_logout: '/admin/logout',
-                    admin_find: '/admin/find',
-                    admin_review: '/admin/review',
-                    admin_history: '/admin/history'
-                };
-            }
-        }
-        
+
         // 配置加载完成后触发表单可以提交
         window.dispatchEvent(new CustomEvent('configLoaded', { detail: window.KY_CONFIG }));
+
+        // Tunnel 每天会换新 URL：页面打开期间每 60s 后台刷新一次，变了就热更新
+        setInterval(async function() {
+            try {
+                const fresh = await fetchConfigFrom(CONFIG_URL);
+                const newUrl = String(fresh.backend || '').trim();
+                if (newUrl !== window.KY_CONFIG.backendUrl) {
+                    applyConfig(fresh);
+                    console.log('🔄 后台刷新 Tunnel URL 成功:', newUrl);
+                }
+            } catch (e) { /* 暂时失败，下个周期再试 */ }
+        }, 60000);
     })();
     </script>
     <style>
