@@ -1,5 +1,5 @@
 {
-    "backend": "https://components-tickets-arctic-absolutely.trycloudflare.com",
+    "backend": "https://podcast-system-drew-screenshot.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
