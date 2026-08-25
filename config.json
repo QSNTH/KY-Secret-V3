@@ -1,5 +1,5 @@
 {
-    "backend": "https://organization-blacks-ambassador-recommendations.trycloudflare.com",
+    "backend": "https://gage-deferred-dpi-finder.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
