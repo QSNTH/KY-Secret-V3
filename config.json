@@ -1,5 +1,5 @@
 {
-    "backend": "https://battle-brad-supports-socket.trycloudflare.com",
+    "backend": "https://dev-english-cork-advance.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
