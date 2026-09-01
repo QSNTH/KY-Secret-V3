@@ -1,5 +1,5 @@
 {
-    "backend": "https://italia-conservation-warranty-blades.trycloudflare.com",
+    "backend": "https://bibliographic-tsunami-counties-abstracts.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
