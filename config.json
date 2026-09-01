@@ -1,5 +1,5 @@
 {
-    "backend": "https://paperback-char-humanity-bacon.trycloudflare.com",
+    "backend": "https://sounds-flag-fairfield-database.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
