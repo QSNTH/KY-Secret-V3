@@ -1,5 +1,5 @@
 {
-    "backend": "https://consist-sticky-rivers-aruba.trycloudflare.com",
+    "backend": "https://sodium-threshold-sig-joining.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
