@@ -1,5 +1,5 @@
 {
-    "backend": "https://ron-scroll-builders-only.trycloudflare.com",
+    "backend": "https://expo-generators-quebec-cdt.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
