@@ -1,5 +1,5 @@
 {
-    "backend": "https://hurricane-interim-adam-agent.trycloudflare.com",
+    "backend": "https://qualification-chicago-adaptor-cabinet.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
