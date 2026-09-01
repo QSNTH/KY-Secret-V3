@@ -1,5 +1,5 @@
 {
-    "backend": "https://reviewed-expires-smilies-releases.trycloudflare.com",
+    "backend": "https://stephen-emotions-queen-cdt.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
