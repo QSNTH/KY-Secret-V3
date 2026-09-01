@@ -1,5 +1,5 @@
 {
-    "backend": "https://census-victoria-amd-clarity.trycloudflare.com",
+    "backend": "https://proposals-fits-cheaper-tough.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
