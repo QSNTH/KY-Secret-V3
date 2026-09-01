@@ -1,5 +1,5 @@
 {
-    "backend": "https://sounds-flag-fairfield-database.trycloudflare.com",
+    "backend": "https://sized-caught-triple-vinyl.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
