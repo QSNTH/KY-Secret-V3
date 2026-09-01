@@ -1,5 +1,5 @@
 {
-    "backend": "https://pierre-function-ppm-pixel.trycloudflare.com",
+    "backend": "https://dpi-textile-ease-thing.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
