@@ -1,5 +1,5 @@
 {
-    "backend": "https://tar-contract-mba-locally.trycloudflare.com",
+    "backend": "https://chair-units-commands-visitors.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
