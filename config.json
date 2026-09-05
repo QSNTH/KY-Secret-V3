@@ -1,5 +1,5 @@
 {
-    "backend": "https://clocks-coordinator-removable-mailman.trycloudflare.com",
+    "backend": "https://tablet-identity-flame-vpn.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
