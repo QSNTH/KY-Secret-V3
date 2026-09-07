@@ -1,5 +1,5 @@
 {
-    "backend": "https://industrial-hay-transform-msg.trycloudflare.com",
+    "backend": "https://word-shopping-abc-consideration.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
