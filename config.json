@@ -1,5 +1,5 @@
 {
-    "backend": "https://wise-strap-reduced-compare.trycloudflare.com",
+    "backend": "https://tel-charges-rooms-optional.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
