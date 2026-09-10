@@ -1,5 +1,5 @@
 {
-    "backend": "https://introduced-oclc-university-passengers.trycloudflare.com",
+    "backend": "https://clerk-drops-civilization-fits.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
