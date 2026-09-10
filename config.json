@@ -1,5 +1,5 @@
 {
-    "backend": "https://clerk-drops-civilization-fits.trycloudflare.com",
+    "backend": "https://apartment-logging-mud-mark.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
