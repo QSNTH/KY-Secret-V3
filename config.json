@@ -1,5 +1,5 @@
 {
-    "backend": "https://mil-projects-mix-rachel.trycloudflare.com",
+    "backend": "https://inns-passengers-blank-downtown.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
