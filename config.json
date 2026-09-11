@@ -1,5 +1,5 @@
 {
-    "backend": "https://api.trycloudflare.com",
+    "backend": "https://family-wichita-classified-state.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
