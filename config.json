@@ -1,5 +1,5 @@
 {
-    "backend": "https://deals-rise-they-enb.trycloudflare.com",
+    "backend": "https://oliver-isp-condition-travis.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
