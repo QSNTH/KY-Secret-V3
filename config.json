@@ -1,5 +1,5 @@
 {
-    "backend": "https://rev-spots-outlet-php.trycloudflare.com",
+    "backend": "https://cluster-adaptor-floral-bob.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
