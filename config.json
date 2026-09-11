@@ -1,5 +1,5 @@
 {
-    "backend": "https://significant-porter-stereo-forums.trycloudflare.com",
+    "backend": "https://generators-cedar-idea-skin.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
