@@ -1,5 +1,5 @@
 {
-    "backend": "https://manuals-relations-bones-too.trycloudflare.com",
+    "backend": "https://daniel-msg-processor-commentary.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
