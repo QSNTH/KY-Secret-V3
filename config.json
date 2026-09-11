@@ -1,5 +1,5 @@
 {
-    "backend": "https://reader-parent-fully-count.trycloudflare.com",
+    "backend": "https://citysearch-costs-provision-syracuse.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
