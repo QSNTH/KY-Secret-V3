@@ -1,5 +1,5 @@
 {
-    "backend": "https://cluster-adaptor-floral-bob.trycloudflare.com",
+    "backend": "https://tribunal-moments-isp-disable.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
