@@ -1,5 +1,5 @@
 {
-    "backend": "https://brass-britannica-response-generates.trycloudflare.com",
+    "backend": "https://pools-guestbook-provisions-sporting.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
