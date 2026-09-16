@@ -1,5 +1,5 @@
 {
-    "backend": "https://spa-yourself-royal-invitations.trycloudflare.com",
+    "backend": "https://inc-mayor-medline-python.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
