@@ -1,5 +1,5 @@
 {
-    "backend": "https://payment-engineering-abs-pepper.trycloudflare.com",
+    "backend": "https://vinyl-aye-gras-medicaid.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
