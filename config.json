@@ -1,5 +1,5 @@
 {
-    "backend": "https://integrated-jesus-gaps-galleries.trycloudflare.com",
+    "backend": "https://payment-engineering-abs-pepper.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
