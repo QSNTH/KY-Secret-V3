@@ -1,5 +1,5 @@
 {
-    "backend": "https://spencer-manga-progress-centered.trycloudflare.com",
+    "backend": "https://tutorials-susan-planets-bind.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
