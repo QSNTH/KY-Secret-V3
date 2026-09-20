@@ -1,5 +1,5 @@
 {
-    "backend": "https://journalist-works-protocol-international.trycloudflare.com",
+    "backend": "https://authorized-merchants-associated-apollo.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
@@ -16,5 +16,7 @@
     "admin_queue": "/admin/queue",
     "admin_logs": "/admin/logs",
     "health": "/health",
-    "policies": "/policies"
+    "policies": "/policies",
+    "ad_delay": 86400,
+    "ad_link": "https://ys.mihoyo.com/"
 }
