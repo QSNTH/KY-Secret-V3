@@ -1,5 +1,5 @@
 {
-    "backend": "https://authorized-merchants-associated-apollo.trycloudflare.com",
+    "backend": "https://bless-incident-either-from.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
