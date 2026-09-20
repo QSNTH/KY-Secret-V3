@@ -13,10 +13,14 @@
     };
 
     // 使用立即执行函数，保证配置在DOM加载前启动
-    // 唯一数据源：GitHub 上的 config.json（由后端 Tunnel 自动推送当前 URL）
+    // 主源：pages.dev 部署站的 config.json（Pages 构建最快，避免 raw CDN 延迟）
+    // 兜底：GitHub raw（由后端 Tunnel 自动推送当前 URL）
     // 断网/超时时只重试，不做任何本地或硬编码兜底
     (async function initConfig() {
-        const CONFIG_URL = 'https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json';
+        const CONFIG_URLS = [
+            'https://ky-secret-v3.pages.dev/config.json',
+            'https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json'
+        ];
         const FETCH_TIMEOUT_MS = 8000;  // 单次请求超时
         const MAX_TIMEOUTS = 5;         // 连续超时 5 次 → 重新获取 URL
         const RETRY_DELAY_MS = 1500;    // 每次重试间隔
@@ -49,14 +53,20 @@
             return /^https?:\/\/[^\s\/]+(\/.*)?$/i.test(url);
         }
 
-        // 单次获取并校验配置
-        async function fetchConfigFrom(url) {
-            const resp = await fetchWithTimeout(url + '?t=' + Date.now(), FETCH_TIMEOUT_MS);
-            if (!resp.ok) throw new Error('HTTP ' + resp.status);
-            const cfg = await resp.json();
-            const backend = String(cfg.backend || cfg.backendBaseUrl || '').trim();
-            if (!isValidBackendUrl(backend)) throw new Error('无效 backend URL: ' + backend);
-            return cfg;
+        // 依次尝试多个源，全部失败才抛错
+        async function fetchConfigFrom() {
+            let lastErr = null;
+            for (const url of CONFIG_URLS) {
+                try {
+                    const resp = await fetchWithTimeout(url + '?t=' + Date.now(), FETCH_TIMEOUT_MS);
+                    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                    const cfg = await resp.json();
+                    const backend = String(cfg.backend || cfg.backendBaseUrl || '').trim();
+                    if (!isValidBackendUrl(backend)) throw new Error('无效 backend URL: ' + backend);
+                    return cfg;
+                } catch (e) { lastErr = e; }
+            }
+            throw lastErr || new Error('config fetch failed');
         }
 
         function applyConfig(cfg) {
@@ -72,7 +82,7 @@
             let loaded = false;
             for (let attempt = 1; attempt <= MAX_TIMEOUTS; attempt++) {
                 try {
-                    const cfg = await fetchConfigFrom(CONFIG_URL);
+                    const cfg = await fetchConfigFrom();
                     applyConfig(cfg);
                     loaded = true;
                     console.log(`✅ 配置加载成功 (第${round}轮/第${attempt}次):`, window.KY_CONFIG.backendUrl);
@@ -94,7 +104,7 @@
         // Tunnel 每天会换新 URL：页面打开期间每 60s 后台刷新一次，变了就热更新
         setInterval(async function() {
             try {
-                const fresh = await fetchConfigFrom(CONFIG_URL);
+                const fresh = await fetchConfigFrom();
                 const newUrl = String(fresh.backend || '').trim();
                 if (newUrl !== window.KY_CONFIG.backendUrl) {
                     applyConfig(fresh);

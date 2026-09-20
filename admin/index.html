@@ -48,7 +48,17 @@ body{background:#f7fafc;display:flex;justify-content:center;align-items:center;m
 <script>
 let BACKEND = '';
 
-(async function(){try{const r=await fetch('https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json?t='+Date.now());const c=await r.json();BACKEND=(c.backend||'').trim()+c.api;}catch(e){try{const r=await fetch('/config.json');const c=await r.json();BACKEND=(c.backend||'').trim()+c.api;}catch(e2){}}})();
+(async function(){
+  const urls=['https://ky-secret-v3.pages.dev/config.json','https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json','/config.json'];
+  for(const u of urls){
+    try{
+      const r=await fetch(u.indexOf('/config.json')>=0?(u.indexOf('?')>=0?u+'&t='+Date.now():u+'?t='+Date.now()):u+'?t='+Date.now());
+      const c=await r.json();
+      BACKEND=(c.backend||'').trim()+c.api;
+      break;
+    }catch(e){}
+  }
+})();
 
 async function doLogin(){
   const u=document.getElementById('u').value,p=document.getElementById('p').value;

@@ -465,11 +465,13 @@
             "use strict";
 
             // ========= KY Config =========
-            // 唯一数据源：GitHub 上的 config.json（后端 Tunnel 自动推送当前 URL）
-            // 断网/超时时只重试，不做本地或 IP 兜底
+            // 主源：pages.dev（构建最快）；兜底：GitHub raw；断网/超时时只重试
             window.KY_CONFIG = { backendUrl: '', apiPrefix: '/api', endpoints: {} };
             (async function initConfig() {
-                const CONFIG_URL = 'https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json';
+                const CONFIG_URLS = [
+                    'https://ky-secret-v3.pages.dev/config.json',
+                    'https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json'
+                ];
                 const FETCH_TIMEOUT_MS = 8000;
                 const MAX_TIMEOUTS = 5;
                 const RETRY_DELAY_MS = 1500;
@@ -488,13 +490,19 @@
                     if (/\.trycloudflare\.com/i.test(url)) return /^https:\/\/[a-z0-9-]+\.trycloudflare\.com\/?$/i.test(url);
                     return /^https?:\/\/[^\s\/]+(\/.*)?$/i.test(url);
                 }
-                async function fetchConfigFrom(url) {
-                    const resp = await fetchWithTimeout(url + '?t=' + Date.now(), FETCH_TIMEOUT_MS);
-                    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-                    const cfg = await resp.json();
-                    const backend = String(cfg.backend || cfg.backendBaseUrl || '').trim();
-                    if (!isValidBackendUrl(backend)) throw new Error('无效 backend URL: ' + backend);
-                    return cfg;
+                async function fetchConfigFrom() {
+                    let lastErr = null;
+                    for (const url of CONFIG_URLS) {
+                        try {
+                            const resp = await fetchWithTimeout(url + '?t=' + Date.now(), FETCH_TIMEOUT_MS);
+                            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                            const cfg = await resp.json();
+                            const backend = String(cfg.backend || cfg.backendBaseUrl || '').trim();
+                            if (!isValidBackendUrl(backend)) throw new Error('无效 backend URL: ' + backend);
+                            return cfg;
+                        } catch (e) { lastErr = e; }
+                    }
+                    throw lastErr || new Error('config fetch failed');
                 }
                 function applyConfig(cfg) {
                     window.KY_CONFIG.backendUrl = (cfg.backend || '').trim();
@@ -509,7 +517,7 @@
                     let loaded = false;
                     for (let attempt = 1; attempt <= MAX_TIMEOUTS; attempt++) {
                         try {
-                            applyConfig(await fetchConfigFrom(CONFIG_URL));
+                            applyConfig(await fetchConfigFrom());
                             loaded = true;
                             console.log(`✅ 配置加载成功 (第${round}轮/第${attempt}次):`, window.KY_CONFIG.backendUrl);
                             break;

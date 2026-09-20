@@ -131,7 +131,17 @@ var selSet=new Set(),anchorIdx=null,focusIdx=null;
 (function initAll(){if(!T){location.href='index.html';return;}
   if(window.innerWidth<=768)document.body.classList.add('m-list');
   window.addEventListener('resize',function(){if(window.innerWidth>768){document.body.classList.remove('m-list','m-detail');}});
-  fetch('https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json?t='+Date.now()).then(function(r){return r.json()}).then(function(c){B=(c.backend||'').trim()+c.api;ld();setInterval(ld,15000);}).catch(function(){fetch('/config.json').then(function(r){return r.json()}).then(function(c){B=(c.backend||'').trim()+c.api;ld();setInterval(ld,15000);}).catch(function(){document.getElementById('li').innerHTML='<div style="text-align:center;padding:20px;color:#e74c3c">无法加载配置</div>';});});
+  // 配置源链：pages.dev（最快）→ GitHub raw → 本地 /config.json
+  var cfgUrls=['https://ky-secret-v3.pages.dev/config.json','https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json','/config.json'];
+  function ok(c){B=(c.backend||'').trim()+c.api;ld();setInterval(ld,15000);}
+  function tryAt(i){
+    if(i>=cfgUrls.length){document.getElementById('li').innerHTML='<div style="text-align:center;padding:20px;color:#e74c3c">无法加载配置</div>';return;}
+    var u=cfgUrls[i];
+    if(u.indexOf('/config.json')>=0){u+=((u.indexOf('?')>=0)?'&':'?')+'t='+Date.now();}
+    else{u+='?t='+Date.now();}
+    fetch(u).then(function(r){return r.json()}).then(ok).catch(function(){tryAt(i+1);});
+  }
+  tryAt(0);
 })();
 
 function t(m){var e=document.getElementById('toast');e.textContent=m;e.classList.add('s');setTimeout(function(){e.classList.remove('s');},2000);}

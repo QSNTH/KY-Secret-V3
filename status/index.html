@@ -663,8 +663,11 @@
       "use strict";
 
       // 配置加载（带超时重试：连续 5 次超时 → 重新获取 URL）
-      // 唯一数据源：GitHub 上的 config.json（后端 Tunnel 自动推送当前 URL），无本地/硬编码兜底
-      const CONFIG_URL = 'https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json';
+      // 主源：pages.dev（构建最快）；兜底：GitHub raw；无本地/硬编码兜底
+      const CONFIG_URLS = [
+        'https://ky-secret-v3.pages.dev/config.json',
+        'https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json'
+      ];
       const CONFIG_FETCH_TIMEOUT = 5000;
       const CONFIG_MAX_TIMEOUTS = 5;
       let lastKnownConfig = null;
@@ -689,18 +692,20 @@
 
       async function loadConfig() {
         for (let attempt = 1; attempt <= CONFIG_MAX_TIMEOUTS; attempt++) {
-          try {
-            const response = await fetchWithTimeout(CONFIG_URL + '?t=' + Date.now(), CONFIG_FETCH_TIMEOUT);
-            if (!response.ok) throw new Error('HTTP ' + response.status);
-            const config = await response.json();
-            const backend = String(config.backend || '').trim();
-            if (!isValidBackendUrl(backend)) throw new Error('无效 backend URL: ' + backend);
-            config.backend = backend;
-            lastKnownConfig = config;
-            return config;
-          } catch (e) {
-            console.warn(`配置获取失败 (${attempt}/${CONFIG_MAX_TIMEOUTS}):`, e.message);
+          let lastErr = null;
+          for (const url of CONFIG_URLS) {
+            try {
+              const response = await fetchWithTimeout(url + '?t=' + Date.now(), CONFIG_FETCH_TIMEOUT);
+              if (!response.ok) throw new Error('HTTP ' + response.status);
+              const config = await response.json();
+              const backend = String(config.backend || '').trim();
+              if (!isValidBackendUrl(backend)) throw new Error('无效 backend URL: ' + backend);
+              config.backend = backend;
+              lastKnownConfig = config;
+              return config;
+            } catch (e) { lastErr = e; }
           }
+          console.warn(`配置获取失败 (${attempt}/${CONFIG_MAX_TIMEOUTS}):`, lastErr && lastErr.message);
         }
         console.warn('无法加载配置，等待下一轮自动重试');
         return lastKnownConfig || { backend: '', api: '/api' };
