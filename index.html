@@ -694,11 +694,11 @@
 
 
     <!-- ✦ 开屏广告 ✦ -->
-    <div id="splashOverlay" class="splash-overlay" onclick="closeSplash()">
+    <div id="splashOverlay" class="splash-overlay hidden" onclick="closeSplash()">
       <div class="splash-box">
         <button class="splash-close" onclick="event.stopPropagation();closeSplash()">✕</button>
         <a id="splashLink" href="https://ys.mihoyo.com/" target="_blank" onclick="event.stopPropagation()">
-          <img id="splashImg" src="https://upload-bbs.miyoushe.com/upload/2026/06/18/75276539/808b90fb762003786c30ca2b3c9e820b_6351823761887449680.jpg?x-oss-process=image//resize,s_600/quality,q_80/auto-orient,0/interlace,1/format,jpg" alt="广告" onerror="this.style.display='none';closeSplash()">
+          <img id="splashImg" src="" alt="广告" onerror="this.style.display='none';closeSplash()">
         </a>
       </div>
     </div>
@@ -854,7 +854,7 @@
     document.body.appendChild(_devBadge);
     if (localStorage.getItem('ky_dev_mode') === 'true') _devBadge.style.display = 'block';
 
-    // 开屏广告：从 config.json 读取 ad_delay（秒）控制弹出间隔，ad_link 控制跳转
+    // 开屏广告：从后端 /api/ad 拉取配置（后端管理面板可改，无需重新部署前端）
     window.closeSplash = function() {
       var el=document.getElementById('splashOverlay');
       if(el)el.classList.add('hidden');
@@ -862,20 +862,49 @@
     };
     (function(){
       var a=document.getElementById('splashLink');
-      fetch('./config.json').then(function(r){return r.json()}).then(function(c){
+      var img=document.getElementById('splashImg');
+      var overlay=document.getElementById('splashOverlay');
+
+      function applyAd(c){
+        if(!c||!c.enabled){
+          if(overlay)overlay.classList.add('hidden');
+          return;
+        }
+        // 无广告图片则不出弹窗
+        var base=(window.KY_CONFIG&&window.KY_CONFIG.backendUrl)?window.KY_CONFIG.backendUrl:'';
+        if(!c.image_url||!base){
+          if(overlay)overlay.classList.add('hidden');
+          return;
+        }
         // 广告链接
-        if(c.ad_link&&c.ad_link.trim()){a.href=c.ad_link.trim();}else{a.href='#';a.onclick=function(e){e.preventDefault();closeSplash();};}
-        // 弹出延迟（秒），默认 1800s = 30min
-        var delay=(parseInt(c.ad_delay)||1800)*1000;
+        if(c.link&&c.link.trim()){a.href=c.link.trim();}else{a.href='#';a.onclick=function(e){e.preventDefault();closeSplash();};}
+        // 广告图片（后端托管）
+        img.src=base+c.image_url+'?t='+Date.now();
+        // 弹出延迟（秒），默认 86400s = 每天一次
+        var delay=(parseInt(c.interval_seconds)||86400)*1000;
         try{
           var last=localStorage.getItem('ky_splash_closed');
-          if(last&&(Date.now()-parseInt(last)<delay)){
-            document.getElementById('splashOverlay').classList.add('hidden');
-          }
+          if(last&&(Date.now()-parseInt(last)<delay))return;
         }catch(e){}
-      }).catch(function(){
-        a.href='#';a.onclick=function(e){e.preventDefault();closeSplash();};
-      });
+        overlay.classList.remove('hidden');
+      }
+
+      function loadAd(){
+        var base=(window.KY_CONFIG&&window.KY_CONFIG.backendUrl)?window.KY_CONFIG.backendUrl:'';
+        if(!base)return;
+        fetch(base+'/api/ad').then(function(r){return r.json()}).then(applyAd)
+        .catch(function(){
+          a.href='#';a.onclick=function(e){e.preventDefault();closeSplash();};
+        });
+      }
+
+      if(window.KY_CONFIG&&window.KY_CONFIG.backendUrl){loadAd();}
+      else{
+        window.addEventListener('configLoaded',function(){
+          loadAd();
+          window.addEventListener('load',function(){setTimeout(loadAd,3000);});
+        },{once:true});
+      }
       a.onclick=function(e){
         if(a.getAttribute('href')==='#'||!a.getAttribute('href')){
           e.preventDefault();closeSplash();

@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
+<title>KY Secret V3 · 设置中心</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+body{background:#f7fafc;color:#222;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.tb{background:#fff;color:#1a2a1a;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;border-bottom:1px solid #e2ecf5;flex-shrink:0}
+.tb h1{font-size:18px;font-weight:900;letter-spacing:-0.02em}
+.tb .nv{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tb a,.tb button{border:1px solid #e2e8f0;border-radius:40px;background:#fff;color:#334155;padding:6px 16px;cursor:pointer;font-size:13px;font-weight:550;text-decoration:none;white-space:nowrap;transition:.15s}
+.tb a:hover,.tb button:hover{background:#eef2f6;border-color:#cbd5e1}
+.wrap{flex:1;display:flex;min-height:0}
+.side{width:250px;min-width:220px;background:#fff;border-right:1px solid #e2ecf5;overflow-y:auto;padding:16px 12px;flex-shrink:0}
+.side .grp{font-size:11px;color:#94a3b8;font-weight:700;letter-spacing:.06em;padding:14px 10px 6px;text-transform:uppercase}
+.side .grp:first-child{padding-top:4px}
+.side .nav-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;cursor:pointer;font-size:14px;color:#334155;transition:.15s;border:1.5px solid transparent;user-select:none;margin-bottom:2px}
+.side .nav-item:hover{background:#f3f7f4}
+.side .nav-item.on{background:#edf7f0;border-color:#1a7a3a;color:#1a5a2a;font-weight:650}
+.side .nav-item .ic{font-size:16px;width:22px;text-align:center}
+.side .nav-item .lk{position:relative;top:-5px;font-size:10px;margin-left:-2px;color:#e74c3c}
+.main{flex:1;overflow-y:auto;scroll-behavior:smooth;padding:20px 24px 60px}
+.sec{background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.04);padding:24px;margin-bottom:20px;max-width:760px;transition:box-shadow .3s}
+.sec h3{font-size:16px;color:#1a5a2a;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.sec .sub{font-size:12px;color:#94a3b8;margin-bottom:18px}
+@keyframes flashSec{0%,100%{box-shadow:0 1px 4px rgba(0,0,0,.04)}25%,75%{box-shadow:0 0 0 5px rgba(26,122,58,.30)}}
+.sec.flash{animation:flashSec .9s ease 2}
+.row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid #f1f5f3}
+.row:last-child{border-bottom:none}
+.row .lb{font-size:14px;font-weight:600;color:#1f2937}
+.row .lb .hint{display:block;font-size:12px;color:#94a3b8;font-weight:400;margin-top:3px;line-height:1.5}
+.field{margin-top:16px}
+.field label{font-size:12px;color:#64748b;font-weight:600;display:block;margin-bottom:6px}
+.field input[type=text],.field input[type=number]{width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;outline:0;transition:.15s;background:#fff}
+.field input:focus{border-color:#1a7a3a;box-shadow:0 0 0 4px rgba(26,122,58,.06)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.chip{padding:5px 12px;border-radius:40px;border:1px solid #d1d5db;background:#fff;color:#475569;font-size:12px;cursor:pointer;transition:.12s;user-select:none}
+.chip:hover{border-color:#9ca3af;background:#f8fafc}
+.chip.on{border-color:#1a7a3a;background:#edf7f0;color:#1a5a2a;font-weight:650}
+.save-bar{display:flex;align-items:center;gap:10px;margin-top:18px}
+.save-bar button{padding:10px 26px;border:none;border-radius:10px;font-size:14px;font-weight:650;color:#fff;background:#1a7a3a;cursor:pointer;transition:.15s}
+.save-bar button:hover{background:#15632f}
+.save-bar button:disabled{opacity:.5;cursor:default}
+.save-bar .note{font-size:12px;color:#94a3b8}
+/* 苹果风玻璃 toggle */
+.tg{width:52px;height:31px;border-radius:31px;background:rgba(120,120,128,.16);position:relative;cursor:pointer;transition:background .35s;box-shadow:inset 0 0 6px rgba(0,0,0,.05);flex-shrink:0;user-select:none;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.tg::after{content:'';position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.16),0 1px 1px rgba(0,0,0,.05);transition:left .35s cubic-bezier(.3,1.35,.6,1)}
+.tg.on{background:#34c759}
+.tg.on::after{left:23px}
+.tg.dis{opacity:.45;pointer-events:none}
+/* 互斥玻璃选项卡 */
+.opts{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.opt-card{border:1.5px solid #e2e8f0;border-radius:14px;padding:14px 16px;cursor:pointer;transition:.18s;background:rgba(255,255,255,.7);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);flex:1;min-width:170px;user-select:none;position:relative}
+.opt-card:hover{border-color:#b9c6bd;transform:translateY(-1px)}
+.opt-card.on{border-color:#1a7a3a;background:#f0faf2;box-shadow:0 2px 10px rgba(26,122,58,.12)}
+.opt-card .tt{font-weight:650;font-size:14px;color:#1f2937;display:flex;align-items:center;gap:8px}
+.opt-card .dd{font-size:12px;color:#888;margin-top:5px;line-height:1.5}
+.opt-card .rd{width:16px;height:16px;border-radius:50%;border:2px solid #cbd5e1;flex-shrink:0;transition:.2s;display:inline-block;position:relative}
+.opt-card.on .rd{border-color:#1a7a3a;background:#1a7a3a}
+.opt-card.on .rd::after{content:'';position:absolute;inset:3px;border-radius:50%;background:#fff}
+.opt-card .badge{position:absolute;top:-8px;right:12px;background:#1a7a3a;color:#fff;font-size:10px;padding:1px 8px;border-radius:20px;opacity:0;transition:.2s}
+.opt-card.on .badge{opacity:1}
+/* 广告图片 */
+.up-zone{border:2px dashed #d5e0d8;border-radius:14px;padding:26px 16px;text-align:center;cursor:pointer;transition:.15s;background:#fbfdfb}
+.up-zone:hover,.up-zone.drag{border-color:#1a7a3a;background:#f2faf4}
+.up-zone .big{font-size:30px;line-height:1}
+.up-zone .t1{font-size:13px;color:#475569;margin-top:8px;font-weight:600}
+.up-zone .t2{font-size:11px;color:#94a3b8;margin-top:3px}
+.ad-preview{display:none;margin-top:14px;position:relative;border-radius:12px;overflow:hidden;border:1px solid #e2ecf5;background:#f8fbf9;max-width:340px}
+.ad-preview img{width:100%;display:block}
+.ad-preview .pv-bar{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#fff;border-top:1px solid #eef3f0}
+.ad-preview .pv-bar span{font-size:11px;color:#94a3b8}
+.ad-preview .pv-bar button{border:none;background:#fef2f2;color:#dc2626;font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer}
+.ad-preview .pv-bar button:hover{background:#fee2e2}
+/* 管理员 */
+.acct-panel{border:2px solid #e74c3c;background:#fffbfb}
+.acct-form{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px}
+.acct-form label{font-size:11px;color:#666;display:block;margin-bottom:3px}
+.acct-form input,.acct-form select{padding:7px 10px;border:1px solid #ccc;border-radius:6px;font-size:13px}
+.acct-form button{padding:7px 16px;border:none;border-radius:6px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;background:#1a7a3a}
+.acct-form button:hover{background:#15632f}
+.role-super{color:#e74c3c;font-weight:700}.role-admin{color:#2980b9}
+.acct-tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+.acct-tbl th,.acct-tbl td{padding:8px 12px;text-align:left;border-bottom:1px solid #eee}
+.acct-tbl th{background:#fef2f2;color:#b11f1a;font-size:11px}
+.acct-btn-del{background:#e74c3c;color:#fff;border:none;padding:3px 12px;border-radius:4px;cursor:pointer;font-size:11px}
+.acct-btn-del:hover{background:#c0392b}
+.acct-err{color:#e74c3c;font-size:12px;margin-bottom:8px;display:none}
+.toast{position:fixed;bottom:20px;right:20px;background:#222;color:#fff;padding:8px 18px;border-radius:8px;font-size:12px;z-index:999;opacity:0;transition:.3s;pointer-events:none}.toast.s{opacity:1}
+@media(max-width:768px){
+  .side{width:64px;min-width:64px;padding:10px 6px}
+  .side .nav-item{justify-content:center;padding:10px 6px}
+  .side .nav-item span.tx{display:none}
+  .side .grp{display:none}
+  .main{padding:12px}
+  .sec{padding:16px}
+}
+</style>
+</head>
+<body>
+<div class="tb"><h1>KYSECRET · 设置中心</h1><div class="nv"><a href="dashborad.html">← 返回面板</a> <a href="../index.html">投稿</a> <button onclick="logout()">退出登录</button></div></div>
+<div class="wrap" id="wrap" style="display:none">
+  <div class="side">
+    <div class="grp">内容与发布</div>
+    <div class="nav-item on" data-sec="sec-ad" onclick="goTo('sec-ad',this)"><span class="ic">📢</span><span class="tx">开屏广告</span></div>
+    <div class="nav-item" data-sec="sec-review" onclick="goTo('sec-review',this)"><span class="ic">🤖</span><span class="tx">自动审核</span></div>
+    <div class="grp">权限</div>
+    <div class="nav-item" data-sec="sec-acct" onclick="goTo('sec-acct',this)"><span class="ic">👑</span><span class="tx">管理员账号</span><span class="lk">超管</span></div>
+  </div>
+  <div class="main" id="main">
+    <!-- ✦ 开屏广告 ✦ -->
+    <div class="sec" id="sec-ad">
+      <h3>📢 开屏广告</h3>
+      <div class="sub">用户在打开投稿页时展示的开屏广告，配置保存在后端，修改即时生效</div>
+      <div class="row">
+        <div class="lb">启用开屏广告<span class="hint">关闭后所有用户不再看到广告弹窗</span></div>
+        <div class="tg" id="tgAdEnabled" onclick="tg(this)"></div>
+      </div>
+      <div class="field">
+        <label>广告图片</label>
+        <div class="up-zone" id="upZone" onclick="document.getElementById('adFile').click()">
+          <div class="big">🖼️</div>
+          <div class="t1">点击或拖拽图片到此处上传</div>
+          <div class="t2">支持 JPG / PNG / WebP / GIF，最大 10MB，保存在后端</div>
+        </div>
+        <input type="file" id="adFile" accept="image/*" style="display:none" onchange="uploadAd(this.files)">
+        <div class="ad-preview" id="adPreview">
+          <img id="adPreviewImg" alt="广告预览">
+          <div class="pv-bar"><span id="adPreviewInfo"></span><button onclick="removeAd()">移除图片</button></div>
+        </div>
+      </div>
+      <div class="field">
+        <label>点击跳转链接</label>
+        <input type="text" id="adLink" placeholder="https://...">
+      </div>
+      <div class="field">
+        <label>显示间隔</label>
+        <div class="chips" id="intervalChips">
+          <span class="chip" data-v="1800">30 分钟</span>
+          <span class="chip" data-v="3600">1 小时</span>
+          <span class="chip" data-v="21600">6 小时</span>
+          <span class="chip" data-v="43200">12 小时</span>
+          <span class="chip" data-v="86400">每天一次</span>
+        </div>
+        <input type="number" id="adInterval" min="60" max="2592000" placeholder="自定义秒数（60 ~ 2592000）">
+      </div>
+      <div class="save-bar"><button id="btnSaveAd" onclick="saveAd()">保存广告设定</button><span class="note" id="adNote"></span></div>
+    </div>
+
+    <!-- ✦ 自动审核 ✦ -->
+    <div class="sec" id="sec-review">
+      <h3>🤖 自动审核</h3>
+      <div class="sub">投稿提交后的处理方式：手动审核 / AI 智能审核 / 无需审核直接通过</div>
+      <div class="row" style="border-bottom:none">
+        <div class="lb">自动处理投稿<span class="hint">关闭 = 所有投稿进入待审核，由管理员手动处理</span></div>
+        <div class="tg" id="tgAuto" onclick="tgAutoToggle()"></div>
+      </div>
+      <div id="autoSub" style="display:none">
+        <div style="font-size:12px;color:#64748b;font-weight:600;margin:12px 0 0">自动处理方式</div>
+        <div class="opts">
+          <div class="opt-card" id="optAi" onclick="pickMode('ai')">
+            <span class="badge">当前</span>
+            <div class="tt"><span class="rd"></span>AI 智能审核</div>
+            <div class="dd">用 GLM AI 判断内容是否合规；不合格自动驳回，拿不准的转人工</div>
+          </div>
+          <div class="opt-card" id="optPass" onclick="pickMode('auto_pass')">
+            <span class="badge">当前</span>
+            <div class="tt"><span class="rd"></span>无需审核直接通过</div>
+            <div class="dd">所有投稿直接通过并进入发布队列（谨慎使用）</div>
+          </div>
+        </div>
+      </div>
+      <div class="save-bar"><button id="btnSaveReview" onclick="saveReview()">保存审核设定</button><span class="note" id="reviewNote"></span></div>
+    </div>
+
+    <!-- ✦ 管理员账号 ✦ -->
+    <div class="sec acct-panel" id="sec-acct">
+      <h3>👑 管理员账号 <span style="font-size:11px;color:#e74c3c;font-weight:400">超级管理员</span><span style="font-size:12px;font-weight:400;color:#888;margin-left:6px" id="acctTime"></span></h3>
+      <div class="sub">添加或删除管理员账号，仅超级管理员可操作</div>
+      <div id="acctBody">
+        <div class="acct-form">
+          <div><label>用户名</label><input type="text" id="newUser" placeholder="新管理员用户名"></div>
+          <div><label>密码</label><input type="password" id="newPass" placeholder="至少6位"></div>
+          <div><label>角色</label><select id="newRole"><option value="admin">普通管理员</option><option value="super_admin">超级管理员</option></select></div>
+          <div><button onclick="addAccount()">添加账号</button></div>
+        </div>
+        <div class="acct-err" id="acctErr"></div>
+        <table class="acct-tbl"><thead><tr><th>用户名</th><th>角色</th><th>来源</th><th>操作</th></tr></thead><tbody id="acctRows"><tr><td colspan="4" style="text-align:center;color:#888">加载中...</td></tr></tbody></table>
+      </div>
+      <div id="acctDenied" style="display:none;color:#94a3b8;font-size:13px;text-align:center;padding:20px">仅超级管理员可查看此模块</div>
+    </div>
+  </div>
+</div>
+<div id="loading" style="text-align:center;padding:80px;color:#888;font-size:16px">加载中...</div>
+<div class="toast" id="toast"></div>
+<script>
+var T=localStorage.getItem('ky_token')||'';function hd(){return{'Authorization':'Bearer '+T};}
+var B='';var AD={},MODE='manual';var currentRole='';
+
+(function init(){
+  if(!T){location.href='index.html';return;}
+  var load=function(){
+    fetch('/config.json').then(function(r){return r.json()}).then(function(c){B=(c.backend||'').trim()+c.api;ready();})
+    .catch(function(){
+      fetch('https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json?t='+Date.now())
+      .then(function(r){return r.json()}).then(function(c){B=(c.backend||'').trim()+c.api;ready();})
+      .catch(function(){document.getElementById('loading').textContent='配置加载失败，请检查网络';});
+    });
+  };
+  if(location.hostname==='127.0.0.1'||location.hostname==='localhost'){load();}
+  else{
+    fetch('https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json?t='+Date.now())
+    .then(function(r){return r.json()}).then(function(c){B=(c.backend||'').trim()+c.api;ready();})
+    .catch(function(){load();});
+  }
+})();
+
+function ready(){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('wrap').style.display='flex';
+  loadSettings();checkRole();
+}
+
+function t(m){var e=document.getElementById('toast');e.textContent=m;e.classList.add('s');setTimeout(function(){e.classList.remove('s');},2000);}
+function logout(){fetch(B+'/admin/logout',{method:'POST',headers:hd()}).catch(function(){});localStorage.removeItem('ky_token');location.href='index.html';}
+function j(resp){return resp.json().then(function(d){if(!resp.ok)throw new Error(d.detail||('错误 '+resp.status));return d;});}
+
+/* ============ 左侧导航：滚动 + 高亮闪两下 ============ */
+function goTo(secId,el){
+  var sec=document.getElementById(secId);
+  if(!sec)return;
+  var items=document.querySelectorAll('.nav-item');
+  for(var i=0;i<items.length;i++)items[i].classList.remove('on');
+  el.classList.add('on');
+  sec.scrollIntoView({behavior:'smooth',block:'start'});
+  sec.classList.remove('flash');
+  void sec.offsetWidth;
+  sec.classList.add('flash');
+}
+
+/* ============ 苹果风 toggle ============ */
+function tg(el){el.classList.toggle('on');}
+function tgAutoToggle(){
+  var el=document.getElementById('tgAuto');
+  el.classList.toggle('on');
+  document.getElementById('autoSub').style.display=el.classList.contains('on')?'block':'none';
+  if(el.classList.contains('on')&&MODE==='manual')pickMode('ai');
+}
+
+/* ============ 设置加载/保存 ============ */
+function loadSettings(){
+  fetch(B+'/admin/settings',{headers:hd()}).then(function(r){
+    if(r.status===401){localStorage.removeItem('ky_token');location.href='index.html';return;}
+    return j(r);
+  }).then(function(s){
+    AD=s.ad||{};MODE=(s.auto_review||{}).mode||'manual';
+    document.getElementById('tgAdEnabled').classList.toggle('on',!!AD.enabled);
+    document.getElementById('adLink').value=AD.link||'';
+    document.getElementById('adInterval').value=AD.interval_seconds||'';
+    markChips(AD.interval_seconds);
+    if(AD.image_url){
+      document.getElementById('adPreview').style.display='block';
+      document.getElementById('adPreviewImg').src=B.replace(/\/api$/,'')+AD.image_url+'?t='+Date.now();
+      document.getElementById('adPreviewInfo').textContent='已上传 · 后端保存';
+      document.getElementById('upZone').style.display='none';
+    }
+    if(MODE!=='manual'){
+      document.getElementById('tgAuto').classList.add('on');
+      document.getElementById('autoSub').style.display='block';
+      pickMode(MODE);
+    }
+  }).catch(function(e){
+    document.getElementById('adNote').textContent='加载失败: '+(e.message||'');
+  });
+}
+
+function markChips(v){
+  var chips=document.querySelectorAll('#intervalChips .chip');
+  for(var i=0;i<chips.length;i++)chips[i].classList.toggle('on',parseInt(chips[i].getAttribute('data-v'),10)===parseInt(v,10));
+}
+document.getElementById('intervalChips').addEventListener('click',function(e){
+  var c=e.target.closest('.chip');if(!c)return;
+  document.getElementById('adInterval').value=c.getAttribute('data-v');
+  markChips(c.getAttribute('data-v'));
+});
+document.getElementById('adInterval').addEventListener('input',function(){
+  markChips(document.getElementById('adInterval').value);
+});
+
+function saveAd(){
+  var btn=document.getElementById('btnSaveAd');btn.disabled=true;
+  var body={ad:{
+    enabled:document.getElementById('tgAdEnabled').classList.contains('on'),
+    link:document.getElementById('adLink').value.trim(),
+    interval_seconds:parseInt(document.getElementById('adInterval').value,10)
+  }};
+  fetch(B+'/admin/settings',{method:'POST',headers:Object.assign({},hd(),{'Content-Type':'application/json'}),body:JSON.stringify(body)})
+  .then(function(r){return j(r);})
+  .then(function(){t('广告设定已保存');document.getElementById('adNote').textContent='已保存 '+new Date().toLocaleTimeString();})
+  .catch(function(e){t('保存失败: '+(e.message||''));})
+  .finally(function(){btn.disabled=false;});
+}
+
+function uploadAd(files){
+  if(!files||!files.length)return;
+  var f=files[0];
+  if(f.size>10*1024*1024){t('图片不能超过 10MB');return;}
+  var fd=new FormData();fd.append('file',f);
+  var zone=document.getElementById('upZone');
+  zone.style.opacity='.6';
+  fetch(B+'/admin/settings/ad_image',{method:'POST',headers:hd(),body:fd})
+  .then(function(r){return j(r);})
+  .then(function(d){
+    t('广告图片已上传');
+    zone.style.display='none';
+    var pv=document.getElementById('adPreview');pv.style.display='block';
+    document.getElementById('adPreviewImg').src=B.replace(/\/api$/,'')+d.image_url+'?t='+Date.now();
+    document.getElementById('adPreviewInfo').textContent='已上传 · 后端保存';
+  })
+  .catch(function(e){t('上传失败: '+(e.message||''));zone.style.opacity='1';})
+  .finally(function(){document.getElementById('adFile').value='';});
+}
+
+function removeAd(){
+  if(!confirm('确定移除广告图片？'))return;
+  fetch(B+'/admin/settings',{method:'POST',headers:Object.assign({},hd(),{'Content-Type':'application/json'}),body:JSON.stringify({ad:{image:''}})})
+  .then(function(r){return j(r);})
+  .then(function(){
+    document.getElementById('adPreview').style.display='none';
+    document.getElementById('upZone').style.display='block';
+    t('图片已移除');
+  })
+  .catch(function(e){t('移除失败: '+(e.message||''));});
+}
+
+function pickMode(m){
+  MODE=m;
+  document.getElementById('optAi').classList.toggle('on',m==='ai');
+  document.getElementById('optPass').classList.toggle('on',m==='auto_pass');
+}
+function saveReview(){
+  var autoOn=document.getElementById('tgAuto').classList.contains('on');
+  var mode=autoOn?MODE:'manual';
+  var btn=document.getElementById('btnSaveReview');btn.disabled=true;
+  fetch(B+'/admin/settings',{method:'POST',headers:Object.assign({},hd(),{'Content-Type':'application/json'}),body:JSON.stringify({auto_review:{mode:mode}})})
+  .then(function(r){return j(r);})
+  .then(function(){t('审核设定已保存');document.getElementById('reviewNote').textContent='已保存 '+new Date().toLocaleTimeString();})
+  .catch(function(e){t('保存失败: '+(e.message||''));})
+  .finally(function(){btn.disabled=false;});
+}
+
+/* ============ 拖拽上传 ============ */
+(function(){
+  var z=document.getElementById('upZone');
+  ['dragenter','dragover'].forEach(function(ev){
+    z.addEventListener(ev,function(e){e.preventDefault();z.classList.add('drag');});
+  });
+  ['dragleave','drop'].forEach(function(ev){
+    z.addEventListener(ev,function(e){e.preventDefault();z.classList.remove('drag');});
+  });
+  z.addEventListener('drop',function(e){
+    var fs=e.dataTransfer.files;
+    if(fs&&fs.length)uploadAd(fs);
+  });
+})();
+
+/* ============ 管理员账号 ============ */
+function checkRole(){
+  fetch(B+'/admin/whoami',{headers:hd()}).then(function(r){if(!r.ok)return;r.json().then(function(d){
+    currentRole=d.role;
+    if(d.role==='super_admin'){
+      document.getElementById('acctBody').style.display='block';
+      loadAccounts();
+    }else{
+      document.getElementById('acctBody').style.display='none';
+      document.getElementById('acctDenied').style.display='block';
+    }
+  });}).catch(function(){});
+}
+
+function loadAccounts(){
+  var tbody=document.getElementById('acctRows');
+  fetch(B+'/admin/accounts',{headers:hd()}).then(function(r){return j(r);}).then(function(d){
+    document.getElementById('acctTime').textContent=new Date().toLocaleTimeString();
+    tbody.innerHTML=d.map(function(a){
+      var roleLabel=a.role==='super_admin'?'<span class="role-super">超级管理员</span>':'<span class="role-admin">普通管理员</span>';
+      var delBtn=a.username!=='QQQ'?'<button class="acct-btn-del" onclick="delAccount(\''+a.username+'\')">删除</button>':'—';
+      var src=a.is_seed?'main.py 内置':'动态添加';
+      return '<tr><td>'+a.username+'</td><td>'+roleLabel+'</td><td style="font-size:11px;color:#888">'+src+'</td><td>'+delBtn+'</td></tr>';
+    }).join('');
+  }).catch(function(e){
+    tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:#e74c3c">加载失败 ('+(e.message||'')+')</td></tr>';
+  });
+}
+
+function addAccount(){
+  var u=document.getElementById('newUser').value.trim();
+  var p=document.getElementById('newPass').value.trim();
+  var r=document.getElementById('newRole').value;
+  var err=document.getElementById('acctErr');
+  err.style.display='none';
+  if(!u||!p){err.textContent='用户名和密码不能为空';err.style.display='block';return;}
+  if(u.length<2){err.textContent='用户名至少2个字符';err.style.display='block';return;}
+  if(p.length<6){err.textContent='密码至少6个字符';err.style.display='block';return;}
+  fetch(B+'/admin/accounts',{method:'POST',headers:Object.assign({},hd(),{'Content-Type':'application/json'}),body:JSON.stringify({username:u,password:p,role:r})})
+  .then(function(resp){return j(resp);})
+  .then(function(){
+    t('账号添加成功');
+    document.getElementById('newUser').value='';
+    document.getElementById('newPass').value='';
+    loadAccounts();
+  }).catch(function(e){
+    err.textContent=e.message||'添加失败';
+    err.style.display='block';
+  });
+}
+
+function delAccount(username){
+  if(!confirm('确定删除管理员 "'+username+'"？此操作不可撤销。'))return;
+  fetch(B+'/admin/accounts/'+encodeURIComponent(username),{method:'DELETE',headers:hd()})
+  .then(function(r){return j(r);})
+  .then(function(){t('已删除 '+username);loadAccounts();})
+  .catch(function(e){t('删除失败: '+(e.message||''));});
+}
+</script>
+</body>
+</html>
