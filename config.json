@@ -1,5 +1,5 @@
 {
-    "backend": "https://nights-basename-our-forests.trycloudflare.com",
+    "backend": "https://tray-til-lift-alert.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
