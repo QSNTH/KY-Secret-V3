@@ -802,19 +802,34 @@ function renderPosts(){
   document.getElementById('pstRows').innerHTML=rows.map(function(p){
     var hid=p.hid||'?', st=p.status||'reviewing', queued=!!window._PSTQ[String(hid).toUpperCase()];
     var stTxt=st==='pass'?'已通过':st==='reject'?'已驳回':'待审核';
-    var pubTxt=p.published?'<span style="color:#1a7a3a">已发送</span>':(p.on_hold?'<span style="color:#b91c1c">已拦截</span>':(queued?'<span style="color:#b45309">排队中</span>':(p.publish_error?'<span style="color:#b91c1c">失败</span>':'<span style="color:#94a3b8">未发送</span>')));
-    if(p.remote_missing)pubTxt+=' <span style="color:#b91c1c">IG已删</span>';
+    var opts;
+    if(st!=='pass'&&!p.published) opts='<option value="">未通过</option><option value="approve">通过并入队</option>';
+    else if(p.published) opts='<option value="">已发送</option><option value="unsent">标记未发送</option>';
+    else if(p.on_hold) opts='<option value="">已拦截</option><option value="unhold">解除拦截</option><option value="sent">标记已发送</option>';
+    else if(p.publish_error) opts='<option value="">失败</option><option value="repush">重推</option><option value="sent">标记已发送</option>';
+    else if(queued) opts='<option value="">排队中</option><option value="hold">拦截</option><option value="sent">标记已发送</option>';
+    else opts='<option value="">未发送</option><option value="push">推送</option><option value="sent">标记已发送</option>';
+    var sel='<select onchange="pstSetState(\''+p.uuid+'\',this.value,this)" style="max-width:132px;padding:4px 6px;border:1px solid #e2e8f0;border-radius:8px;font-size:12px">'+opts+'</select>';
     var revBtn=(st==='pass')?'<button class="chip" onclick="pstReview(\''+p.uuid+'\',\'reject\')">取消通过</button>':'<button class="chip" onclick="pstReview(\''+p.uuid+'\',\'pass\')">通过</button>';
-    var pubBtn='';
-    if(st==='pass'&&!p.published){
-      pubBtn=queued?'<button class="chip" onclick="pstCancel(\''+hid+'\')">拦截</button>':'<button class="chip" onclick="pstPush(\''+p.uuid+'\')">推送</button>';
-    }
     return '<tr><td style="padding:6px;font-family:monospace">'+recEsc(hid)+'</td>'
       +'<td style="padding:6px">'+recEsc((p.title||'').substring(0,24))+'</td>'
       +'<td style="padding:6px;text-align:center">'+stTxt+'</td>'
-      +'<td style="padding:6px;text-align:center">'+pubTxt+'</td>'
-      +'<td style="padding:6px;text-align:center;white-space:nowrap">'+revBtn+' '+pubBtn+'</td></tr>';
+      +'<td style="padding:6px;text-align:center">'+sel+(p.remote_missing?'<div style="color:#b91c1c;font-size:11px">IG已删</div>':'')+'</td>'
+      +'<td style="padding:6px;text-align:center;white-space:nowrap">'+revBtn+'</td></tr>';
   }).join('')||'<tr><td colspan="5" style="padding:12px;text-align:center;color:#94a3b8">没有符合条件的帖子</td></tr>';
+}
+function pstSetState(uuid, action, sel){
+  if(!action){ if(sel)sel.value=''; return; }
+  var h=Object.assign({},hd(),{'Content-Type':'application/json'});
+  function done(msg){t(msg);loadPosts();}
+  function fail(e){t('失败：'+(e.message||''));if(sel)sel.value='';}
+  if(action==='push'){fetch(B+'/admin/push/'+uuid,{method:'POST',headers:hd()}).then(function(r){return j(r);}).then(function(){done('已加入队列');}).catch(fail);return;}
+  if(action==='repush'){if(!confirm('强制重新推送？')){if(sel)sel.value='';return;}fetch(B+'/admin/repush/'+uuid,{method:'POST',headers:hd()}).then(function(r){return j(r);}).then(function(){done('已加入重推');}).catch(fail);return;}
+  if(action==='approve'){fetch(B+'/admin/review',{method:'POST',headers:h,body:JSON.stringify({uuid:uuid,status:'pass'})}).then(function(r){return j(r);}).then(function(){done('已通过并入队');}).catch(fail);return;}
+  if(action==='hold'){fetch(B+'/admin/hold/'+uuid,{method:'POST',headers:h,body:JSON.stringify({on:true})}).then(function(r){return j(r);}).then(function(){done('已拦截');}).catch(fail);return;}
+  if(action==='unhold'){fetch(B+'/admin/hold/'+uuid,{method:'POST',headers:h,body:JSON.stringify({on:false})}).then(function(r){return j(r);}).then(function(){done('已解除拦截');}).catch(fail);return;}
+  if(action==='sent'){if(!confirm('标记为已发送？仅写本地标记，用于纠正“IG 已有但后端没记录”的情况。')){if(sel)sel.value='';return;}fetch(B+'/admin/publish-state/'+uuid,{method:'POST',headers:h,body:JSON.stringify({published:true})}).then(function(r){return j(r);}).then(function(){done('已标记发送');}).catch(fail);return;}
+  if(action==='unsent'){if(!confirm('标记为未发送？仅删本地标记，不会删除 IG 帖子；之后可重新推送。')){if(sel)sel.value='';return;}fetch(B+'/admin/publish-state/'+uuid,{method:'POST',headers:h,body:JSON.stringify({published:false})}).then(function(r){return j(r);}).then(function(){done('已标记未发送');}).catch(fail);return;}
 }
 function pstReview(uuid,st){
   fetch(B+'/admin/review',{method:'POST',headers:Object.assign({},hd(),{'Content-Type':'application/json'}),body:JSON.stringify({uuid:uuid,status:st})})
