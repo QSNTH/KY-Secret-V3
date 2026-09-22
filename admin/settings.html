@@ -42,6 +42,12 @@ body{background:#f7fafc;color:#222;height:100vh;display:flex;flex-direction:colu
 .save-bar button{padding:10px 26px;border:none;border-radius:10px;font-size:14px;font-weight:650;color:#fff;background:#1a7a3a;cursor:pointer;transition:.15s}
 .save-bar button:hover{background:#15632f}
 .save-bar button:disabled{opacity:.5;cursor:default}
+.queue-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.queue-actions button{padding:9px 16px;border:1px solid #d1d5db;border-radius:10px;font-size:13px;font-weight:650;background:#fff;color:#334155;cursor:pointer;transition:.15s}
+.queue-actions button:hover{background:#f8fafc;border-color:#9ca3af}
+.queue-actions button.primary{border-color:#1a7a3a;background:#1a7a3a;color:#fff}
+.queue-actions button.primary:hover{background:#15632f}
+.queue-actions button:disabled{opacity:.45;cursor:default}
 .save-bar .note{font-size:12px;color:#94a3b8}
 /* 苹果风玻璃 toggle */
 .tg{width:52px;height:31px;border-radius:31px;background:rgba(120,120,128,.16);position:relative;cursor:pointer;transition:background .35s;box-shadow:inset 0 0 6px rgba(0,0,0,.05);flex-shrink:0;user-select:none;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
@@ -209,7 +215,7 @@ body{background:#f7fafc;color:#222;height:100vh;display:flex;flex-direction:colu
       <h3>🚦 发布队列控制</h3>
       <div class="sub">可暂停外发，投稿和审核仍可继续；连续失败也会自动熔断。</div>
       <div id="pubStatus" style="background:#f8fbf9;border-radius:10px;padding:12px;margin:10px 0;font-size:13px">加载中...</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px"><button class="save-bar" onclick="pausePublisher()">暂停外发</button><button class="save-bar" onclick="resumePublisher()">恢复外发</button><button class="chip" onclick="loadPublisher()">刷新状态</button></div>
+      <div class="queue-actions"><button id="btnPausePublisher" class="primary" onclick="pausePublisher()">暂停外发</button><button id="btnResumePublisher" onclick="resumePublisher()">恢复外发</button><button class="chip" onclick="loadPublisher()">刷新状态</button></div>
       <div id="pubFields"></div>
       <div class="save-bar"><button onclick="savePublisher()">保存发布参数</button><span class="note" id="pubNote"></span></div>
     </div>
@@ -510,9 +516,15 @@ function delAccount(username){
   .catch(function(e){t('删除失败: '+(e.message||''));});
 }
 
-function loadPublisher(){fetch(B+'/admin/publisher/status',{headers:hd()}).then(function(r){return j(r)}).then(function(d){document.getElementById('pubStatus').textContent=(d.paused?'已暂停：'+(d.pause_reason||''):'运行中')+' · 待发 '+d.pending+' · 成功 '+d.processed_total+' · 失败 '+d.failed_total+(d.last_error?' · 最近错误：'+d.last_error:'');}).catch(function(e){document.getElementById('pubStatus').textContent='加载失败：'+e.message;});}
-function pausePublisher(){var reason=prompt('暂停原因','管理员手动暂停')||'管理员手动暂停';fetch(B+'/admin/publisher/pause',{method:'POST',headers:Object.assign({},hd(),{'Content-Type':'application/json'}),body:JSON.stringify({reason:reason})}).then(function(r){return j(r)}).then(function(){t('已暂停外发');loadPublisher();});}
-function resumePublisher(){fetch(B+'/admin/publisher/resume',{method:'POST',headers:hd()}).then(function(r){return j(r)}).then(function(){t('已恢复外发');loadPublisher();});}
+function applyPublisherState(d){
+  var paused=!!d.paused;
+  document.getElementById('pubStatus').textContent=(paused?'已暂停：'+(d.pause_reason||''):'运行中')+' · 待发 '+d.pending+' · 成功 '+d.processed_total+' · 失败 '+d.failed_total+(d.last_error?' · 最近错误：'+d.last_error:'');
+  document.getElementById('btnPausePublisher').disabled=paused;
+  document.getElementById('btnResumePublisher').disabled=!paused;
+}
+function loadPublisher(){fetch(B+'/admin/publisher/status',{headers:hd()}).then(function(r){return j(r)}).then(applyPublisherState).catch(function(e){document.getElementById('pubStatus').textContent='加载失败：'+e.message;});}
+function pausePublisher(){var reason=prompt('暂停原因','管理员手动暂停');if(reason===null)return;reason=reason.trim()||'管理员手动暂停';fetch(B+'/admin/publisher/pause',{method:'POST',headers:Object.assign({},hd(),{'Content-Type':'application/json'}),body:JSON.stringify({reason:reason})}).then(function(r){return j(r)}).then(function(d){t('已暂停外发');applyPublisherState(d);}).catch(function(e){t('暂停失败: '+(e.message||''));loadPublisher();});}
+function resumePublisher(){fetch(B+'/admin/publisher/resume',{method:'POST',headers:hd()}).then(function(r){return j(r)}).then(function(d){t('已恢复外发');applyPublisherState(d);}).catch(function(e){t('恢复失败: '+(e.message||''));loadPublisher();});}
 
 /* ============ 新增设置模块 ============ */
 var S={};
