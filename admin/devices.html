@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KY Secret V3 · 设备与封禁</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+body{background:#f7fafc;color:#222}
+.tb{background:#fff;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;border-bottom:1px solid #e2ecf5}
+.tb h1{font-size:18px;font-weight:900}.tb .nv{display:flex;gap:6px;flex-wrap:wrap}
+.tb a,.tb button{border:1px solid #e2e8f0;border-radius:40px;background:#fff;color:#334155;padding:6px 16px;cursor:pointer;font-size:13px;font-weight:550;text-decoration:none;white-space:nowrap}
+.tb a:hover,.tb button:hover{background:#eef2f6}
+.c{max-width:1180px;margin:0 auto;padding:18px 20px}
+.bar{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.bar input{padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;outline:0;flex:1;min-width:160px}
+.bar button{padding:8px 16px;border:none;border-radius:10px;background:#1a7a3a;color:#fff;font-weight:600;cursor:pointer;font-size:13px}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid #f1f5f9;font-size:12px;vertical-align:top}
+th{background:#f8fafc;color:#475569;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+tr:hover td{background:#fafcff}
+.mono{font-family:SFMono-Regular,Consolas,monospace;font-size:11px;color:#475569;word-break:break-all}
+.pill{display:inline-block;padding:1px 8px;border-radius:20px;font-size:10px;font-weight:700}
+.pill.ok{background:#dcfce7;color:#166534}.pill.ban{background:#fee2e2;color:#991b1b}.pill.flag{background:#fef3c7;color:#92400e}
+.btn{padding:4px 10px;border:none;border-radius:6px;font-size:11px;cursor:pointer;margin:1px}
+.btn.g{background:#1a7a3a;color:#fff}.btn.r{background:#e74c3c;color:#fff}.btn.b{background:#2980b9;color:#fff}.btn.gray{background:#e2e8f0;color:#475569}
+.toast{position:fixed;bottom:20px;right:20px;background:#222;color:#fff;padding:8px 18px;border-radius:8px;font-size:12px;z-index:999;opacity:0;transition:.3s;pointer-events:none}.toast.s{opacity:1}
+</style>
+</head>
+<body>
+<div class="tb"><h1>🖥️ 设备与封禁</h1><div class="nv"><a href="dashborad.html">← 面板</a><a href="settings.html">设置</a><a href="complaints.html">投诉</a><a href="announcements.html">公告</a><button onclick="logout()">退出登录</button></div></div>
+<div class="c">
+  <div class="bar">
+    <input id="q" placeholder="搜索 设备ID / 备注 / 指纹…" oninput="render()">
+    <button onclick="load()">刷新</button>
+    <span id="info" style="font-size:12px;color:#94a3b8"></span>
+  </div>
+  <table>
+    <thead><tr><th>设备 ID</th><th>备注</th><th>首次 / 最近</th><th>状态</th><th>指纹</th><th>操作</th></tr></thead>
+    <tbody id="rows"><tr><td colspan="6" style="text-align:center;color:#888;padding:24px">加载中...</td></tr></tbody>
+  </table>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+var T=localStorage.getItem('ky_token')||'';function hd(){return{'Authorization':'Bearer '+T};}
+var B='',DEV=[];
+(function init(){if(!T){location.href='index.html';return;}
+  var urls=['https://ky-secret-v3.pages.dev/config.json','https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json','/config.json'];
+  function tryAt(i){if(i>=urls.length){toast('配置加载失败');return;}
+    var u=urls[i];u+=(u.indexOf('?')>=0?'&':'?')+'t='+Date.now();
+    fetch(u).then(function(r){return r.json()}).then(function(c){B=((c.backend||'').trim())+c.api;load();}).catch(function(){tryAt(i+1);});}
+  tryAt(0);
+})();
+function toast(m){var e=document.getElementById('toast');e.textContent=m;e.classList.add('s');setTimeout(function(){e.classList.remove('s');},2000);}
+function logout(){fetch(B+'/admin/logout',{method:'POST',headers:hd()}).catch(function(){});localStorage.removeItem('ky_token');location.href='index.html';}
+function j(r){return r.json().then(function(d){if(!r.ok)throw new Error(d.detail||('错误 '+r.status));return d;});}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function load(){fetch(B+'/admin/devices',{headers:hd()}).then(j).then(function(d){DEV=d||[];document.getElementById('info').textContent='共 '+DEV.length+' 台设备';render();}).catch(function(e){document.getElementById('rows').innerHTML='<tr><td colspan="6" style="text-align:center;color:#e74c3c;padding:20px">加载失败: '+esc(e.message)+'</td></tr>';});}
+function render(){
+  var q=(document.getElementById('q').value||'').toLowerCase();
+  var list=DEV.filter(function(d){if(!q)return true;return (d.device_id||'').toLowerCase().indexOf(q)>=0||(d.note||'').toLowerCase().indexOf(q)>=0||(d.label||'').toLowerCase().indexOf(q)>=0||(d.fingerprint||'').toLowerCase().indexOf(q)>=0;});
+  var el=document.getElementById('rows');
+  if(!list.length){el.innerHTML='<tr><td colspan="6" style="text-align:center;color:#888;padding:24px">无设备</td></tr>';return;}
+  el.innerHTML=list.map(function(d){
+    var st=d.banned?'<span class="pill ban">已封禁</span>':(d.flagged?'<span class="pill flag">已标记</span>':'<span class="pill ok">正常</span>');
+    var note=(d.label?('【'+esc(d.label)+'】'):'')+esc(d.note||'');
+    return '<tr>'
+      +'<td class="mono">'+esc(d.device_id)+'</td>'
+      +'<td style="max-width:220px">'+(note||'<span style="color:#bbb">—</span>')+(d.banned&&d.ban_reason?'<div style="color:#e74c3c;font-size:11px;margin-top:3px">封禁: '+esc(d.ban_reason)+'</div>':'')+'</td>'
+      +'<td class="mono">'+esc((d.first_seen||'').substring(5,16))+'<br>'+esc((d.last_seen||'').substring(5,16))+'</td>'
+      +'<td>'+st+'</td>'
+      +'<td class="mono" style="max-width:160px">'+esc((d.fingerprint||'').substring(0,24))+'…</td>'
+      +'<td style="white-space:nowrap">'
+      +'<button class="btn b" onclick="flagDevice(\''+esc(d.device_id)+'\')">标记</button>'
+      +(d.banned?'<button class="btn g" onclick="unban(\''+esc(d.device_id)+'\')">解封</button>':'<button class="btn r" onclick="ban(\''+esc(d.device_id)+'\')">封禁</button>')
+      +'</td></tr>';
+  }).join('');
+}
+function flagDevice(id){
+  var label=prompt('设备别名（可空）',''), note=prompt('备注（可空）','');
+  if(label===null||note===null)return;
+  fetch(B+'/admin/devices/'+encodeURIComponent(id)+'/flag',{method:'POST',headers:Object.assign({},hd(),{'Content-Type':'application/json'}),body:JSON.stringify({flagged:true,label:label,note:note})})
+  .then(j).then(function(){toast('已标记');load();}).catch(function(e){toast('失败: '+e.message);});
+}
+function ban(id){
+  var h=prompt('封禁小时数（0 = 永久封禁）','24');if(h===null)return;
+  var hours=parseInt(h,10);if(isNaN(hours)){toast('请输入数字');return;}
+  var reason=prompt('封禁原因','管理员封禁')||'管理员封禁';
+  fetch(B+'/admin/devices/'+encodeURIComponent(id)+'/ban',{method:'POST',headers:Object.assign({},hd(),{'Content-Type':'application/json'}),body:JSON.stringify({hours:hours,reason:reason})})
+  .then(j).then(function(){toast(hours<=0?'已永久封禁':'已封禁 '+hours+' 小时');load();}).catch(function(e){toast('失败: '+e.message);});
+}
+function unban(id){
+  fetch(B+'/admin/devices/'+encodeURIComponent(id)+'/unban',{method:'POST',headers:hd()})
+  .then(j).then(function(){toast('已解封');load();}).catch(function(e){toast('失败: '+e.message);});
+}
+</script>
+</body>
+</html>

@@ -614,9 +614,11 @@
         <div class="nav-header">
             <div class="nav-buttons">
                 <a href="./status/index.html" class="nav-btn">📊 状态</a>
-                <a href="https://ky-secret-v3.pages.dev/status/history" class="nav-btn">📋 历史</a>
+                <a href="./status/history.html" class="nav-btn">📋 历史</a>
                 <a href="" class="nav-btn active">✉️ 投稿</a>
                 <a href="./result.html" class="nav-btn">🔍 查询</a>
+                <a href="./complaints.html" class="nav-btn">📣 投诉</a>
+                <a href="./issues.html" class="nav-btn">💡 建议</a>
                 <a href="./admin/index.html" class="nav-btn">⚙️ 管理</a>
             </div>
         </div>
@@ -758,21 +760,48 @@
             updateContentCounter();
             updateRequiredFields();
 
-            // 图片预览（只允许1张）
+            // 渲染预览缩略图（带删除按钮）
+            function renderPreview(url) {
+                previewContainer.innerHTML = '';
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+                const img = document.createElement('img');
+                img.src = url;
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-btn';
+                removeBtn.innerHTML = '×';
+                removeBtn.onclick = function() {
+                    fileInput.value = '';
+                    previewContainer.innerHTML = '';
+                    fileHint.innerText = '未选择任何文件';
+                    currentPreviewFile = null;
+                    window._kyImageFile = null;
+                    window._kyFaceBlur = true;
+                    updateRequiredFields();
+                };
+                previewItem.appendChild(img);
+                previewItem.appendChild(removeBtn);
+                previewContainer.appendChild(previewItem);
+            }
+
+            function resetImageUI() {
+                fileHint.innerText = '未选择任何文件';
+                previewContainer.innerHTML = '';
+                currentPreviewFile = null;
+                window._kyImageFile = null;
+                window._kyFaceBlur = true;
+                updateRequiredFields();
+            }
+
+            // 图片选择（只允许1张）→ 进入隐私编辑器
             fileInput.addEventListener('change', function(e) {
                 const files = Array.from(fileInput.files);
-                
-                if (files.length === 0) {
-                    fileHint.innerText = '未选择任何文件';
-                    previewContainer.innerHTML = '';
-                    currentPreviewFile = null;
-                    updateRequiredFields();
-                    return;
-                }
+
+                if (files.length === 0) { resetImageUI(); return; }
 
                 // 只取第一张
                 const file = files[0];
-                
+
                 // 如果选了多张，提示并只保留第一张
                 if (files.length > 1) {
                     alert('只支持上传1张图片，已自动选择第一张');
@@ -781,38 +810,35 @@
                     fileInput.files = dt.files;
                 }
 
-                fileHint.innerText = `已选择 1 个文件: ${file.name}`;
-                previewContainer.innerHTML = '';
-                currentPreviewFile = file;
-
-                if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        const previewItem = document.createElement('div');
-                        previewItem.className = 'preview-item';
-                        
-                        const img = document.createElement('img');
-                        img.src = ev.target.result;
-                        
-                        const removeBtn = document.createElement('button');
-                        removeBtn.className = 'remove-btn';
-                        removeBtn.innerHTML = '×';
-                        removeBtn.onclick = function() {
-                            fileInput.value = '';
-                            previewContainer.innerHTML = '';
-                            fileHint.innerText = '未选择任何文件';
-                            currentPreviewFile = null;
-                            updateRequiredFields();
-                        };
-                        
-                        previewItem.appendChild(img);
-                        previewItem.appendChild(removeBtn);
-                        previewContainer.appendChild(previewItem);
-                    };
-                    reader.readAsDataURL(file);
+                if (!file.type.startsWith('image/')) {
+                    alert('请选择图片文件');
+                    resetImageUI();
+                    return;
                 }
-                
-                updateRequiredFields();
+
+                if (window.openImageEditor) {
+                    window.openImageEditor(file, function(processed, faceBlur) {
+                        currentPreviewFile = processed;
+                        window._kyImageFile = processed;
+                        window._kyFaceBlur = faceBlur !== false;
+                        try {
+                            const dt = new DataTransfer();
+                            dt.items.add(processed);
+                            fileInput.files = dt.files;
+                        } catch (err) { /* 部分旧浏览器不支持 DataTransfer，忽略 */ }
+                        fileHint.innerText = '已处理 1 张图片（已隐私打码）';
+                        renderPreview(URL.createObjectURL(processed));
+                        updateRequiredFields();
+                    }, function() {
+                        if (!currentPreviewFile) resetImageUI();
+                    });
+                } else {
+                    currentPreviewFile = file;
+                    window._kyImageFile = file;
+                    fileHint.innerText = `已选择 1 个文件: ${file.name}`;
+                    renderPreview(URL.createObjectURL(file));
+                    updateRequiredFields();
+                }
             });
 
     // ========== 🥷 开发者模式 ==========
@@ -945,7 +971,7 @@
                 
                 const hasTitle = titleInput.value.trim().length > 0;
                 const hasContent = contentInput.value.trim().length > 0;
-                const hasImage = fileInput.files.length > 0;
+                const hasImage = !!currentPreviewFile;
 
                 if (!hasTitle) {
                     alert('请填写标题（标题将生成在图片上）');
@@ -962,6 +988,19 @@
 
                 // 构建 FormData
                 const formData = new FormData();
+
+                // 动态检查单字段：后端会校验版本和逐条确认结果
+                const checkPanel = document.getElementById('kyChecklistPanel');
+                if (checkPanel && checkPanel.style.display !== 'none') {
+                    const checkboxes = Array.from(checkPanel.querySelectorAll('input[type="checkbox"]'));
+                    const checked = checkboxes.filter(function (x) { return x.checked; });
+                    if (checked.length !== checkboxes.length) {
+                        alert('请先逐条确认投稿检查单');
+                        return;
+                    }
+                    formData.append('checklist_version', checkPanel.dataset.version || '1');
+                    formData.append('checklist_ack', JSON.stringify(checked.map(function (x) { return Number(x.dataset.index); })));
+                }
                 
                 // 标题（选填）
                 if (titleInput.value.trim()) {
@@ -977,9 +1016,11 @@
                 const tagVal = document.getElementById('tag').value.trim();
                 if (tagVal) formData.append('tag', tagVal);
 
-                // 图片（最多1张）
+                // 图片（最多1张，已在编辑器内打码）
                 if (hasImage) {
-                    formData.append('user_image', fileInput.files[0]);
+                    formData.append('user_image', currentPreviewFile);
+                    formData.append('face_blur', window._kyFaceBlur === false ? 'false' : 'true');
+                    formData.append('manual_masks', '[]');
                 }
 
                 // 使用动态配置构建URL
@@ -1024,6 +1065,338 @@
 
         })();
     </script>
+<script>
+(function(){
+  var form=document.getElementById('kySubmitForm'); if(!form)return;
+  var box=document.createElement('section'); box.id='kyChecklistPanel'; box.style='background:#fff8e1;border:1px solid #f0c36d;border-radius:12px;padding:12px;margin:12px 0;font-size:13px';
+  var btn=form.querySelector('button[type=submit]'); form.insertBefore(box,form.firstChild); var state={version:0,ack:[]};
+  function show(c){ if(!c||!c.enabled){box.style.display='none';return;} state.version=c.version||1; box.dataset.version=String(state.version); box.style.display='block'; var html='<strong>投稿前检查单</strong>'; (c.items||[]).forEach(function(x,i){html+='<label style="display:block;margin:8px 0"><input type="checkbox" data-index="'+i+'"> '+x+'</label>';}); box.innerHTML=html; if(btn)btn.disabled=(c.items||[]).length>0; box.addEventListener('change',function(){state.ack=[];box.querySelectorAll('input:checked').forEach(function(x){state.ack.push(Number(x.dataset.index));}); if(btn)btn.disabled=state.ack.length!==(c.items||[]).length;});}
+  function load(){var b=window.KY_CONFIG&&window.KY_CONFIG.backendUrl;if(!b)return;fetch(b+'/api/checklist').then(function(r){return r.json();}).then(show).catch(function(){});}
+  if(window.KY_CONFIG&&window.KY_CONFIG.backendUrl)load(); else window.addEventListener('configLoaded',load,{once:true});
+  form.addEventListener('submit',function(){var v=form.querySelector('input[name=checklist_version]');var a=form.querySelector('input[name=checklist_ack]'); if(!v){v=document.createElement('input');v.type='hidden';v.name='checklist_version';form.appendChild(v);} if(!a){a=document.createElement('input');a.type='hidden';a.name='checklist_ack';form.appendChild(a);} v.value=String(state.version); a.value=JSON.stringify(state.ack);});
+})();
+</script>
+
+<script>
+/* ============ KY Secret V3 · 图片隐私编辑器 ============ */
+(function(){
+  var st = null;
+  var overlay, cv, ctx, busyEl, faceChk, drawChk, countEl, warnEl;
+  var disp = { scale: 1, rotW: 0, rotH: 0 };
+  var drag = null;
+
+  function backendBase(){
+    var b = (window.KY_CONFIG && window.KY_CONFIG.backendUrl) || '';
+    return b.replace(/\/$/, '');
+  }
+  function api(path){ return backendBase() + (path.charAt(0)==='/'?path:'/'+path); }
+
+  function rotSize(){
+    var w = st.img.width, h = st.img.height;
+    return (st.rot % 180 === 0) ? { w: w, h: h } : { w: h, h: w };
+  }
+  function fwd(x, y){
+    var W = st.img.width, H = st.img.height, r = st.rot;
+    if (r === 90)  return { x: H - y, y: x };
+    if (r === 180) return { x: W - x, y: H - y };
+    if (r === 270) return { x: y, y: W - x };
+    return { x: x, y: y };
+  }
+  function inv(x, y){
+    var W = st.img.width, H = st.img.height, r = st.rot;
+    if (r === 90)  return { x: y, y: H - x };
+    if (r === 180) return { x: W - x, y: H - y };
+    if (r === 270) return { x: W - y, y: x };
+    return { x: x, y: y };
+  }
+  function boxFwd(b){
+    var a = fwd(b[0], b[1]), c = fwd(b[2], b[3]);
+    return [Math.min(a.x,c.x), Math.min(a.y,c.y), Math.max(a.x,c.x), Math.max(a.y,c.y)];
+  }
+
+  // 把原图旋转并缩放到 (cw,ch) 的目标画布
+  function paintRotated(c, cw, ch){
+    var W = st.img.width, H = st.img.height, r = st.rot;
+    c.save();
+    if (r === 0) {
+      c.drawImage(st.img, 0, 0, cw, ch);
+    } else if (r === 90) {
+      var s = cw / H;
+      c.translate(cw, 0); c.rotate(Math.PI/2); c.scale(s, s);
+      c.drawImage(st.img, 0, 0, W, H);
+    } else if (r === 180) {
+      c.translate(cw, ch); c.rotate(Math.PI); c.scale(cw / W, ch / H);
+      c.drawImage(st.img, 0, 0, W, H);
+    } else {
+      var s2 = ch / W;
+      c.translate(0, ch); c.rotate(3*Math.PI/2); c.scale(s2, s2);
+      c.drawImage(st.img, 0, 0, W, H);
+    }
+    c.restore();
+  }
+
+  function ensureUI(){
+    if (overlay) return;
+    var style = document.createElement('style');
+    style.textContent = '.kyEdBtn{border:1px solid #dbe2ec;background:#eef2f6;border-radius:20px;padding:6px 14px;cursor:pointer;font-size:13px}.kyEdBtn:hover{background:#e2eaf1}';
+    document.head.appendChild(style);
+
+    overlay = document.createElement('div');
+    overlay.id = 'kyImgEditor';
+    overlay.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:10000;align-items:center;justify-content:center;padding:16px;overflow:auto';
+    overlay.innerHTML = ''
+      + '<div style="background:#fff;border-radius:16px;max-width:760px;width:100%;padding:16px;box-sizing:border-box">'
+      +   '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+      +     '<strong style="font-size:15px">🖼️ 图片隐私编辑</strong>'
+      +     '<button id="kyEdClose" style="border:none;background:#eef2f6;border-radius:20px;padding:5px 14px;cursor:pointer;font-size:13px">取消</button>'
+      +   '</div>'
+      +   '<div id="kyEdWarn" style="font-size:12px;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 10px;margin-bottom:8px">二维码将强制打码；人脸默认打码，可取消。照片歪了可点旋转。</div>'
+      +   '<div style="position:relative;background:#111;border-radius:10px;overflow:hidden;display:flex;justify-content:center;align-items:center;min-height:180px">'
+      +     '<canvas id="kyEdCanvas" style="max-width:100%;max-height:50vh;touch-action:none"></canvas>'
+      +     '<div id="kyEdBusy" style="position:absolute;color:#fff;font-size:13px;text-shadow:0 1px 3px #000">识别中…</div>'
+      +   '</div>'
+      +   '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px;font-size:13px">'
+      +     '<button data-a="rotL" class="kyEdBtn">↺ 左转</button>'
+      +     '<button data-a="rotR" class="kyEdBtn">↻ 右转</button>'
+      +     '<label style="display:flex;align-items:center;gap:5px;user-select:none"><input type="checkbox" id="kyEdFace" checked> 自动人脸打码</label>'
+      +     '<label style="display:flex;align-items:center;gap:5px;user-select:none"><input type="checkbox" id="kyEdDraw"> 手动框选打码</label>'
+      +     '<button data-a="clear" class="kyEdBtn">清除手动画框</button>'
+      +     '<span id="kyEdCount" style="color:#666"></span>'
+      +   '</div>'
+      +   '<button id="kyEdOk" style="width:100%;margin-top:12px;padding:11px;border:none;border-radius:10px;background:#0f172a;color:#fff;font-weight:600;cursor:pointer">完成并使用此图片</button>'
+      +   '<div style="font-size:11px;color:#94a3b8;margin-top:8px">红框=二维码（强制打码）· 橙框=人脸 · 蓝框=手动画框 · 单击方框可删除</div>'
+      + '</div>';
+    document.body.appendChild(overlay);
+
+    cv = overlay.querySelector('#kyEdCanvas');
+    ctx = cv.getContext('2d');
+    busyEl = overlay.querySelector('#kyEdBusy');
+    faceChk = overlay.querySelector('#kyEdFace');
+    drawChk = overlay.querySelector('#kyEdDraw');
+    countEl = overlay.querySelector('#kyEdCount');
+    warnEl = overlay.querySelector('#kyEdWarn');
+
+    overlay.querySelector('#kyEdClose').onclick = cancel;
+    overlay.querySelector('#kyEdOk').onclick = confirmOk;
+    faceChk.onchange = function(){ if(st){ st.faceOn = faceChk.checked; redraw(); } };
+    overlay.querySelector('[data-a=rotL]').onclick = function(){ if(st){ st.rot = (st.rot + 270) % 360; drawToCanvas(); } };
+    overlay.querySelector('[data-a=rotR]').onclick = function(){ if(st){ st.rot = (st.rot + 90) % 360; drawToCanvas(); } };
+    overlay.querySelector('[data-a=clear]').onclick = function(){ if(st){ st.manual = []; redraw(); } };
+
+    cv.addEventListener('pointerdown', onDown);
+    cv.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  }
+
+  function openImageEditor(file, onDone, onCancel){
+    ensureUI();
+    st = { file: file, img: null, rot: 0, qr: [], faces: [], manual: [], faceOn: true };
+    overlay._onDone = onDone; overlay._onCancel = onCancel;
+    overlay.style.display = 'flex';
+    faceChk.checked = true; drawChk.checked = false;
+    warnEl.textContent = '二维码将强制打码；人脸默认打码，可取消。照片歪了可点旋转。';
+    warnEl.style.color='#b45309'; warnEl.style.background='#fffbeb'; warnEl.style.borderColor='#fde68a';
+    busyEl.style.display = 'block';
+    busyEl.textContent = '加载图片…';
+    var im = new Image();
+    im.onload = function(){
+      st.img = im;
+      drawToCanvas();
+      busyEl.textContent = '识别中…';
+      scan();
+    };
+    im.onerror = function(){ busyEl.textContent = '图片无法加载'; };
+    im.src = URL.createObjectURL(file);
+  }
+
+  function scan(){
+    var base = backendBase();
+    if (!base) { busyEl.style.display='none'; showWarn('离线：未连接后端，仅可手动打码'); redraw(); return; }
+    var fd = new FormData();
+    fd.append('user_image', st.file);
+    fetch(api('/api/privacy/scan'), { method:'POST', body: fd })
+      .then(function(r){ if(!r.ok) return r.text().then(function(t){ throw new Error(t); }); return r.json(); })
+      .then(function(d){
+        st.qr = (d.qr || []).map(clampBox);
+        st.faces = (d.faces || []).map(clampBox);
+        busyEl.style.display = 'none';
+        var n = st.qr.length + st.faces.length;
+        showWarn(n ? ('已识别：二维码 ' + st.qr.length + ' 个，人脸 ' + st.faces.length + ' 个。二维码强制打码，人脸可取消。') : '未识别到二维码或人脸，可手动框选打码。');
+        redraw();
+      })
+      .catch(function(e){
+        busyEl.style.display='none';
+        showWarn('自动识别失败（' + (e.message||e) + '），可手动框选打码');
+        redraw();
+      });
+  }
+
+  function showWarn(msg){
+    warnEl.textContent = msg;
+    warnEl.style.background='#fffbeb'; warnEl.style.borderColor='#fde68a'; warnEl.style.color='#b45309';
+  }
+
+  function clampBox(b){
+    var x1=Math.max(0,Math.min(st.img.width, b[0])), y1=Math.max(0,Math.min(st.img.height, b[1]));
+    var x2=Math.max(0,Math.min(st.img.width, b[2])), y2=Math.max(0,Math.min(st.img.height, b[3]));
+    return [Math.min(x1,x2), Math.min(y1,y2), Math.max(x1,x2), Math.max(y1,y2)];
+  }
+
+  function fitCanvas(rotW, rotH){
+    var maxW = Math.min(window.innerWidth - 80, 700);
+    var maxH = Math.min(window.innerHeight * 0.5, 460);
+    var scale = Math.min(maxW / rotW, maxH / rotH, 1);
+    cv.width = Math.max(1, Math.round(rotW * scale));
+    cv.height = Math.max(1, Math.round(rotH * scale));
+    disp.scale = scale; disp.rotW = rotW; disp.rotH = rotH;
+  }
+
+  function drawToCanvas(){
+    if (!st || !st.img) return;
+    var rs = rotSize();
+    fitCanvas(rs.w, rs.h);
+    redraw();
+  }
+
+  function boxesForDraw(){
+    var list = [];
+    st.qr.forEach(function(b){ list.push({b:boxFwd(b), color:'rgba(220,38,38,.85)', fill:'rgba(220,38,38,.22)'}); });
+    if (st.faceOn) st.faces.forEach(function(b){ list.push({b:boxFwd(b), color:'rgba(234,88,12,.9)', fill:'rgba(234,88,12,.22)'}); });
+    st.manual.forEach(function(b){ list.push({b:boxFwd(b), color:'rgba(37,99,235,.9)', fill:'rgba(37,99,235,.20)'}); });
+    if (drag) list.push({b:drag.rect, color:'rgba(16,185,129,.9)', fill:'rgba(16,185,129,.18)'});
+    return list;
+  }
+
+  function redraw(){
+    if (!st || !st.img) return;
+    var s = disp.scale;
+    ctx.clearRect(0,0,cv.width,cv.height);
+    ctx.fillStyle = '#111'; ctx.fillRect(0,0,cv.width,cv.height);
+    paintRotated(ctx, cv.width, cv.height);
+    boxesForDraw().forEach(function(o){
+      var x=o.b[0]*s, y=o.b[1]*s, w=(o.b[2]-o.b[0])*s, h=(o.b[3]-o.b[1])*s;
+      ctx.fillStyle = o.fill; ctx.fillRect(x,y,w,h);
+      ctx.strokeStyle = o.color; ctx.lineWidth = 2; ctx.strokeRect(x,y,w,h);
+    });
+    countEl.textContent = '二维码 ' + st.qr.length + ' · 人脸 ' + (st.faceOn?st.faces.length:0) + ' · 手动 ' + st.manual.length;
+  }
+
+  function pt(e){
+    var r = cv.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * (cv.width / r.width), y: (e.clientY - r.top) * (cv.height / r.height) };
+  }
+
+  function onDown(e){
+    if (!st || !st.img) return;
+    if (drawChk.checked) {
+      var p = pt(e);
+      drag = { x0: p.x, y0: p.y, rect: [p.x, p.y, p.x, p.y] };
+      try { cv.setPointerCapture(e.pointerId); } catch(err){}
+    } else {
+      var q = pt(e), s = disp.scale;
+      var all = [];
+      st.qr.forEach(function(b,i){ all.push({list:'qr', i:i, b:boxFwd(b)}); });
+      if (st.faceOn) st.faces.forEach(function(b,i){ all.push({list:'faces', i:i, b:boxFwd(b)}); });
+      st.manual.forEach(function(b,i){ all.push({list:'manual', i:i, b:boxFwd(b)}); });
+      for (var i=all.length-1;i>=0;i--){
+        var b=all[i].b;
+        if (q.x>=b[0]*s && q.x<=b[2]*s && q.y>=b[1]*s && q.y<=b[3]*s){
+          if (all[i].list==='qr'){ warnEl.textContent='二维码为强制打码，不能删除'; return; }
+          st[all[i].list].splice(all[i].i,1); redraw(); return;
+        }
+      }
+    }
+  }
+
+  function onMove(e){
+    if (!drag) return;
+    var p = pt(e);
+    drag.rect = [Math.min(drag.x0,p.x), Math.min(drag.y0,p.y), Math.max(drag.x0,p.x), Math.max(drag.y0,p.y)];
+    redraw();
+  }
+
+  function onUp(){
+    if (!drag || !st) { drag = null; return; }
+    var r = drag.rect, s = disp.scale; drag = null;
+    if ((r[2]-r[0]) < 8 || (r[3]-r[1]) < 8){ redraw(); return; }
+    var a = inv(r[0]/s, r[1]/s), c = inv(r[2]/s, r[3]/s);
+    st.manual.push([Math.min(a.x,c.x), Math.min(a.y,c.y), Math.max(a.x,c.x), Math.max(a.y,c.y)]);
+    redraw();
+  }
+
+  function renderFinal(){
+    var rs = rotSize();
+    var base = document.createElement('canvas');
+    base.width = rs.w; base.height = rs.h;
+    var bctx = base.getContext('2d');
+    bctx.fillStyle='#000'; bctx.fillRect(0,0,rs.w,rs.h);
+    paintRotated(bctx, rs.w, rs.h);
+
+    var boxes = st.qr.slice();
+    if (st.faceOn) boxes = boxes.concat(st.faces);
+    boxes = boxes.concat(st.manual);
+
+    var out = document.createElement('canvas');
+    out.width = rs.w; out.height = rs.h;
+    var octx = out.getContext('2d');
+    octx.drawImage(base, 0, 0);
+    boxes.forEach(function(b){
+      var fb = boxFwd(b);
+      var x=Math.max(0,fb[0]), y=Math.max(0,fb[1]);
+      var w=Math.min(rs.w,fb[2])-x, h=Math.min(rs.h,fb[3])-y;
+      if (w<=0||h<=0) return;
+      octx.save();
+      octx.beginPath(); octx.rect(x,y,w,h); octx.clip();
+      octx.filter = 'blur(' + Math.max(8, Math.round(Math.min(w,h)/6)) + 'px)';
+      octx.drawImage(base, 0, 0);
+      octx.restore();
+      octx.filter = 'none';
+    });
+
+    var size = Math.max(rs.w, rs.h);
+    var sq = document.createElement('canvas');
+    sq.width = size; sq.height = size;
+    var sctx = sq.getContext('2d');
+    sctx.fillStyle = '#000'; sctx.fillRect(0,0,size,size);
+    sctx.drawImage(out, Math.round((size-rs.w)/2), Math.round((size-rs.h)/2));
+    return sq;
+  }
+
+  function confirmOk(){
+    if (!st || !st.img) { cancel(); return; }
+    document.getElementById('kyEdOk').disabled = true;
+    try {
+      var sq = renderFinal();
+      sq.toBlob(function(blob){
+        if (!blob) { alert('图片导出失败'); document.getElementById('kyEdOk').disabled = false; return; }
+        var name = (st.file.name || 'image').replace(/\.[^.]+$/, '') + '_privacy.jpg';
+        var f = new File([blob], name, { type: 'image/jpeg' });
+        var cb = overlay._onDone, faceOn = st.faceOn;
+        close();
+        if (cb) cb(f, faceOn);
+      }, 'image/jpeg', 0.92);
+    } catch(e) {
+      alert('处理失败: ' + (e.message||e));
+      document.getElementById('kyEdOk').disabled = false;
+    }
+  }
+
+  function cancel(){
+    var cb = overlay && overlay._onCancel;
+    close();
+    if (cb) cb();
+  }
+
+  function close(){
+    if (overlay) overlay.style.display = 'none';
+    var ok = document.getElementById('kyEdOk'); if (ok) ok.disabled = false;
+    st = null; drag = null;
+  }
+
+  window.openImageEditor = openImageEditor;
+})();
+</script>
+
 </body>
 </html>
 

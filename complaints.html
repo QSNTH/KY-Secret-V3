@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KY Secret V3 · 投诉</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+body{background:#f7fafc;padding:2rem 1rem;display:flex;justify-content:center;align-items:flex-start;min-height:100vh}
+.box{max-width:680px;width:100%}
+.logo{font-size:3.2rem;font-weight:900;text-align:center;margin-bottom:.6rem}
+.nav{display:flex;gap:.6rem;justify-content:center;margin-bottom:1.4rem;flex-wrap:wrap}
+.nav a{padding:.45rem 1.2rem;border:1px solid #e2e8f0;border-radius:40px;background:#fff;color:#334155;text-decoration:none;font-size:.85rem}
+.nav a.on{background:#0f172a;color:#fff;border-color:#0f172a}
+.card{background:#fff;border-radius:20px;padding:1.6rem;border:1px solid #ecf1f7;box-shadow:0 4px 14px rgba(0,20,40,.02);margin-bottom:1rem}
+.card h2{font-size:1.1rem;color:#0f2a40;margin-bottom:.3rem}
+.card .sub{font-size:.8rem;color:#94a3b8;margin-bottom:1rem}
+label{display:block;font-size:.85rem;font-weight:600;color:#1e3f5c;margin:.9rem 0 .4rem}
+input,textarea{width:100%;padding:.8rem 1rem;border:1.5px solid #e2ecf5;border-radius:14px;font-size:.9rem;outline:0;font-family:inherit}
+input:focus,textarea:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.08)}
+textarea{min-height:120px;resize:vertical;line-height:1.6}
+button{width:100%;margin-top:1rem;padding:.9rem;border:none;border-radius:40px;background:#0f172a;color:#fff;font-size:1rem;font-weight:650;cursor:pointer}
+button:disabled{opacity:.55;cursor:not-allowed}
+button.ghost{background:#eef2f6;color:#334155;margin-top:.5rem}
+.res{margin-top:1rem;padding:1rem;border-radius:12px;font-size:.85rem;line-height:1.6;display:none}
+.res.ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;display:block}
+.res.err{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;display:block}
+.token{font-family:monospace;font-size:.78rem;word-break:break-all;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:.6rem;margin-top:.5rem}
+.st{display:inline-block;padding:1px 10px;border-radius:20px;font-size:.72rem;font-weight:700}
+.st.open{background:#fef3c7;color:#92400e}.st.reviewing{background:#dbeafe;color:#1e40af}.st.resolved{background:#dcfce7;color:#166534}.st.rejected{background:#fee2e2;color:#991b1b}
+.muted{color:#94a3b8;font-size:.75rem;margin-top:.8rem;text-align:center}
+.tip{font-size:.75rem;color:#6f8faa;background:#f4faff;border-radius:10px;padding:.5rem .8rem;margin-top:.6rem}
+.switch{display:flex;gap:.5rem;margin-bottom:1rem}
+.switch button{margin:0;flex:1;background:#eef2f6;color:#334155;border-radius:12px;padding:.6rem;font-size:.85rem}
+.switch button.on{background:#0f172a;color:#fff}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">KYSECRET</div>
+  <div class="nav">
+    <a href="./index.html">✉️ 投稿</a>
+    <a href="./result.html">🔍 查询</a>
+    <a href="./complaints.html" class="on">📣 投诉</a>
+    <a href="./issues.html">💡 建议</a>
+  </div>
+
+  <div class="card">
+    <div class="switch">
+      <button id="tabSubmit" class="on" onclick="tab('submit')">提交投诉</button>
+      <button id="tabLookup" onclick="tab('lookup')">查询进度</button>
+    </div>
+
+    <div id="paneSubmit">
+      <h2>📣 投诉帖子</h2>
+      <div class="sub">填写帖子编号（格式 KYSV3-XXXXXXXX）与投诉原因，提交后会生成查询凭证。</div>
+      <label>帖子编号</label>
+      <input id="hid" placeholder="KYSV3-XXXXXXXX" autocomplete="off">
+      <label>投诉原因</label>
+      <textarea id="reason" placeholder="请说明投诉原因，例如侵犯隐私、抄袭、不实信息…"></textarea>
+      <button id="btnSubmit" onclick="submitComplaint()">提交投诉</button>
+      <div class="res" id="resSubmit"></div>
+    </div>
+
+    <div id="paneLookup" style="display:none">
+      <h2>🔍 查询投诉进度</h2>
+      <div class="sub">粘贴提交时得到的凭证或链接。</div>
+      <label>查询凭证</label>
+      <input id="token" placeholder="粘贴凭证 / 链接" autocomplete="off">
+      <button onclick="lookup()">查询</button>
+      <div class="res" id="resLookup"></div>
+      <div class="tip">凭证是查询与接收回复的唯一依据，请自行保存；遗失后无法找回。</div>
+    </div>
+
+    <div class="muted">投诉渠道开关由管理员控制；关闭时提交会失败。</div>
+  </div>
+</div>
+<script>
+var B='';
+(function init(){
+  var urls=['https://ky-secret-v3.pages.dev/config.json','https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json','/config.json'];
+  function tryAt(i){if(i>=urls.length){setRes('resSubmit','err','配置加载失败，请刷新重试');return;}
+    var u=urls[i];u+=(u.indexOf('?')>=0?'&':'?')+'t='+Date.now();
+    fetch(u).then(function(r){return r.json()}).then(function(c){B=(c.backend||'').trim();afterConfig();}).catch(function(){tryAt(i+1);});}
+  tryAt(0);
+  var m=location.search.match(/[?&]token=([^&]+)/);
+  if(m){document.getElementById('token').value=decodeURIComponent(m[1]);tab('lookup');}
+})();
+function afterConfig(){}
+function tab(t){
+  var s=t==='submit';
+  document.getElementById('tabSubmit').classList.toggle('on',s);
+  document.getElementById('tabLookup').classList.toggle('on',!s);
+  document.getElementById('paneSubmit').style.display=s?'block':'none';
+  document.getElementById('paneLookup').style.display=s?'none':'block';
+}
+function setRes(id,cls,html){var e=document.getElementById(id);e.className='res '+cls;e.innerHTML=html;}
+function api(p){return B+'/api'+p;}
+function submitComplaint(){
+  var hid=document.getElementById('hid').value.trim().toUpperCase();
+  var reason=document.getElementById('reason').value.trim();
+  if(!hid||!reason){setRes('resSubmit','err','请填写帖子编号和投诉原因');return;}
+  var btn=document.getElementById('btnSubmit');btn.disabled=true;
+  fetch(api('/complaints'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({hid:hid,reason:reason})})
+  .then(function(r){return r.json().then(function(d){if(!r.ok)throw new Error(d.detail||('错误 '+r.status));return d;});})
+  .then(function(d){
+    var link='complaints.html?token='+encodeURIComponent(d.token);
+    try{localStorage.setItem('ky_complaint_'+d.token,link);}catch(e){}
+    setRes('resSubmit','ok','✅ 投诉已提交，请保存下面的查询链接或凭证：<div class="token">'+link+'</div><div class="token">'+d.token+'</div>');
+  })
+  .catch(function(e){setRes('resSubmit','err','提交失败：'+e.message);})
+  .finally(function(){btn.disabled=false;});
+}
+function lookup(){
+  var raw=document.getElementById('token').value.trim();
+  if(!raw){setRes('resLookup','err','请输入凭证');return;}
+  var m=raw.match(/[?&]token=([^&\s]+)/);var token=m?decodeURIComponent(m[1]):raw;
+  fetch(api('/complaints/'+encodeURIComponent(token)))
+  .then(function(r){return r.json().then(function(d){if(!r.ok)throw new Error(d.detail||('错误 '+r.status));return d;});})
+  .then(function(d){
+    var lm={open:'待处理',reviewing:'处理中',resolved:'已解决',rejected:'已驳回'};
+    setRes('resLookup','ok','<b>帖子编号：</b>'+esc(d.hid)+'<br><b>状态：</b><span class="st '+esc(d.status)+'">'+(lm[d.status]||esc(d.status))+'</span>'
+      +'<br><b>投诉原因：</b>'+esc(d.reason||'')
+      +'<br><b>管理员回复：</b>'+(d.reply?esc(d.reply):'<span style="color:#94a3b8">暂无回复</span>')
+      +'<br><span style="color:#94a3b8;font-size:.75rem">提交时间：'+esc(d.created_at||'')+'</span>');
+  })
+  .catch(function(e){setRes('resLookup','err','查询失败：'+e.message);});
+}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+</script>
+</body>
+</html>

@@ -354,6 +354,9 @@
 
         </div>
 
+        <!-- 动态公告（后台可编辑） -->
+        <div id="kyDynamicHistory"></div>
+
         <!-- 六月 2026 -->
         <div class="month-section">
             <div class="month-title">
@@ -886,6 +889,40 @@
             <br><span style="font-size:0.7rem;color:#94a3b8">RV_1.21_Stable</span>
         </div>
     </div>
+<script>
+/* 动态公告（管理员在后台编辑，自动显示在顶部） */
+(function(){
+  var B='';
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function lm(s){return {investigating:'调查中',ongoing:'处理中',resolved:'已完成',scheduled:'计划中',open:'待处理'}[s]||s||'更新';}
+  function parseEvents(x){try{if(Array.isArray(x))return x;if(!x)return [];var a=JSON.parse(x);return Array.isArray(a)?a:[];}catch(e){return [];}}
+  function render(items){
+    if(!items||!items.length)return;
+    var host=document.getElementById('kyDynamicHistory');if(!host)return;
+    var html='<div class="month-section"><div class="month-title">最新公告 <span>'+items.length+' 条</span></div></div>';
+    items.forEach(function(it){
+      html+='<div class="incident-card"><div class="incident-header header-resolved">'
+        +'<span class="incident-title">'+esc(it.title||'')+'</span>'
+        +'<span class="incident-tag">'+esc(lm(it.status))+'</span></div><div class="incident-body"><div class="meta-grid">'
+        +'<div class="meta-item"><span class="meta-label">状态</span><span class="meta-value" style="color:#10b981;font-weight:650">'+esc(lm(it.status))+'</span></div>'
+        +'<div class="meta-item"><span class="meta-label">更新时间</span><span class="meta-value">'+esc(it.updated_at||it.created_at||'')+'</span></div>'
+        +'</div>';
+      if(it.body)html+='<div style="font-size:.85rem;color:#475569;line-height:1.7;margin:.8rem 0;white-space:pre-wrap">'+esc(it.body)+'</div>';
+      var ev=parseEvents(it.events_json);
+      if(ev.length){html+='<div class="timeline-events">'+ev.map(function(e){
+        return '<div class="event-item"><span class="event-time">'+esc(e.time||e.t||'')+'</span><span class="event-status status-resolved">'+esc(e.label||'更新')+'</span><span class="event-description">'+esc(e.text||e.d||'')+'</span></div>';
+      }).join('')+'</div>';}
+      html+='</div></div>';
+    });
+    host.innerHTML=html;
+  }
+  var urls=['https://ky-secret-v3.pages.dev/config.json','https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json','../config.json'];
+  function tryAt(i){if(i>=urls.length)return;var u=urls[i];u+=(u.indexOf('?')>=0?'&':'?')+'t='+Date.now();
+    fetch(u).then(function(r){return r.json()}).then(function(c){B=(c.backend||'').trim();load();}).catch(function(){tryAt(i+1);});}
+  function load(){if(!B)return;fetch(B+'/api/status-history').then(function(r){return r.json()}).then(render).catch(function(){});}
+  tryAt(0);
+})();
+</script>
 </body>
 
 </html>

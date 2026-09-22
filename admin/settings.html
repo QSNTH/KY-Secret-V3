@@ -105,6 +105,14 @@ body{background:#f7fafc;color:#222;height:100vh;display:flex;flex-direction:colu
     <div class="grp">内容与发布</div>
     <div class="nav-item on" data-sec="sec-ad" onclick="goTo('sec-ad',this)"><span class="ic">📢</span><span class="tx">开屏广告</span></div>
     <div class="nav-item" data-sec="sec-review" onclick="goTo('sec-review',this)"><span class="ic">🤖</span><span class="tx">自动审核</span></div>
+    <div class="nav-item" data-sec="sec-channels" onclick="goTo('sec-channels',this)"><span class="ic">🔀</span><span class="tx">渠道开关</span></div>
+    <div class="nav-item" data-sec="sec-submission" onclick="goTo('sec-submission',this)"><span class="ic">📏</span><span class="tx">投稿限制</span></div>
+    <div class="nav-item" data-sec="sec-publisher" onclick="goTo('sec-publisher',this)"><span class="ic">🚦</span><span class="tx">发布队列</span></div>
+    <div class="nav-item" data-sec="sec-checklist" onclick="goTo('sec-checklist',this)"><span class="ic">✅</span><span class="tx">投稿检查单</span></div>
+    <div class="grp">安全与准入</div>
+    <div class="nav-item" data-sec="sec-admission" onclick="goTo('sec-admission',this)"><span class="ic">🚪</span><span class="tx">访问准入</span></div>
+    <div class="nav-item" data-sec="sec-ratelimit" onclick="goTo('sec-ratelimit',this)"><span class="ic">⏱️</span><span class="tx">频率限制</span></div>
+    <div class="nav-item" data-sec="sec-captcha" onclick="goTo('sec-captcha',this)"><span class="ic">🛡️</span><span class="tx">验证码</span></div>
     <div class="grp">权限</div>
     <div class="nav-item" data-sec="sec-acct" onclick="goTo('sec-acct',this)"><span class="ic">👑</span><span class="tx">管理员账号</span><span class="lk">超管</span></div>
   </div>
@@ -174,6 +182,81 @@ body{background:#f7fafc;color:#222;height:100vh;display:flex;flex-direction:colu
       <div class="save-bar"><button id="btnSaveReview" onclick="saveReview()">保存审核设定</button><span class="note" id="reviewNote"></span></div>
     </div>
 
+    <!-- ✦ 渠道开关 ✦ -->
+    <div class="sec" id="sec-channels">
+      <h3>🔀 渠道开关</h3>
+      <div class="sub">关闭某个渠道后，后端会直接拒绝该渠道的请求；前端也会同步隐藏入口。</div>
+      <div class="row"><div class="lb">接受新投稿<span class="hint">关闭后投稿接口返回 503</span></div><div class="tg" id="ch_accept_submissions" onclick="tg(this)"></div></div>
+      <div class="row"><div class="lb">向 Instagram 发布<span class="hint">关闭后审核通过仍会保存，但不加入外发队列</span></div><div class="tg" id="ch_publish_instagram" onclick="tg(this)"></div></div>
+      <div class="row"><div class="lb">投诉渠道<span class="hint">关闭后投诉接口返回 503</span></div><div class="tg" id="ch_complaints" onclick="tg(this)"></div></div>
+      <div class="row"><div class="lb">建议 / Issue 渠道<span class="hint">关闭后建议接口返回 503</span></div><div class="tg" id="ch_issues" onclick="tg(this)"></div></div>
+      <div class="row"><div class="lb">私密联系渠道<span class="hint">与投诉共用入口</span></div><div class="tg" id="ch_private_contact" onclick="tg(this)"></div></div>
+      <div class="row"><div class="lb">Issue 允许图片<span class="hint">预留开关，默认关闭；关闭时后端拒绝图片上传</span></div><div class="tg" id="ch_issue_images" onclick="tg(this)"></div></div>
+      <div class="save-bar"><button onclick="saveChannels()">保存渠道开关</button><span class="note" id="chNote"></span></div>
+    </div>
+
+    <!-- ✦ 投稿限制 ✦ -->
+    <div class="sec" id="sec-submission">
+      <h3>📏 投稿限制</h3>
+      <div class="sub">字数、图片大小、冷却时间与待审队列上限，均由后端硬校验。</div>
+      <div class="row" style="border-bottom:none;padding-bottom:0"></div>
+      <div id="subFields"></div>
+      <div class="save-bar"><button onclick="saveSubmission()">保存投稿限制</button><span class="note" id="subNote"></span></div>
+    </div>
+
+    <!-- ✦ 发布队列 ✦ -->
+    <div class="sec" id="sec-publisher">
+      <h3>🚦 发布队列控制</h3>
+      <div class="sub">可暂停外发，投稿和审核仍可继续；连续失败也会自动熔断。</div>
+      <div id="pubStatus" style="background:#f8fbf9;border-radius:10px;padding:12px;margin:10px 0;font-size:13px">加载中...</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px"><button class="save-bar" onclick="pausePublisher()">暂停外发</button><button class="save-bar" onclick="resumePublisher()">恢复外发</button><button class="chip" onclick="loadPublisher()">刷新状态</button></div>
+      <div id="pubFields"></div>
+      <div class="save-bar"><button onclick="savePublisher()">保存发布参数</button><span class="note" id="pubNote"></span></div>
+    </div>
+
+    <!-- ✦ 投稿检查单 ✦ -->
+    <div class="sec" id="sec-checklist">
+      <h3>✅ 投稿检查单</h3>
+      <div class="sub">用户投稿前必须逐条勾选确认；管理员可自由增删。内容有改动时请点击「保存并升版」。</div>
+      <div class="row"><div class="lb">启用检查单<span class="hint">关闭后用户投稿不再需要勾选确认</span></div><div class="tg" id="cl_enabled" onclick="tg(this)"></div></div>
+      <div class="field">
+        <label>检查单条目（每行一条，最多 20 条）</label>
+        <textarea id="cl_items" style="width:100%;min-height:140px;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;line-height:1.6;outline:0;resize:vertical;font-family:inherit"></textarea>
+      </div>
+      <div class="field" style="max-width:220px">
+        <label>当前规则版本</label>
+        <input type="number" id="cl_version" min="1" style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;outline:0">
+      </div>
+      <div class="save-bar"><button onclick="saveChecklist()">保存并升版</button><button onclick="saveChecklist(false)" style="background:#64748b">仅保存不升版</button><span class="note" id="clNote"></span></div>
+    </div>
+
+    <!-- ✦ 访问准入 ✦ -->
+    <div class="sec" id="sec-admission">
+      <h3>🚪 访问准入</h3>
+      <div class="sub">控制公开访问的接口开关。</div>
+      <div class="row"><div class="lb">开放状态 API<span class="hint">关闭后 /api/status 不再返回系统数据</span></div><div class="tg" id="adm_allow_status_api" onclick="tg(this)"></div></div>
+      <div class="row"><div class="lb">开放服务器状态展示<span class="hint">前端状态页是否展示服务器信息</span></div><div class="tg" id="adm_allow_server_status" onclick="tg(this)"></div></div>
+      <div class="save-bar"><button onclick="saveAdmission()">保存准入设置</button><span class="note" id="admNote"></span></div>
+    </div>
+
+    <!-- ✦ 频率限制 ✦ -->
+    <div class="sec" id="sec-ratelimit">
+      <h3>⏱️ 频率限制</h3>
+      <div class="sub">各渠道的请求频率上限（0 表示不限制）。当前为预留配置，后端强制限流将在下一轮接入。</div>
+      <div id="rlFields"></div>
+      <div class="save-bar"><button onclick="saveRateLimit()">保存频率限制</button><span class="note" id="rlNote"></span></div>
+    </div>
+
+    <!-- ✦ 验证码 ✦ -->
+    <div class="sec" id="sec-captcha">
+      <h3>🛡️ 验证码</h3>
+      <div class="sub">用于管理员登录与投稿防脚本。推荐 Cloudflare Turnstile。</div>
+      <div class="row"><div class="lb">启用验证码<span class="hint">启用后需在部署端接入校验（当前为预留配置）</span></div><div class="tg" id="cap_enabled" onclick="tg(this)"></div></div>
+      <div class="field"><label>服务商</label><input type="text" id="cap_provider" placeholder="turnstile" ></div>
+      <div class="field"><label>Site Key（前端）</label><input type="text" id="cap_site_key" placeholder="0x4AAAA..."></div>
+      <div class="field"><label>Secret（后端，请勿外泄）</label><input type="text" id="cap_secret" placeholder="0x4AAAA..."></div>
+      <div class="save-bar"><button onclick="saveCaptcha()">保存验证码设置</button><span class="note" id="capNote"></span></div>
+    </div>
     <!-- ✦ 管理员账号 ✦ -->
     <div class="sec acct-panel" id="sec-acct">
       <h3>👑 管理员账号 <span style="font-size:11px;color:#e74c3c;font-weight:400">超级管理员</span><span style="font-size:12px;font-weight:400;color:#888;margin-left:6px" id="acctTime"></span></h3>
@@ -220,7 +303,7 @@ var B='';var AD={},MODE='manual';var currentRole='';
 function ready(){
   document.getElementById('loading').style.display='none';
   document.getElementById('wrap').style.display='flex';
-  loadSettings();checkRole();
+  loadSettings();checkRole();loadPublisher();
 }
 
 function t(m){var e=document.getElementById('toast');e.textContent=m;e.classList.add('s');setTimeout(function(){e.classList.remove('s');},2000);}
@@ -255,7 +338,9 @@ function loadSettings(){
     if(r.status===401){localStorage.removeItem('ky_token');location.href='index.html';return;}
     return j(r);
   }).then(function(s){
-    AD=s.ad||{};MODE=(s.auto_review||{}).mode||'manual';
+    if(!s)return;
+    S=s;AD=s.ad||{};MODE=(s.auto_review||{}).mode||'manual';
+    fillAll();
     document.getElementById('tgAdEnabled').classList.toggle('on',!!AD.enabled);
     document.getElementById('adLink').value=AD.link||'';
     document.getElementById('adInterval').value=AD.interval_seconds||'';
@@ -423,6 +508,136 @@ function delAccount(username){
   .then(function(r){return j(r);})
   .then(function(){t('已删除 '+username);loadAccounts();})
   .catch(function(e){t('删除失败: '+(e.message||''));});
+}
+
+function loadPublisher(){fetch(B+'/admin/publisher/status',{headers:hd()}).then(function(r){return j(r)}).then(function(d){document.getElementById('pubStatus').textContent=(d.paused?'已暂停：'+(d.pause_reason||''):'运行中')+' · 待发 '+d.pending+' · 成功 '+d.processed_total+' · 失败 '+d.failed_total+(d.last_error?' · 最近错误：'+d.last_error:'');}).catch(function(e){document.getElementById('pubStatus').textContent='加载失败：'+e.message;});}
+function pausePublisher(){var reason=prompt('暂停原因','管理员手动暂停')||'管理员手动暂停';fetch(B+'/admin/publisher/pause',{method:'POST',headers:Object.assign({},hd(),{'Content-Type':'application/json'}),body:JSON.stringify({reason:reason})}).then(function(r){return j(r)}).then(function(){t('已暂停外发');loadPublisher();});}
+function resumePublisher(){fetch(B+'/admin/publisher/resume',{method:'POST',headers:hd()}).then(function(r){return j(r)}).then(function(){t('已恢复外发');loadPublisher();});}
+
+/* ============ 新增设置模块 ============ */
+var S={};
+function isTg(id){var e=document.getElementById(id);return e?e.classList.contains('on'):false;}
+function setTg(id,v){var e=document.getElementById(id);if(e)e.classList.toggle('on',!!v);}
+function val(id){var e=document.getElementById(id);return e?e.value:'';}
+
+var SUB_FIELDS=[
+  {k:'max_title_length',l:'标题最大字数',min:1,max:1000},
+  {k:'max_content_length',l:'正文最大字数',min:0,max:10000},
+  {k:'max_image_bytes',l:'图片最大字节',min:1024,max:104857600},
+  {k:'cooldown_seconds',l:'同一设备提交冷却(秒)',min:0,max:3600},
+  {k:'max_pending',l:'待审核队列上限',min:0,max:10000}
+];
+var PUB_FIELDS=[
+  {k:'interval_seconds',l:'每条发布间隔(秒)',min:1,max:86400},
+  {k:'max_retries',l:'单条最大重试次数',min:0,max:10},
+  {k:'failure_pause_threshold',l:'连续失败自动暂停阈值',min:1,max:100},
+  {k:'retry_backoff_seconds',l:'重试退避基础(秒)',min:1,max:3600}
+];
+var RL_FIELDS=[
+  {k:'submit_per_minute',l:'每分钟最大投稿',min:0,max:600},
+  {k:'login_per_minute',l:'每分钟最大登录',min:0,max:600},
+  {k:'complaint_per_hour',l:'每小时最大投诉',min:0,max:1000},
+  {k:'issue_per_hour',l:'每小时最大建议',min:0,max:1000}
+];
+
+function renderNumFields(containerId,fields,prefix){
+  var box=document.getElementById(containerId);if(!box)return;
+  box.innerHTML=fields.map(function(f){
+    return '<div class="row"><div class="lb">'+f.l+'<span class="hint">范围 '+f.min+' ~ '+f.max+'</span></div>'
+      +'<input type="number" id="'+prefix+f.k+'" min="'+f.min+'" max="'+f.max+'" style="width:150px;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;outline:0"></div>';
+  }).join('');
+}
+function fillNumeric(containerId,fields,prefix,src){
+  renderNumFields(containerId,fields,prefix);
+  fields.forEach(function(f){var e=document.getElementById(prefix+f.k);if(e)e.value=(src[f.k]!==undefined?src[f.k]:'');});
+}
+function saveNumeric(section,fields,prefix,noteId){
+  var patch={};patch[section]={};
+  for(var i=0;i<fields.length;i++){
+    var f=fields[i],e=document.getElementById(prefix+f.k);
+    var n=parseInt(e.value,10);
+    if(isNaN(n)){t('「'+f.l+'」必须是数字');return;}
+    if(n<f.min||n>f.max){t('「'+f.l+'」需在 '+f.min+' ~ '+f.max+' 之间');return;}
+    patch[section][f.k]=n;
+  }
+  postSettings(patch,noteId);
+}
+
+function postSettings(patch,noteId){
+  return fetch(B+'/admin/settings',{method:'POST',headers:Object.assign({},hd(),{'Content-Type':'application/json'}),body:JSON.stringify(patch)})
+  .then(function(r){return j(r);})
+  .then(function(s){
+    if(s)S=s;
+    var n=noteId?document.getElementById(noteId):null;
+    if(n)n.textContent='已保存 '+new Date().toLocaleTimeString();
+    t('设置已保存');
+    return s;
+  })
+  .catch(function(e){t('保存失败: '+(e.message||e));throw e;});
+}
+
+function fillAll(){
+  fillChannels();fillSubmission();fillPublisherFields();fillChecklist();fillAdmission();fillRateLimit();fillCaptcha();
+}
+function fillChannels(){
+  var c=S.channels||{};
+  setTg('ch_accept_submissions',c.accept_submissions!==false);
+  setTg('ch_publish_instagram',c.publish_instagram!==false);
+  setTg('ch_complaints',c.complaints!==false);
+  setTg('ch_issues',c.issues!==false);
+  setTg('ch_private_contact',c.private_contact!==false);
+  setTg('ch_issue_images',!!c.issue_images);
+}
+function saveChannels(){
+  postSettings({channels:{
+    accept_submissions:isTg('ch_accept_submissions'),
+    publish_instagram:isTg('ch_publish_instagram'),
+    complaints:isTg('ch_complaints'),
+    issues:isTg('ch_issues'),
+    private_contact:isTg('ch_private_contact'),
+    issue_images:isTg('ch_issue_images')
+  }},'chNote');
+}
+function fillSubmission(){fillNumeric('subFields',SUB_FIELDS,'sub_',S.submission||{});}
+function saveSubmission(){saveNumeric('submission',SUB_FIELDS,'sub_','subNote');}
+function fillPublisherFields(){fillNumeric('pubFields',PUB_FIELDS,'pub_',S.publisher||{});}
+function savePublisher(){saveNumeric('publisher',PUB_FIELDS,'pub_','pubNote');}
+function fillRateLimit(){fillNumeric('rlFields',RL_FIELDS,'rl_',S.rate_limit||{});}
+function saveRateLimit(){saveNumeric('rate_limit',RL_FIELDS,'rl_','rlNote');}
+
+function fillChecklist(){
+  var c=S.checklist||{};
+  setTg('cl_enabled',c.enabled!==false);
+  document.getElementById('cl_items').value=(c.items||[]).join('\n');
+  document.getElementById('cl_version').value=c.version||1;
+}
+function saveChecklist(bump){
+  var items=document.getElementById('cl_items').value.split('\n').map(function(x){return x.trim();}).filter(function(x){return x;});
+  if(!items.length){t('检查单至少需要一条');return;}
+  items=items.slice(0,20).map(function(x){return x.slice(0,500);});
+  var old=(S.checklist||{});
+  var version=parseInt(document.getElementById('cl_version').value,10)||old.version||1;
+  var changed=JSON.stringify(items)!==JSON.stringify(old.items||[]);
+  if(changed&&bump!==false)version=version+1;
+  postSettings({checklist:{enabled:isTg('cl_enabled'),version:version,items:items}},'clNote').then(fillChecklist).catch(function(){});
+}
+function fillAdmission(){
+  var a=S.admission||{};
+  setTg('adm_allow_status_api',a.allow_status_api!==false);
+  setTg('adm_allow_server_status',a.allow_server_status!==false);
+}
+function saveAdmission(){
+  postSettings({admission:{allow_status_api:isTg('adm_allow_status_api'),allow_server_status:isTg('adm_allow_server_status')}},'admNote');
+}
+function fillCaptcha(){
+  var c=S.captcha||{};
+  setTg('cap_enabled',!!c.enabled);
+  document.getElementById('cap_provider').value=c.provider||'turnstile';
+  document.getElementById('cap_site_key').value=c.site_key||'';
+  document.getElementById('cap_secret').value=c.secret||'';
+}
+function saveCaptcha(){
+  postSettings({captcha:{enabled:isTg('cap_enabled'),provider:val('cap_provider')||'turnstile',site_key:val('cap_site_key'),secret:val('cap_secret')}},'capNote');
 }
 </script>
 </body>

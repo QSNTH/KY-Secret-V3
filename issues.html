@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KY Secret V3 · 建议 / Issue</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+body{background:#f7fafc;padding:2rem 1rem;display:flex;justify-content:center;align-items:flex-start;min-height:100vh}
+.box{max-width:760px;width:100%}
+.logo{font-size:3.2rem;font-weight:900;text-align:center;margin-bottom:.6rem}
+.nav{display:flex;gap:.6rem;justify-content:center;margin-bottom:1.4rem;flex-wrap:wrap}
+.nav a{padding:.45rem 1.2rem;border:1px solid #e2e8f0;border-radius:40px;background:#fff;color:#334155;text-decoration:none;font-size:.85rem}
+.nav a.on{background:#0f172a;color:#fff;border-color:#0f172a}
+.card{background:#fff;border-radius:20px;padding:1.6rem;border:1px solid #ecf1f7;box-shadow:0 4px 14px rgba(0,20,40,.02);margin-bottom:1rem}
+.card h2{font-size:1.1rem;color:#0f2a40;margin-bottom:.3rem}
+.card .sub{font-size:.8rem;color:#94a3b8;margin-bottom:1rem}
+label{display:block;font-size:.85rem;font-weight:600;color:#1e3f5c;margin:.9rem 0 .4rem}
+input,textarea{width:100%;padding:.8rem 1rem;border:1.5px solid #e2ecf5;border-radius:14px;font-size:.9rem;outline:0;font-family:inherit}
+textarea{min-height:120px;resize:vertical;line-height:1.6}
+button{width:100%;margin-top:1rem;padding:.9rem;border:none;border-radius:40px;background:#0f172a;color:#fff;font-size:1rem;font-weight:650;cursor:pointer}
+button:disabled{opacity:.55;cursor:not-allowed}
+button.small{width:auto;padding:.5rem 1.2rem;font-size:.82rem;margin-top:.6rem}
+.res{margin-top:1rem;padding:1rem;border-radius:12px;font-size:.85rem;line-height:1.6;display:none}
+.res.ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;display:block}
+.res.err{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;display:block}
+.token{font-family:monospace;font-size:.78rem;word-break:break-all;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:.6rem;margin-top:.5rem}
+.issue{padding:1rem;border:1px solid #eef3f0;border-radius:14px;margin-bottom:.8rem;cursor:pointer;transition:.15s}
+.issue:hover{background:#f8fbf9;border-color:#dbe7f3}
+.issue .t{font-size:.95rem;font-weight:650;color:#0f2a40}
+.issue .m{font-size:.72rem;color:#94a3b8;margin-top:.3rem;display:flex;gap:.8rem}
+.st{display:inline-block;padding:1px 10px;border-radius:20px;font-size:.7rem;font-weight:700}
+.st.open{background:#fef3c7;color:#92400e}.st.resolved{background:#dcfce7;color:#166534}.st.closed{background:#e2e8f0;color:#475569}
+.reply{background:#f8fafc;border-radius:10px;padding:.7rem .9rem;margin:.5rem 0;font-size:.85rem;white-space:pre-wrap;line-height:1.6}
+.reply .rm{font-size:.7rem;color:#94a3b8;margin-bottom:.3rem}
+.muted{color:#94a3b8;font-size:.75rem;margin-top:.8rem;text-align:center}
+.back{font-size:.82rem;color:#334155;text-decoration:none;display:inline-block;margin-bottom:.8rem}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">KYSECRET</div>
+  <div class="nav">
+    <a href="./index.html">✉️ 投稿</a>
+    <a href="./result.html">🔍 查询</a>
+    <a href="./complaints.html">📣 投诉</a>
+    <a href="./issues.html" class="on">💡 建议</a>
+  </div>
+
+  <div class="card" id="listCard">
+    <h2>💡 建议 / Issue</h2>
+    <div class="sub">对本网站或整体体系有问题、建议？在这里提出，管理员和同学都可以回复。</div>
+    <div id="issueList"><div style="color:#94a3b8;font-size:.85rem">加载中...</div></div>
+    <button onclick="showCreate()">+ 发布新建议</button>
+    <div class="muted">图片功能预留，暂未开放。</div>
+  </div>
+
+  <div class="card" id="createCard" style="display:none">
+    <a class="back" href="javascript:showList()">← 返回列表</a>
+    <h2>发布建议</h2>
+    <label>标题</label>
+    <input id="i_title" placeholder="一句话说明问题或建议" autocomplete="off">
+    <label>正文</label>
+    <textarea id="i_body" placeholder="详细描述：发生了什么、你希望怎样改进"></textarea>
+    <button id="btnCreate" onclick="createIssue()">发布</button>
+    <div class="res" id="resCreate"></div>
+  </div>
+
+  <div class="card" id="detailCard" style="display:none">
+    <a class="back" href="javascript:showList()">← 返回列表</a>
+    <h2 id="dTitle"></h2>
+    <div class="sub" id="dMeta"></div>
+    <div id="dBody" style="font-size:.9rem;line-height:1.7;white-space:pre-wrap"></div>
+    <div id="dReplies" style="margin-top:1rem"></div>
+    <label>回复</label>
+    <textarea id="r_body" placeholder="输入回复内容" style="min-height:80px"></textarea>
+    <input id="r_token" placeholder="访问凭证（发布时获得，仅本人可回复）" style="margin-top:.6rem">
+    <button onclick="reply()">提交回复</button>
+    <div class="res" id="resReply"></div>
+  </div>
+</div>
+<script>
+var B='',ALL=[],CUR=null;
+(function init(){
+  var urls=['https://ky-secret-v3.pages.dev/config.json','https://raw.githubusercontent.com/QSNTH/KY-Secret-V3/refs/heads/main/config.json','/config.json'];
+  function tryAt(i){if(i>=urls.length){toastList('配置加载失败');return;}
+    var u=urls[i];u+=(u.indexOf('?')>=0?'&':'?')+'t='+Date.now();
+    fetch(u).then(function(r){return r.json()}).then(function(c){B=(c.backend||'').trim();load();}).catch(function(){tryAt(i+1);});}
+  tryAt(0);
+  var m=location.search.match(/[?&]id=(\d+)/);
+  if(m)setTimeout(function(){openIssue(parseInt(m[1],10));},300);
+})();
+function api(p){return B+'/api'+p;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function lm(s){return {open:'讨论中',resolved:'已解决',closed:'已关闭'}[s]||esc(s);}
+function toastList(msg){document.getElementById('issueList').innerHTML='<div style="color:#e74c3c;font-size:.85rem">'+esc(msg)+'</div>';}
+function showCreate(){document.getElementById('listCard').style.display='none';document.getElementById('detailCard').style.display='none';document.getElementById('createCard').style.display='block';}
+function showList(){document.getElementById('createCard').style.display='none';document.getElementById('detailCard').style.display='none';document.getElementById('listCard').style.display='block';load();}
+function load(){
+  fetch(api('/issues')).then(function(r){return r.json();}).then(function(d){
+    ALL=d||[];
+    var el=document.getElementById('issueList');
+    if(!ALL.length){el.innerHTML='<div style="color:#94a3b8;font-size:.85rem">还没有建议，来发第一条吧</div>';return;}
+    el.innerHTML=ALL.map(function(it){
+      return '<div class="issue" onclick="openIssue('+it.id+')"><div class="t">'+esc(it.title||'')+'</div>'
+        +'<div class="m"><span class="st '+esc(it.status)+'">'+lm(it.status)+'</span><span>'+esc((it.created_at||'').substring(5,16))+'</span><span>#'+it.id+'</span></div></div>';
+    }).join('');
+  }).catch(function(e){toastList('加载失败: '+e.message);});
+}
+function createIssue(){
+  var title=document.getElementById('i_title').value.trim();
+  var body=document.getElementById('i_body').value.trim();
+  if(!title||!body){setRes('resCreate','err','标题和正文不能为空');return;}
+  var btn=document.getElementById('btnCreate');btn.disabled=true;
+  fetch(api('/issues'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:title,body:body})})
+  .then(function(r){return r.json().then(function(d){if(!r.ok)throw new Error(d.detail||('错误 '+r.status));return d;});})
+  .then(function(d){
+    try{localStorage.setItem('ky_issue_token_'+d.id,d.token);}catch(e){}
+    setRes('resCreate','ok','✅ 已发布（#'+d.id+'）。请保存访问凭证，用于日后回复：<div class="token">'+d.token+'</div>'
+      +'<button class="small" onclick="openIssue('+d.id+')">打开这条建议</button>');
+  })
+  .catch(function(e){setRes('resCreate','err','发布失败：'+e.message);})
+  .finally(function(){btn.disabled=false;});
+}
+function openIssue(id){
+  if(id){location.hash='';CUR=id;}
+  document.getElementById('listCard').style.display='none';
+  document.getElementById('createCard').style.display='none';
+  document.getElementById('detailCard').style.display='block';
+  var saved='';try{saved=localStorage.getItem('ky_issue_token_'+id)||'';}catch(e){}
+  document.getElementById('r_token').value=saved;
+  fetch(api('/issues/'+id)).then(function(r){return r.json().then(function(d){if(!r.ok)throw new Error(d.detail||('错误 '+r.status));return d;});})
+  .then(function(it){
+    document.getElementById('dTitle').textContent=it.title||'';
+    document.getElementById('dMeta').innerHTML='<span class="st '+esc(it.status)+'">'+lm(it.status)+'</span> · #'+it.id+' · '+esc(it.created_at||'');
+    document.getElementById('dBody').textContent=it.body||'';
+    var rp=document.getElementById('dReplies');
+    if(it.replies&&it.replies.length){
+      rp.innerHTML='<div style="font-size:.8rem;color:#64748b;font-weight:600">回复 ('+it.replies.length+')</div>'+it.replies.map(function(r){
+        return '<div class="reply"><div class="rm">'+esc((r.created_at||'').substring(5,16))+'</div>'+esc(r.body)+'</div>';
+      }).join('');
+    }else{rp.innerHTML='<div style="font-size:.8rem;color:#94a3b8">暂无回复</div>';}
+  })
+  .catch(function(e){document.getElementById('dBody').textContent='加载失败: '+e.message;});
+}
+function reply(){
+  if(!CUR)return;
+  var body=document.getElementById('r_body').value.trim();
+  var token=document.getElementById('r_token').value.trim();
+  if(!body||!token){setRes('resReply','err','回复内容和访问凭证不能为空');return;}
+  fetch(api('/issues/'+CUR+'/replies'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({body:body,token:token})})
+  .then(function(r){return r.json().then(function(d){if(!r.ok)throw new Error(d.detail||('错误 '+r.status));return d;});})
+  .then(function(){setRes('resReply','ok','已提交');document.getElementById('r_body').value='';try{localStorage.setItem('ky_issue_token_'+CUR,token);}catch(e){}openIssue(CUR);})
+  .catch(function(e){setRes('resReply','err','失败：'+e.message);});
+}
+function setRes(id,cls,html){var e=document.getElementById(id);e.className='res '+cls;e.innerHTML=html;}
+</script>
+</body>
+</html>
