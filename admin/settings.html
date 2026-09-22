@@ -214,6 +214,7 @@ body{background:#f7fafc;color:#222;height:100vh;display:flex;flex-direction:colu
     <div class="sec" id="sec-publisher">
       <h3>🚦 发布队列控制</h3>
       <div class="sub">可暂停外发，投稿和审核仍可继续；连续失败也会自动熔断。</div>
+      <div class="row"><div class="lb">开机自动开始发布<span class="hint">默认关闭；关闭时服务器启动后队列保持暂停，需手动「恢复外发」</span></div><div class="tg" id="pub_auto_start" onclick="tg(this)"></div></div>
       <div id="pubStatus" style="background:#f8fbf9;border-radius:10px;padding:12px;margin:10px 0;font-size:13px">加载中...</div>
       <div class="queue-actions"><button id="btnPausePublisher" class="primary" onclick="pausePublisher()">暂停外发</button><button id="btnResumePublisher" onclick="resumePublisher()">恢复外发</button><button class="chip" onclick="loadPublisher()">刷新状态</button></div>
       <div id="pubFields"></div>
@@ -612,8 +613,18 @@ function saveChannels(){
 }
 function fillSubmission(){fillNumeric('subFields',SUB_FIELDS,'sub_',S.submission||{});}
 function saveSubmission(){saveNumeric('submission',SUB_FIELDS,'sub_','subNote');}
-function fillPublisherFields(){fillNumeric('pubFields',PUB_FIELDS,'pub_',S.publisher||{});}
-function savePublisher(){saveNumeric('publisher',PUB_FIELDS,'pub_','pubNote');}
+function fillPublisherFields(){fillNumeric('pubFields',PUB_FIELDS,'pub_',S.publisher||{});setTg('pub_auto_start',!!((S.publisher||{}).auto_start));}
+function savePublisher(){
+  var patch={publisher:{auto_start:isTg('pub_auto_start')}};
+  for(var i=0;i<PUB_FIELDS.length;i++){
+    var f=PUB_FIELDS[i],e=document.getElementById('pub_'+f.k);
+    var n=parseInt(e.value,10);
+    if(isNaN(n)){t('「'+f.l+'」必须是数字');return;}
+    if(n<f.min||n>f.max){t('「'+f.l+'」需在 '+f.min+' ~ '+f.max+' 之间');return;}
+    patch.publisher[f.k]=n;
+  }
+  postSettings(patch,'pubNote');
+}
 function fillRateLimit(){fillNumeric('rlFields',RL_FIELDS,'rl_',S.rate_limit||{});}
 function saveRateLimit(){saveNumeric('rate_limit',RL_FIELDS,'rl_','rlNote');}
 
