@@ -709,8 +709,8 @@
     <div id="splashOverlay" class="splash-overlay hidden" onclick="closeSplash()">
       <div class="splash-box">
         <button class="splash-close" onclick="event.stopPropagation();closeSplash()">✕</button>
-        <a id="splashLink" href="https://ys.mihoyo.com/" target="_blank" onclick="event.stopPropagation()">
-          <img id="splashImg" src="" alt="广告" onerror="this.style.display='none';closeSplash()">
+        <a id="splashLink" href="#" target="_blank">
+          <img id="splashImg" src="" alt="广告" style="display:none">
         </a>
       </div>
     </div>
@@ -891,61 +891,78 @@
     if (localStorage.getItem('ky_dev_mode') === 'true') _devBadge.style.display = 'block';
 
     // 开屏广告：从后端 /api/ad 拉取配置（后端管理面板可改，无需重新部署前端）
-    window.closeSplash = function() {
-      var el=document.getElementById('splashOverlay');
-      if(el)el.classList.add('hidden');
-      try{localStorage.setItem('ky_splash_closed',Date.now().toString());}catch(e){}
+    // 测试/强制显示：在网址后加 ?ad=1
+    var _adForce = /[?&]ad=1(&|$)/.test(location.search) || location.hash === '#ad';
+    window.closeSplash = function(remember) {
+      var el = document.getElementById('splashOverlay');
+      if (el) el.classList.add('hidden');
+      if (remember === false) return;   // 图片加载失败时不清除显示周期
+      try {
+        localStorage.setItem('ky_splash_closed', Date.now().toString());
+        var im = document.getElementById('splashImg');
+        var key = im && im.getAttribute('data-ad-key');
+        if (key) localStorage.setItem('ky_splash_closed_key', key);
+      } catch (e) {}
     };
     (function(){
       var a=document.getElementById('splashLink');
       var img=document.getElementById('splashImg');
       var overlay=document.getElementById('splashOverlay');
+      if(!a||!img||!overlay)return;
+
+      function hideAd(){ overlay.classList.add('hidden'); }
 
       function applyAd(c){
-        if(!c||!c.enabled){
-          if(overlay)overlay.classList.add('hidden');
-          return;
-        }
+        if(!c||!c.enabled){ hideAd(); return; }
         // 无广告图片则不出弹窗
         var base=(window.KY_CONFIG&&window.KY_CONFIG.backendUrl)?window.KY_CONFIG.backendUrl:'';
-        if(!c.image_url||!base){
-          if(overlay)overlay.classList.add('hidden');
-          return;
-        }
+        if(!c.image_url||!base){ hideAd(); return; }
         // 广告链接
-        if(c.link&&c.link.trim()){a.href=c.link.trim();}else{a.href='#';a.onclick=function(e){e.preventDefault();closeSplash();};}
-        // 广告图片（后端托管）
+        if(c.link&&c.link.trim()){ a.href=c.link.trim(); }
+        else { a.href='#'; }
+        // 显示周期：换图或改间隔后应重新显示，所以把图/间隔一起记为 key
+        var delay=(parseInt(c.interval_seconds,10)||86400)*1000;
+        var adKey=String(c.image_url)+'|'+delay;
+        img.setAttribute('data-ad-key', adKey);
+        if(!_adForce){
+          try{
+            var last=parseInt(localStorage.getItem('ky_splash_closed'),10);
+            var lastKey=localStorage.getItem('ky_splash_closed_key')||'';
+            if(last && lastKey===adKey && (Date.now()-last)<delay) return;
+          }catch(e){}
+        }
+        // 图片加载成功才显示；失败只隐藏，不写时间戳（避免一次失败被压制一整个周期）
+        img.onload=function(){ img.style.display='block'; overlay.classList.remove('hidden'); };
+        img.onerror=function(){ img.style.display='none'; hideAd(); };
+        img.style.display='none';
         img.src=base+c.image_url+'?t='+Date.now();
-        // 弹出延迟（秒），默认 86400s = 每天一次
-        var delay=(parseInt(c.interval_seconds)||86400)*1000;
-        try{
-          var last=localStorage.getItem('ky_splash_closed');
-          if(last&&(Date.now()-parseInt(last)<delay))return;
-        }catch(e){}
-        overlay.classList.remove('hidden');
       }
 
-      function loadAd(){
+      function loadAd(tries){
         var base=(window.KY_CONFIG&&window.KY_CONFIG.backendUrl)?window.KY_CONFIG.backendUrl:'';
         if(!base)return;
         fetch(base+'/api/ad').then(function(r){return r.json()}).then(applyAd)
         .catch(function(){
-          a.href='#';a.onclick=function(e){e.preventDefault();closeSplash();};
+          // 后端刚启动时可能失败，最多重试 3 次
+          if((tries||0)<3) setTimeout(function(){ loadAd((tries||0)+1); }, 2500);
         });
       }
 
-      if(window.KY_CONFIG&&window.KY_CONFIG.backendUrl){loadAd();}
-      else{
-        window.addEventListener('configLoaded',function(){
-          loadAd();
-          window.addEventListener('load',function(){setTimeout(loadAd,3000);});
-        },{once:true});
-      }
       a.onclick=function(e){
         if(a.getAttribute('href')==='#'||!a.getAttribute('href')){
-          e.preventDefault();closeSplash();
+          e.preventDefault(); e.stopPropagation(); closeSplash();
+        } else {
+          e.stopPropagation();   // 真实链接：不触发遮罩关闭，正常跳转
         }
       };
+
+      if(window.KY_CONFIG&&window.KY_CONFIG.backendUrl){loadAd(0);}
+      else{
+        window.addEventListener('configLoaded',function(){
+          loadAd(0);
+          window.addEventListener('load',function(){setTimeout(function(){loadAd(0);},3000);});
+        },{once:true});
+      }
     })();
 
     // 等待配置加载完成再允许提交
