@@ -1,5 +1,5 @@
 {
-    "backend": "https://supplier-exploration-tile-ftp.trycloudflare.com",
+    "backend": "https://destination-raised-fur-ref.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
