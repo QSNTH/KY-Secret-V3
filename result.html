@@ -588,6 +588,11 @@
                             <span class="visit-url">${escapeHtml(statusUrl)}</span>
                             <button class="copy-btn" onclick="copyToClipboard('${escapeHtml(statusUrl)}')"><span>📋</span> 复制</button>
                         </div>
+                    </div>
+                    <div style="margin-top:1rem;text-align:center;border-top:1px solid #eef3fa;padding-top:1rem;">
+                        <div style="font-size:0.8rem;color:#1e3f5c;margin-bottom:0.6rem;">📱 扫码查看结果</div>
+                        <img src="https://quickchart.io/qr?size=240&text=${encodeURIComponent(statusUrl)}" alt="结果二维码" style="width:180px;height:180px;border:1px solid #e2ecf5;border-radius:10px;background:#fff;padding:6px;">
+                        <div style="margin-top:0.6rem;"><a class="copy-btn" style="display:inline-flex;text-decoration:none;" target="_blank" rel="noopener" href="https://quickchart.io/qr?size=800&text=${encodeURIComponent(statusUrl)}">⬇️ 下载二维码</a></div>
                     </div>`;
 
                 if (st === 'reviewing') {
@@ -599,7 +604,19 @@
                     html += `<div style="margin-top:1.2rem;background:#ffe6e5;border-radius:60px;padding:0.8rem 1.2rem;color:#b11f1a;display:flex;align-items:center;gap:0.6rem;"><span>❌</span><span style="font-weight:500;">未通过审核：${escapeHtml(info.error || '不符合社区规范')}</span></div>`;
                 }
 
-                container.innerHTML = html;
+                let imgHtml = '';
+                if (Array.isArray(info.images) && info.images.length) {
+                    const base = (window.KY_CONFIG.backendUrl || '') + (window.KY_CONFIG.apiPrefix || '/api');
+                    imgHtml = '<div style="margin-top:1rem;border-top:1px solid #eef3fa;padding-top:1rem;">'
+                        + '<div style="font-size:0.8rem;color:#1e3f5c;margin-bottom:0.5rem;">🖼️ 投稿图片（点击看大图）</div>'
+                        + '<div style="display:flex;gap:0.6rem;flex-wrap:wrap;">'
+                        + info.images.map(function(img){
+                            const u = base + img.url;
+                            return '<a href="' + u + '" target="_blank" rel="noopener"><img src="' + u + '" alt="' + escapeHtml(img.name || '') + '" style="width:120px;height:120px;object-fit:cover;border-radius:12px;border:1px solid #e2ecf5;background:#f8fafc"></a>';
+                        }).join('')
+                        + '</div></div>';
+                }
+                container.innerHTML = html + imgHtml;
             }
 
             function escapeHtml(text) {
@@ -607,9 +624,20 @@
                 return String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
             }
 
+            function showMsg(msg) {
+                let el = document.getElementById('kyMsgToast');
+                if (!el) {
+                    el = document.createElement('div'); el.id = 'kyMsgToast';
+                    el.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:13000;max-width:calc(100vw - 28px);padding:10px 14px;border-radius:9px;background:#182b3b;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.25);font-size:13px;text-align:center';
+                    document.body.appendChild(el);
+                }
+                el.textContent = msg; el.style.display = 'block';
+                clearTimeout(el._timer); el._timer = setTimeout(function(){ el.style.display = 'none'; }, 2600);
+            }
+
             window.copyToClipboard = function(text) {
-                navigator.clipboard.writeText(text).then(() => { alert('链接已复制到剪贴板'); }).catch(() => {
-                    const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); alert('链接已复制');
+                navigator.clipboard.writeText(text).then(() => { showMsg('链接已复制到剪贴板'); }).catch(() => {
+                    const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showMsg('链接已复制');
                 });
             };
 
@@ -630,7 +658,7 @@
                 // 手动查询
                 document.getElementById('queryBtn').addEventListener('click', async () => {
                     const q = document.getElementById('postIdInput').value.trim();
-                    if (!q) return alert('请输入 UUID');
+                    if (!q) return showMsg('请输入 UUID');
                     await renderResultFromUUID(q, q);
                 });
                 document.getElementById('postIdInput').addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('queryBtn').click(); });

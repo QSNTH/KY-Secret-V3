@@ -107,13 +107,14 @@ body{background:#f7fafc;color:#222;display:flex;height:100vh;overflow:hidden}
       <div class="df"><div class="lb">标题</div><div class="vl" id="tl"></div></div>
       <div class="df"><div class="lb">标签</div><div class="vl" id="tg"></div></div>
       <div class="df"><div class="lb">审核人</div><div class="vl" id="rv"></div></div>
+      <div class="df"><div class="lb">审核建议</div><textarea id="rn" maxlength="1000" placeholder="可选：记录通过/驳回原因或后续处理建议" style="width:100%;min-height:58px;resize:vertical;border:1px solid #dbe2ec;border-radius:8px;padding:8px;font:inherit"></textarea></div>
       <div class="df"><div class="lb">内容</div><div class="cb" id="ct"></div></div>
       <div class="df"><div class="lb">图片</div><div class="imgs" id="im"></div></div>
       <div class="act" id="ac">
         <button class="bnav" onclick="navItem(-1)" title="上一项">◀</button>
         <button class="bp" onclick="act('pass')">通过</button>
         <button class="br" onclick="act('reject')">驳回</button>
-        <button class="bpu" onclick="act('push')" style="display:none" id="bp">推送</button>
+        <button class="bpu" onclick="act('push')" style="display:none" id="bp">推送</button><button class="brp" onclick="act('delete')" style="display:none;background:#b91c1c" id="bd">删除 Instagram 帖子</button>
         <button class="brp" onclick="act('repush')">重推</button>
         <button class="bnav" onclick="navItem(1)" title="下一项">▶</button>
       </div>
@@ -129,6 +130,8 @@ var B='',stt=null,all=[];
 var selSet=new Set(),anchorIdx=null,focusIdx=null;
 
 (function initAll(){if(!T){location.href='index.html';return;}
+  var initialStatus=new URLSearchParams(location.search).get('status');
+  if(initialStatus&&document.getElementById('fs'))document.getElementById('fs').value=initialStatus;
   if(window.innerWidth<=768)document.body.classList.add('m-list');
   window.addEventListener('resize',function(){if(window.innerWidth>768){document.body.classList.remove('m-list','m-detail');}});
   // 配置源链：pages.dev（最快）→ GitHub raw → 本地 /config.json
@@ -147,12 +150,14 @@ var selSet=new Set(),anchorIdx=null,focusIdx=null;
 function t(m){var e=document.getElementById('toast');e.textContent=m;e.classList.add('s');setTimeout(function(){e.classList.remove('s');},2000);}
 
 function ld(){
+  var qs=new URLSearchParams(location.search),special=qs.get('status');
   var s=document.getElementById('fs').value,q=document.getElementById('sq').value.trim();
+  if(special==='published'||special==='queue'){s='pass';if(document.getElementById('fs'))document.getElementById('fs').value='pass';}
   var u=B+'/admin/submissions?size=200&page=1';if(s)u+='&status='+s;if(q)u+='&search='+encodeURIComponent(q);
-  fetch(u,{headers:hd()}).then(function(r){if(r.status===401){localStorage.removeItem('ky_token');location.href='index.html';return}r.json().then(function(d){all=d.items;var lm={reviewing:'待审核',pass:'已通过',reject:'已驳回'};document.getElementById('sh').textContent='共 '+d.total+' 条';
+  fetch(u,{headers:hd()}).then(function(r){if(r.status===401){localStorage.removeItem('ky_token');location.href='index.html';return}r.json().then(function(d){all=d.items;if(special==='published')all=all.filter(function(x){return !!x.published;});if(special==='queue')all=all.filter(function(x){return !x.published&&!x.publish_error;});var lm={reviewing:'待审核',pass:'已通过',reject:'已驳回'};document.getElementById('sh').textContent='共 '+all.length+' 条';
   // reset selection on filter/search change
   clearSel(true);
-  var el=document.getElementById('li');el.innerHTML=all.map(function(p,i){var st=p.status||'reviewing';return '<div class="pi'+(focusIdx===i?' a':'')+(selSet.has(i)?' ms':'')+'" onclick="sl('+i+',event)"><div class="chk"></div><div class="if"><div class="hid"><span class="sd '+(st==='reviewing'?'rv':st==='pass'?'ps':'rj')+'"></span>'+escapeHtml(p.hid||'?')+'</div><div class="tl">'+escapeHtml((p.title||'无标题').substring(0,30))+'</div><div class="in"><span class="ico">'+(p.has_user_image?'🖼️有图':'—无图')+'</span><span class="ico '+(p.published?'pub-ok':p.publish_error?'pub-err':'pub-no')+'">'+(p.published?'✅已发布':p.publish_error?'❌失败':'—未发布')+'</span><span style="color:#2563eb">'+(p.tag||'')+'</span>'+(p.reviewer?'<span style="color:#555;font-size:10px">👤'+escapeHtml(p.reviewer)+'</span>':'')+'</div></div><div class="mt"><span class="stag '+st+'">'+(lm[st]||st)+'</span><div>'+((p.submit_time||'').substring(5,16))+'</div></div></div>';}).join('');
+  var el=document.getElementById('li');el.innerHTML=all.map(function(p,i){var st=p.status||'reviewing';return '<div class="pi'+(focusIdx===i?' a':'')+(selSet.has(i)?' ms':'')+'" onclick="sl('+i+',event)"><div class="chk"></div><div class="if"><div class="hid"><span class="sd '+(st==='reviewing'?'rv':st==='pass'?'ps':'rj')+'"></span>'+escapeHtml(p.hid||'?')+'</div><div class="tl">'+escapeHtml((p.title||'无标题').substring(0,30))+'</div><div class="in"><span class="ico">'+(p.has_user_image?'🖼️有图':'—无图')+'</span><span class="ico '+(p.published?'pub-ok':p.publish_error?'pub-err':'pub-no')+'">'+(p.published?'✅已发布':p.publish_error?'❌失败':'—未发布')+'</span>'+(p.remote_missing?'<span class="ico" style="background:#7f1d1d;color:#fff;border-radius:4px;padding:0 5px">IG已删</span>':'')+'<span style="color:#2563eb">'+(p.tag||'')+'</span>'+(p.reviewer?'<span style="color:#555;font-size:10px">👤'+escapeHtml(p.reviewer)+'</span>':'')+'</div></div><div class="mt"><span class="stag '+st+'">'+(lm[st]||st)+'</span><div>'+((p.submit_time||'').substring(5,16))+'</div></div></div>';}).join('');
   showPlaceholder();updFloatBar();}).catch(function(){});
   });
 }
@@ -199,14 +204,16 @@ function sl(i,ev){
 function showDetail(i){
   var p=all[i];if(!p)return;
   document.getElementById('ph').style.display='none';document.getElementById('dt').classList.add('s');
-  var st=p.status||'reviewing',lm={reviewing:'待审核',pass:'已通过',reject:'已驳回'};
-  document.getElementById('hi').textContent=p.hid||'?';var sb=document.getElementById('sb');sb.textContent=lm[st]||st;sb.className='sb '+st;
+  var st=p.status||'reviewing',lm={reviewing:'待审核',pass:'已通过',reject:'已驳回',deleted:'已删除'};
+  document.getElementById('hi').textContent=p.hid||'?';var sb=document.getElementById('sb');sb.textContent=(lm[st]||st)+(p.remote_missing?' · IG远端缺失':'');sb.className='sb '+st;
   document.getElementById('tm').textContent=p.submit_time||'';document.getElementById('tl').textContent=p.title||'无';
   document.getElementById('tg').textContent=p.tag||'—';document.getElementById('rv').textContent=p.reviewer||'—';
+  document.getElementById('rn').value=p.review_note||'';
   document.getElementById('ct').textContent=p.content||'(空)';document.getElementById('ac').style.display='flex';
   document.querySelector('.act .bp').style.display=(st==='reviewing'||st==='reject')?'':'none';
   document.querySelector('.act .br').style.display=(st==='reviewing'||st==='pass')?'':'none';
   document.getElementById('bp').style.display=st==='pass'?'':'none';
+  document.getElementById('bd').style.display=(st==='pass'&&p.published)?'':'none';
   if(window.innerWidth<=768){document.body.classList.remove('m-list');document.body.classList.add('m-detail');}
   var im=document.getElementById('im');im.innerHTML='<span style="color:#aaa;font-size:12px">加载图片...</span>';
   fetch(B+'/lookup/'+p.uuid,{headers:hd()}).then(function(r){return r.json()}).then(function(d){if(d.images&&d.images.length){im.innerHTML=d.images.map(function(img){return '<img src="'+B+img.url+'" title="'+img.name+'" class="lb-img">';}).join('');}else{im.innerHTML='<span style="color:#aaa;font-size:12px">无图片</span>';}}).catch(function(){im.innerHTML='<span style="color:#aaa;font-size:12px">加载失败</span>';});
@@ -244,7 +251,7 @@ function batAct(a){
   }next();
 }
 
-function act(a){if(typeof focusIdx!=='number')return;var p=all[focusIdx];if(a==='pass'||a==='reject'){if(!confirm(a==='pass'?'确认通过?':'确认驳回?'))return;var h=hd();h['Content-Type']='application/json';fetch(B+'/admin/review',{method:'POST',headers:h,body:JSON.stringify({uuid:p.uuid,status:a})}).then(function(){t(a==='pass'?'已通过':'已驳回');selSet.delete(focusIdx);ld();setTimeout(function(){var fs=document.getElementById('fs').value;if(fs==='reviewing'){var nx=all.findIndex(function(x,i){return x.status==='reviewing';});if(nx>=0){sl(nx);}else{clearSel();}}else{var nx=null;for(var ni=focusIdx+1;ni<all.length;ni++){if(all[ni]){nx=ni;break;}}if(nx!=null)sl(nx);else clearSel();}},400);}).catch(function(){t('操作失败');});}if(a==='push'){fetch(B+'/admin/push/'+p.uuid,{method:'POST',headers:hd()}).then(function(){t('已加入队列');ld();}).catch(function(){t('推送失败');});}if(a==='repush'){if(!confirm('强制重新推送?'))return;fetch(B+'/admin/repush/'+p.uuid,{method:'POST',headers:hd()}).then(function(){t('已加入重推队列');ld();}).catch(function(){t('重推失败');});}}
+function act(a){if(typeof focusIdx!=='number')return;var p=all[focusIdx];if(a==='pass'||a==='reject'){if(!confirm(a==='pass'?'确认通过?':'确认驳回?'))return;var h=hd();h['Content-Type']='application/json';fetch(B+'/admin/review',{method:'POST',headers:h,body:JSON.stringify({uuid:p.uuid,status:a,note:document.getElementById('rn').value})}).then(function(){t(a==='pass'?'已通过':'已驳回');selSet.delete(focusIdx);ld();setTimeout(function(){var fs=document.getElementById('fs').value;if(fs==='reviewing'){var nx=all.findIndex(function(x,i){return x.status==='reviewing';});if(nx>=0){sl(nx);}else{clearSel();}}else{var nx=null;for(var ni=focusIdx+1;ni<all.length;ni++){if(all[ni]){nx=ni;break;}}if(nx!=null)sl(nx);else clearSel();}},400);}).catch(function(){t('操作失败');});}if(a==='push'){fetch(B+'/admin/push/'+p.uuid,{method:'POST',headers:hd()}).then(function(){t('已加入队列');ld();}).catch(function(){t('推送失败');});}if(a==='repush'){if(!confirm('强制重新推送?'))return;fetch(B+'/admin/repush/'+p.uuid,{method:'POST',headers:hd()}).then(function(){t('已加入重推队列');ld();}).catch(function(){t('重推失败');});}if(a==='delete'){if(!confirm('确认从 Instagram 删除这条帖子？本地记录会保留。'))return;fetch(B+'/admin/delete/'+p.uuid,{method:'POST',headers:hd()}).then(function(r){return r.json().then(function(d){if(!r.ok)throw new Error(d.detail||'删除失败');return d;});}).then(function(d){t('删除任务已加入后台');var tries=0;function poll(){if(++tries>90){t('删除仍在后台运行，请稍后刷新');return;}fetch(B+'/admin/delete/status/'+d.job_id,{headers:hd()}).then(function(r){return r.json();}).then(function(s){if(s.status==='done'){t('Instagram 帖子已删除');ld();}else if(s.status==='failed'){t('删除失败：'+s.error);ld();}else{setTimeout(poll,1000);}}).catch(function(){setTimeout(poll,1500);});}poll();}).catch(function(e){t(e.message||'删除失败');});}}
 
 function navItem(dir){if(typeof focusIdx!=='number')return;var ni=focusIdx+dir;if(ni>=0&&ni<all.length)sl(ni);}
 function backToList(){clearSel();}

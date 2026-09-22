@@ -87,6 +87,8 @@ body{background:#f7fafc;color:#222}
   <div class="stats" id="sc"></div>
   <div class="btns">
     <a href="review.html" class="btn-r">审核工作站</a>
+    <button onclick="reconcileIG()" id="reconBtn" style="padding:10px 16px;border-radius:9px;border:none;background:#0f766e;color:#fff;font-size:14px;cursor:pointer">扫描 IG 不一致</button>
+    <span id="reconMsg" style="margin-left:10px;font-size:12px;color:#666;align-self:center"></span>
     <a href="javascript:logout()" class="btn-l">退出登录</a>
   </div>
   <div class="panel"><h3>硬件 <span style="font-size:12px;font-weight:400;color:#888" id="ht"></span></h3><div class="grid" id="hw"></div></div>
@@ -123,6 +125,30 @@ var B='';
 function show(){document.getElementById('loading').style.display='none';document.getElementById('main').style.display='block';ls();lh();la();startLogs();startSS();setInterval(lh,30000);setInterval(la,60000);setInterval(ls,2000);}
 
 function t(m){var e=document.getElementById('toast');e.textContent=m;e.classList.add('s');setTimeout(function(){e.classList.remove('s');},2000);}
+function reconcileIG(){
+  var b=document.getElementById('reconBtn'),m=document.getElementById('reconMsg');
+  if(b.disabled)return;
+  b.disabled=true;m.textContent='正在启动扫描...';
+  fetch(B+'/admin/reconcile-instagram',{method:'POST',headers:hd()}).then(function(r){return r.json().then(function(d){if(!r.ok)throw new Error(d.detail||'启动失败');return d;});}).then(function(d){
+    var n=0;
+    function poll(){
+      n++;
+      if(n>180){m.textContent='扫描仍在后台运行，稍后刷新查看标记';b.disabled=false;return;}
+      fetch(B+'/admin/reconcile-instagram/'+d.job_id,{headers:hd()}).then(function(r){return r.json();}).then(function(s){
+        if(s.status==='done'){
+          var miss=s.missing?s.missing.length:0;
+          m.textContent='扫描完成：核对 '+s.checked+' 条，远端 '+s.remote_count+' 条，标记缺失 '+miss+' 条';
+          b.disabled=false;t(miss?'发现 '+miss+' 条 IG 已删除的帖子':'未发现不一致');ls();
+        }else if(s.status==='failed'){
+          m.textContent='扫描失败：'+(s.error||'未知错误');b.disabled=false;
+        }else{
+          m.textContent='扫描中（需滚动加载 Instagram，约 1-3 分钟）...';setTimeout(poll,2500);
+        }
+      }).catch(function(){setTimeout(poll,3000);});
+    }
+    poll();
+  }).catch(function(e){m.textContent='启动失败：'+(e.message||'');b.disabled=false;});
+}
 function logout(){fetch(B+'/admin/logout',{method:'POST',headers:hd()}).then(function(){}).catch(function(){});localStorage.removeItem('ky_token');location.href='index.html';}
 
 function ls(){

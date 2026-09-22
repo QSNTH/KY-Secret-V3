@@ -256,11 +256,11 @@ body{background:#f7fafc;color:#222;height:100vh;display:flex;flex-direction:colu
     <!-- ✦ 验证码 ✦ -->
     <div class="sec" id="sec-captcha">
       <h3>🛡️ 验证码</h3>
-      <div class="sub">用于管理员登录与投稿防脚本。推荐 Cloudflare Turnstile。</div>
-      <div class="row"><div class="lb">启用验证码<span class="hint">启用后需在部署端接入校验（当前为预留配置）</span></div><div class="tg" id="cap_enabled" onclick="tg(this)"></div></div>
-      <div class="field"><label>服务商</label><input type="text" id="cap_provider" placeholder="turnstile" ></div>
-      <div class="field"><label>Site Key（前端）</label><input type="text" id="cap_site_key" placeholder="0x4AAAA..."></div>
-      <div class="field"><label>Secret（后端，请勿外泄）</label><input type="text" id="cap_secret" placeholder="0x4AAAA..."></div>
+      <div class="sub">免费方案使用内置 ALTCHA 风格工作量证明，不需要第三方账号或付费额度。</div>
+      <div class="row"><div class="lb">启用验证码<span class="hint">启用后投稿会先完成浏览器本地计算验证</span></div><div class="tg" id="cap_enabled" onclick="tg(this)"></div></div>
+      <div class="field"><label>服务商</label><select id="cap_provider"><option value="altcha">altcha（内置，免费）</option></select></div>
+      <div class="field"><label>Site Key（前端）</label><input type="text" id="cap_site_key" placeholder="altcha 模式无需填写"></div>
+      <div class="field"><label>Secret（后端，留空用系统密钥）</label><input type="text" id="cap_secret" placeholder="留空则自动使用内置签名密钥"></div>
       <div class="save-bar"><button onclick="saveCaptcha()">保存验证码设置</button><span class="note" id="capNote"></span></div>
     </div>
     <!-- ✦ 管理员账号 ✦ -->
@@ -644,12 +644,12 @@ function saveAdmission(){
 function fillCaptcha(){
   var c=S.captcha||{};
   setTg('cap_enabled',!!c.enabled);
-  document.getElementById('cap_provider').value=c.provider||'turnstile';
+  document.getElementById('cap_provider').value='altcha';
   document.getElementById('cap_site_key').value=c.site_key||'';
   document.getElementById('cap_secret').value=c.secret||'';
 }
 function saveCaptcha(){
-  postSettings({captcha:{enabled:isTg('cap_enabled'),provider:val('cap_provider')||'turnstile',site_key:val('cap_site_key'),secret:val('cap_secret')}},'capNote');
+  postSettings({captcha:{enabled:isTg('cap_enabled'),provider:'altcha',site_key:val('cap_site_key'),secret:val('cap_secret')}},'capNote');
 }
 </script>
 </body>

@@ -73,6 +73,18 @@
             window.KY_CONFIG.backendUrl = (cfg.backend || cfg.backendBaseUrl || '').trim();
             window.KY_CONFIG.apiPrefix = cfg.api || '/api';
             window.KY_CONFIG.endpoints = cfg;
+            const offline = document.getElementById('kyOfflineNotice');
+            if (offline) offline.remove();
+        }
+
+        function showOfflineNotice() {
+            if (document.getElementById('kyOfflineNotice')) return;
+            const el = document.createElement('div');
+            el.id = 'kyOfflineNotice';
+            el.style.cssText = 'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:12000;max-width:calc(100vw - 28px);padding:10px 14px;border:1px solid #f3c46b;border-radius:10px;background:#fff8e7;color:#7a4b00;box-shadow:0 4px 16px rgba(0,0,0,.12);font-size:13px;text-align:center';
+            el.innerHTML = '后端暂时不可用，投稿功能会在连接恢复后自动启用。 <button type="button" style="margin-left:8px;border:0;border-radius:6px;padding:4px 8px;background:#7a4b00;color:#fff;cursor:pointer">立即重试</button>';
+            el.querySelector('button').onclick = function(){ el.remove(); round = 0; };
+            document.body.appendChild(el);
         }
 
         // 每轮最多 MAX_TIMEOUTS 次超时重试；一轮失败 → 重新获取 URL（新的一轮），直到成功
@@ -94,6 +106,7 @@
             }
             if (!loaded) {
                 console.warn(`⛔ 连续 ${MAX_TIMEOUTS} 次超时 → 重新获取 URL（第 ${round + 1} 轮）...`);
+                if (round >= 2) showOfflineNotice();
                 await new Promise(r => setTimeout(r, ROUND_DELAY_MS));
             }
         }
@@ -184,6 +197,8 @@
             color: white;
             border-color: #0f172a;
         }
+
+        .mobile-more { display: none; }
 
         .submit-card {
             background: white;
@@ -446,6 +461,13 @@
             .logo { font-size: 4rem; }
             .submit-card { padding: 1.5rem; }
             .form-header { flex-direction: column; align-items: flex-start; gap: 0.6rem; }
+            .nav-buttons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .45rem; }
+            .nav-btn { min-width: 0; padding: .55rem .2rem; font-size: .75rem; white-space: nowrap; }
+            .nav-buttons .admin-nav { display: none; }
+            .mobile-more { display: block; margin: .55rem auto 0; width: min(100%, 180px); text-align: center; }
+            .mobile-more summary { cursor: pointer; list-style: none; padding: .45rem .8rem; border: 1px solid #e2e8f0; border-radius: 24px; color: #557a99; font-size: .78rem; }
+            .mobile-more summary::-webkit-details-marker { display: none; }
+            .mobile-more .nav-btn { display: inline-flex; margin-top: .4rem; }
         }
 
         /* ✦ 开屏广告 ✦ */
@@ -650,8 +672,9 @@
                 <a href="./result.html" class="nav-btn">🔍 查询</a>
                 <a href="./complaints.html" class="nav-btn">📣 投诉</a>
                 <a href="./issues.html" class="nav-btn">💡 建议</a>
-                <a href="./admin/index.html" class="nav-btn">⚙️ 管理</a>
+                <a href="./admin/index.html" class="nav-btn admin-nav">⚙️ 管理</a>
             </div>
+            <details class="mobile-more"><summary>更多</summary><a href="./admin/index.html" class="nav-btn">⚙️ 管理入口</a></details>
         </div>
 
         <div class="submit-card">
@@ -855,14 +878,14 @@
 
                 // 如果选了多张，提示并只保留第一张
                 if (files.length > 1) {
-                    alert('只支持上传1张图片，已自动选择第一张');
+                    showToast('只支持上传1张图片，已自动选择第一张');
                     const dt = new DataTransfer();
                     dt.items.add(file);
                     fileInput.files = dt.files;
                 }
 
                 if (!file.type.startsWith('image/')) {
-                    alert('请选择图片文件');
+                    showToast('请选择图片文件');
                     resetImageUI();
                     return;
                 }
@@ -1026,7 +1049,7 @@
     })();
 
     // 等待配置加载完成再允许提交
-    async function waitForConfig() {
+            async function waitForConfig() {
                 if (window.KY_CONFIG && window.KY_CONFIG.backendUrl) {
                     return true;
                 }
@@ -1040,6 +1063,38 @@
                 return false;
             }
 
+            async function solveAltcha() {
+                if (!window.crypto || !crypto.subtle) throw new Error('当前浏览器环境不支持 WebCrypto，请使用 HTTPS 打开页面');
+                const base = (window.KY_CONFIG && window.KY_CONFIG.backendUrl) || '';
+                if (!base) return '';
+                const prefix = (window.KY_CONFIG && window.KY_CONFIG.apiPrefix) || '/api';
+                const cr = await fetch(base.replace(/\/$/, '') + prefix + '/captcha/challenge', {cache: 'no-store'});
+                if (!cr.ok) throw new Error('验证码服务不可用');
+                const c = await cr.json();
+                if (!c.enabled) return '';
+                if ((c.algorithm || '').toUpperCase() !== 'SHA-256') throw new Error('验证码算法不受支持');
+                const zeros = '0'.repeat(Number(c.difficulty || 3));
+                for (let answer = 0; answer < 5000000; answer++) {
+                    const bytes = new TextEncoder().encode(String(c.challenge) + String(answer));
+                    const digest = await crypto.subtle.digest('SHA-256', bytes);
+                    const hex = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
+                    if (hex.startsWith(zeros)) return [c.challenge, c.expires, c.difficulty, c.signature, answer].join(':');
+                    if (answer % 2000 === 0) await new Promise(r => setTimeout(r, 0));
+                }
+                throw new Error('验证码计算超时');
+            }
+
+            function showToast(message, timeout) {
+                let el = document.getElementById('kyPageToast');
+                if (!el) {
+                    el = document.createElement('div'); el.id = 'kyPageToast';
+                    el.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:13000;max-width:calc(100vw - 28px);padding:10px 14px;border-radius:9px;background:#182b3b;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.2);font-size:13px;text-align:center';
+                    document.body.appendChild(el);
+                }
+                el.textContent = message; el.style.display = 'block';
+                clearTimeout(el._timer); el._timer = setTimeout(() => { el.style.display = 'none'; }, timeout || 3200);
+            }
+
             // 表单提交（全局函数供 onclick 和 addEventListener 共用）
             window.handleSubmit = async function(e) {
                 if (e) e.preventDefault();
@@ -1051,7 +1106,7 @@
                 const hasImage = !!currentPreviewFile;
 
                 if (!hasTitle) {
-                    alert('请填写标题（标题将生成在图片上）');
+                    showToast('请填写标题（标题将生成在图片上）');
                     titleInput.focus();
                     return;
                 }
@@ -1059,7 +1114,7 @@
                 // 等待配置加载
                 const configReady = await waitForConfig();
                 if (!configReady) {
-                    alert('配置加载失败，请刷新页面重试');
+                    showToast('配置加载失败，请稍后重试');
                     return;
                 }
 
@@ -1069,7 +1124,7 @@
                 // 动态检查单：未全部确认 → 弹出浮窗；浮窗确认后才真正提交
                 const cl = window._kyChecklist;
                 if (cl && !cl.loaded) {
-                    alert('投稿检查单加载中，请稍候再试');
+                    showToast('投稿检查单加载中，请稍候再试');
                     return;
                 }
                 if (cl && cl.enabled && cl.items.length) {
@@ -1107,6 +1162,14 @@
                     formData.append('manual_masks', '[]');
                 }
 
+                try {
+                    const captchaPayload = await solveAltcha();
+                    if (captchaPayload) formData.append('captcha_payload', captchaPayload);
+                } catch (captchaError) {
+                    showToast('人机验证失败：' + (captchaError.message || captchaError));
+                    return;
+                }
+
                 // 使用动态配置构建URL
                 const SUBMIT_ENDPOINT = window.KY_CONFIG.getUrl('submit');
                 console.log('📤 提交到:', SUBMIT_ENDPOINT, 'FormData keys:', [...formData.keys()]);
@@ -1126,7 +1189,7 @@
                     if (!response.ok) {
                         const errorText = await response.text();
                         console.error('后端返回错误:', response.status, errorText);
-                        alert('❌ 提交失败 (HTTP ' + response.status + ')\n' + errorText);
+                        showToast('提交失败 (HTTP ' + response.status + ')：' + errorText.slice(0, 180));
                         return;
                     }
 
@@ -1138,7 +1201,7 @@
                     
                 } catch (error) {
                     console.error('提交失败:', error);
-                    alert('❌ 投稿提交失败\nURL: ' + SUBMIT_ENDPOINT + '\n' + (error.message || error));
+                    showToast('投稿提交失败：' + (error.message || error));
                 } finally {
                     submitBtn.innerHTML = originalText;
                     submitBtn.disabled = false;
@@ -1220,7 +1283,7 @@
 /* ============ KY Secret V3 · 图片隐私编辑器 ============ */
 (function(){
   var st = null;
-  var overlay, cv, ctx, busyEl, faceChk, drawChk, countEl, warnEl;
+  var overlay, cv, ctx, busyEl, faceChk, drawChk, countEl, warnEl, modeSel;
   var disp = { scale: 1, rotW: 0, rotH: 0 };
   var drag = null;
 
@@ -1298,12 +1361,13 @@
       +     '<button data-a="rotL" class="kyEdBtn">↺ 左转</button>'
       +     '<button data-a="rotR" class="kyEdBtn">↻ 右转</button>'
       +     '<label style="display:flex;align-items:center;gap:5px;user-select:none"><input type="checkbox" id="kyEdFace" checked> 自动人脸打码</label>'
-      +     '<label style="display:flex;align-items:center;gap:5px;user-select:none"><input type="checkbox" id="kyEdDraw"> 手动框选打码</label>'
+      +     '<label style="display:flex;align-items:center;gap:5px;user-select:none"><input type="checkbox" id="kyEdDraw"> 画笔涂抹</label>'
+      +     '<select id="kyEdMode" class="kyEdBtn" aria-label="打码模式"><option value="pixelate">Pixelate</option><option value="blur">Blur</option><option value="solid">Solid</option></select>'
       +     '<button data-a="clear" class="kyEdBtn">清除手动画框</button>'
       +     '<span id="kyEdCount" style="color:#666"></span>'
       +   '</div>'
       +   '<button id="kyEdOk" style="width:100%;margin-top:12px;padding:11px;border:none;border-radius:10px;background:#0f172a;color:#fff;font-weight:600;cursor:pointer">完成并使用此图片</button>'
-      +   '<div style="font-size:11px;color:#94a3b8;margin-top:8px">红框=二维码（强制打码）· 橙框=人脸 · 蓝框=手动画框 · 单击方框可删除</div>'
+      +   '<div style="font-size:11px;color:#94a3b8;margin-top:8px">红框=二维码（强制打码）· 橙框=人脸 · 蓝色笔迹=手动涂抹 · 关闭画笔后单击框可删除</div>'
       + '</div>';
     document.body.appendChild(overlay);
 
@@ -1314,13 +1378,15 @@
     drawChk = overlay.querySelector('#kyEdDraw');
     countEl = overlay.querySelector('#kyEdCount');
     warnEl = overlay.querySelector('#kyEdWarn');
+    modeSel = overlay.querySelector('#kyEdMode');
 
     overlay.querySelector('#kyEdClose').onclick = cancel;
     overlay.querySelector('#kyEdOk').onclick = confirmOk;
     faceChk.onchange = function(){ if(st){ st.faceOn = faceChk.checked; redraw(); } };
+    modeSel.onchange = function(){ if(st){ st.mode = modeSel.value; } };
     overlay.querySelector('[data-a=rotL]').onclick = function(){ if(st){ st.rot = (st.rot + 270) % 360; drawToCanvas(); } };
     overlay.querySelector('[data-a=rotR]').onclick = function(){ if(st){ st.rot = (st.rot + 90) % 360; drawToCanvas(); } };
-    overlay.querySelector('[data-a=clear]').onclick = function(){ if(st){ st.manual = []; redraw(); } };
+    overlay.querySelector('[data-a=clear]').onclick = function(){ if(st){ st.manual = []; st.strokes = []; redraw(); } };
 
     cv.addEventListener('pointerdown', onDown);
     cv.addEventListener('pointermove', onMove);
@@ -1329,10 +1395,10 @@
 
   function openImageEditor(file, onDone, onCancel){
     ensureUI();
-    st = { file: file, img: null, rot: 0, qr: [], faces: [], manual: [], faceOn: true };
+    st = { file: file, img: null, rot: 0, qr: [], faces: [], manual: [], strokes: [], faceOn: true, mode: 'pixelate' };
     overlay._onDone = onDone; overlay._onCancel = onCancel;
     overlay.style.display = 'flex';
-    faceChk.checked = true; drawChk.checked = false;
+    faceChk.checked = true; drawChk.checked = false; modeSel.value = 'pixelate';
     warnEl.textContent = '二维码将强制打码；人脸默认打码，可取消。照片歪了可点旋转。';
     warnEl.style.color='#b45309'; warnEl.style.background='#fffbeb'; warnEl.style.borderColor='#fde68a';
     busyEl.style.display = 'block';
@@ -1429,7 +1495,7 @@
     if (!st || !st.img) return;
     if (drawChk.checked) {
       var p = pt(e);
-      drag = { x0: p.x, y0: p.y, rect: [p.x, p.y, p.x, p.y] };
+      drag = { x0: p.x, y0: p.y, rect: [p.x, p.y, p.x, p.y], points: [[p.x, p.y]] };
       try { cv.setPointerCapture(e.pointerId); } catch(err){}
     } else {
       var q = pt(e), s = disp.scale;
@@ -1450,13 +1516,18 @@
   function onMove(e){
     if (!drag) return;
     var p = pt(e);
+    drag.points.push([p.x,p.y]);
     drag.rect = [Math.min(drag.x0,p.x), Math.min(drag.y0,p.y), Math.max(drag.x0,p.x), Math.max(drag.y0,p.y)];
     redraw();
   }
 
   function onUp(){
     if (!drag || !st) { drag = null; return; }
-    var r = drag.rect, s = disp.scale; drag = null;
+    var r = drag.rect, s = disp.scale, pts = drag.points; drag = null;
+    if (pts.length > 2) {
+      st.strokes.push({points: pts.map(function(p){ var q = inv(p[0]/s, p[1]/s); return [q.x,q.y]; }), width: Math.max(18, 28/s), mode: st.mode});
+      redraw(); return;
+    }
     if ((r[2]-r[0]) < 8 || (r[3]-r[1]) < 8){ redraw(); return; }
     var a = inv(r[0]/s, r[1]/s), c = inv(r[2]/s, r[3]/s);
     st.manual.push([Math.min(a.x,c.x), Math.min(a.y,c.y), Math.max(a.x,c.x), Math.max(a.y,c.y)]);
@@ -1479,20 +1550,26 @@
     out.width = rs.w; out.height = rs.h;
     var octx = out.getContext('2d');
     octx.drawImage(base, 0, 0);
-    boxes.forEach(function(b){
-      var fb = boxFwd(b);
-      var x=Math.max(0,fb[0]), y=Math.max(0,fb[1]);
+    function applyBox(b, mode){
+      var fb = boxFwd(b), x=Math.max(0,fb[0]), y=Math.max(0,fb[1]);
       var w=Math.min(rs.w,fb[2])-x, h=Math.min(rs.h,fb[3])-y;
       if (w<=0||h<=0) return;
-      // 马赛克：先缩到很小的画布，再用最近邻放大
+      if (mode === 'solid') { octx.fillStyle='#111'; octx.fillRect(x,y,w,h); return; }
+      if (mode === 'blur') { octx.save(); octx.filter='blur(14px)'; octx.drawImage(base,x,y,w,h,x,y,w,h); octx.restore(); return; }
       var cols=Math.max(2, Math.round(w/14)), rows=Math.max(2, Math.round(h/14));
       var tmp=document.createElement('canvas'); tmp.width=cols; tmp.height=rows;
-      var tctx=tmp.getContext('2d');
-      tctx.imageSmoothingEnabled=true;
-      tctx.drawImage(base, x, y, w, h, 0, 0, cols, rows);
-      octx.imageSmoothingEnabled=false;
-      octx.drawImage(tmp, 0, 0, cols, rows, x, y, w, h);
-      octx.imageSmoothingEnabled=true;
+      var tctx=tmp.getContext('2d'); tctx.drawImage(base,x,y,w,h,0,0,cols,rows);
+      octx.imageSmoothingEnabled=false; octx.drawImage(tmp,0,0,cols,rows,x,y,w,h); octx.imageSmoothingEnabled=true;
+    }
+    boxes.forEach(function(b){
+      applyBox(b, st.mode);
+    });
+    st.strokes.forEach(function(s){
+      octx.save(); octx.lineCap='round'; octx.lineJoin='round'; octx.lineWidth=s.width; octx.beginPath();
+      s.points.forEach(function(p,i){ var q= fwd(p[0],p[1]); if(i===0)octx.moveTo(q.x,q.y); else octx.lineTo(q.x,q.y); });
+      if (s.mode==='solid') { octx.strokeStyle='#111'; octx.stroke(); }
+      else { octx.strokeStyle='rgba(20,20,20,.92)'; octx.filter=s.mode==='blur'?'blur(10px)':'blur(2px)'; octx.stroke(); }
+      octx.restore();
     });
 
     var size = Math.max(rs.w, rs.h);
@@ -1510,7 +1587,7 @@
     try {
       var sq = renderFinal();
       sq.toBlob(function(blob){
-        if (!blob) { alert('图片导出失败'); document.getElementById('kyEdOk').disabled = false; return; }
+        if (!blob) { showToast('图片导出失败'); document.getElementById('kyEdOk').disabled = false; return; }
         var name = (st.file.name || 'image').replace(/\.[^.]+$/, '') + '_privacy.jpg';
         var f = new File([blob], name, { type: 'image/jpeg' });
         var cb = overlay._onDone, faceOn = st.faceOn;
@@ -1518,7 +1595,7 @@
         if (cb) cb(f, faceOn);
       }, 'image/jpeg', 0.92);
     } catch(e) {
-      alert('处理失败: ' + (e.message||e));
+      showToast('处理失败: ' + (e.message||e));
       document.getElementById('kyEdOk').disabled = false;
     }
   }
