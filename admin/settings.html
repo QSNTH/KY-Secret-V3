@@ -120,6 +120,7 @@ body{background:#f7fafc;color:#222;height:100vh;display:flex;flex-direction:colu
     <div class="nav-item" data-sec="sec-ratelimit" onclick="goTo('sec-ratelimit',this)"><span class="ic">⏱️</span><span class="tx">频率限制</span></div>
     <div class="nav-item" data-sec="sec-captcha" onclick="goTo('sec-captcha',this)"><span class="ic">🛡️</span><span class="tx">验证码</span></div>
     <div class="nav-item" data-sec="sec-reconcile" onclick="goTo('sec-reconcile',this)"><span class="ic">🔍</span><span class="tx">IG 状态同步</span></div>
+    <div class="nav-item" data-sec="sec-site" onclick="goTo('sec-site',this)"><span class="ic">🏷️</span><span class="tx">站点信息</span></div>
     <div class="grp">权限</div>
     <div class="nav-item" data-sec="sec-acct" onclick="goTo('sec-acct',this)"><span class="ic">👑</span><span class="tx">管理员账号</span><span class="lk">超管</span></div>
   </div>
@@ -288,6 +289,15 @@ body{background:#f7fafc;color:#222;height:100vh;display:flex;flex-direction:colu
         </table>
       </div>
       <div id="recExtra" style="margin-top:10px;font-size:12px;color:#64748b"></div>
+    </div>
+    <!-- ✦ 站点信息 ✦ -->
+    <div class="sec" id="sec-site">
+      <h3>🏷️ 站点信息</h3>
+      <div class="sub">首页底部的版本号，以及导航栏下方的小橙色标语条（用于提示新版本/通知）。</div>
+      <div class="field"><label>版本号</label><input type="text" id="site_version" placeholder="RV_1.21_Stable" maxlength="80"></div>
+      <div class="row"><div class="lb">显示标语条<span class="hint">导航栏下方显示橙色椭圆提示</span></div><div class="tg" id="site_notice_enabled" onclick="tg(this)"></div></div>
+      <div class="field"><label>标语内容</label><input type="text" id="site_notice" placeholder="例：新版本 KYSV3_V5_Flash 更新了" maxlength="200"></div>
+      <div class="save-bar"><button onclick="saveSite()">保存站点信息</button><span class="note" id="siteNote"></span></div>
     </div>
     <!-- ✦ 管理员账号 ✦ -->
     <div class="sec acct-panel" id="sec-acct">
@@ -616,7 +626,7 @@ function postSettings(patch,noteId){
 }
 
 function fillAll(){
-  fillChannels();fillSubmission();fillPublisherFields();fillChecklist();fillAdmission();fillRateLimit();fillCaptcha();
+  fillChannels();fillSubmission();fillPublisherFields();fillChecklist();fillAdmission();fillRateLimit();fillCaptcha();fillSite();
 }
 function fillChannels(){
   var c=S.channels||{};
@@ -726,6 +736,15 @@ function startReconcile(){
     }
     poll();
   }).catch(function(e){note.textContent='启动失败：'+(e.message||'');btn.disabled=false;});
+}
+function fillSite(){
+  var s=S.site||{};
+  document.getElementById('site_version').value=s.version||'';
+  document.getElementById('site_notice').value=s.notice||'';
+  setTg('site_notice_enabled',!!s.notice_enabled);
+}
+function saveSite(){
+  postSettings({site:{version:val('site_version'),notice:val('site_notice'),notice_enabled:isTg('site_notice_enabled')}},'siteNote');
 }
 </script>
 </body>

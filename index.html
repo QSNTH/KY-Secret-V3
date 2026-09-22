@@ -674,6 +674,7 @@
                 <a href="./issues.html" class="nav-btn">💡 建议</a>
                 <a href="./admin/index.html" class="nav-btn admin-nav">⚙️ 管理</a>
             </div>
+            <div id="siteNotice" style="display:none;margin:.7rem auto 0;width:fit-content;max-width:100%;padding:.35rem 1rem;border-radius:999px;background:#fff7ed;border:1px solid #fdba74;color:#c2410c;font-size:.78rem;font-weight:600;text-align:center"></div>
             <details class="mobile-more"><summary>更多</summary><a href="./admin/index.html" class="nav-btn">⚙️ 管理入口</a></details>
         </div>
 
@@ -753,7 +754,7 @@
                 <a href="https://ky-secret-v3.pages.dev/status/index">📊 当前状态</a> ·
                 <a href="https://ky-secret-v3.pages.dev/status/history">📋 历史事件</a> ·
                 <a href="https://ky-secret-v3.pages.dev/index">✉️ 匿名投稿</a>
-                <br><span style="font-size:0.7rem;color:#94a3b8">RV_1.21_Stable</span>
+                <br><span id="kyVersion" style="font-size:0.7rem;color:#94a3b8">RV_1.21_Stable</span>
         </div>
     </div>
 
@@ -1062,6 +1063,24 @@
                 }
                 return false;
             }
+
+            async function loadSiteInfo() {
+                try {
+                    const base = (window.KY_CONFIG && window.KY_CONFIG.backendUrl) || '';
+                    if (!base) return;
+                    const prefix = (window.KY_CONFIG && window.KY_CONFIG.apiPrefix) || '/api';
+                    const res = await fetch(base.replace(/\/$/, '') + prefix + '/policies', {cache: 'no-store'});
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    const site = data.site || {};
+                    if (site.version) { const v = document.getElementById('kyVersion'); if (v) v.textContent = site.version; }
+                    if (site.notice_enabled && site.notice) {
+                        const n = document.getElementById('siteNotice');
+                        if (n) { n.textContent = site.notice; n.style.display = 'block'; }
+                    }
+                } catch (e) {}
+            }
+            waitForConfig().then(function (ok) { if (ok) loadSiteInfo(); });
 
             async function solveAltcha() {
                 if (!window.crypto || !crypto.subtle) throw new Error('当前浏览器环境不支持 WebCrypto，请使用 HTTPS 打开页面');
