@@ -1,5 +1,5 @@
 {
-    "backend": "https://combat-passes-ebony-anyone.trycloudflare.com",
+    "backend": "https://supplier-exploration-tile-ftp.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
