@@ -822,14 +822,16 @@ function renderPosts(){
     var pubTg='<div class="tg sm'+(p.published?' on':'')+'" onclick="pstSetState(\''+p.uuid+'\',\''+(p.published?'unsent':'sent')+'\')"></div>';
     var qTg='<div class="tg sm'+(queued?' on':'')+(notPass?' dis':'')+'" onclick="pstSetState(\''+p.uuid+'\',\''+(queued?'dequeue':'push')+'\')"></div>';
     var holdTg='<div class="tg sm'+(p.on_hold?' on':'')+(p.published?' dis':'')+'" onclick="pstSetState(\''+p.uuid+'\',\''+(p.on_hold?'unhold':'hold')+'\')"></div>';
-    var igTxt=p.remote_missing?'<span style="color:#b91c1c">已删</span>':(p.remote_missing===false?'<span style="color:#1a7a3a">在</span>':'<span style="color:#94a3b8">未扫</span>');
+    var igExists=p.remote_missing===false;
+    var igTxt=(p.remote_missing===undefined?'<span style="color:#94a3b8">未扫</span>':(igExists?'<span style="color:#1a7a3a">在</span>':'<span style="color:#b91c1c">已删</span>'));
+    var igTg='<div class="tg sm'+(igExists?' on':'')+'" onclick="pstSetState(\''+p.uuid+'\',\'ig\')" title="手动标记是否还在 IG（不会被扫描覆盖）"></div>';
     var errBtn=p.publish_error?'<button class="chip" onclick="pstSetState(\''+p.uuid+'\',\'repush\')" title="'+recEsc(p.publish_error)+'">失败·重推</button>':'—';
     return '<tr><td style="padding:6px"><div style="font-family:monospace">'+recEsc(hid)+'</div><div style="color:#475569">'+recEsc((p.title||'').substring(0,26))+'</div></td>'
       +'<td style="padding:6px;text-align:center"><div style="font-size:11px;color:#64748b">'+stTxt+'</div>'+revTg+'</td>'
       +'<td style="padding:6px;text-align:center"><div style="font-size:11px;color:#64748b">'+(p.published?'已发送':'未发送')+'</div>'+pubTg+'</td>'
       +'<td style="padding:6px;text-align:center"><div style="font-size:11px;color:#64748b">'+(queued?'排队中':'未排队')+'</div>'+qTg+'</td>'
       +'<td style="padding:6px;text-align:center"><div style="font-size:11px;color:#64748b">'+(p.on_hold?'已拦截':'未拦截')+'</div>'+holdTg+'</td>'
-      +'<td style="padding:6px;text-align:center">'+igTxt+'</td>'
+      +'<td style="padding:6px;text-align:center">'+igTxt+'<div>'+igTg+'</div></td>'
       +'<td style="padding:6px;text-align:center">'+errBtn+'</td></tr>';
   }).join('')||'<tr><td colspan="7" style="padding:12px;text-align:center;color:#94a3b8">没有符合条件的帖子</td></tr>';
 }
@@ -838,6 +840,13 @@ function pstSetState(uuid, action, sel){
   var h=Object.assign({},hd(),{'Content-Type':'application/json'});
   function done(msg){t(msg);loadPosts();}
   function fail(e){t('失败：'+(e.message||''));if(sel)sel.value='';}
+  if(action==='ig'){
+    var pp=null;for(var i=0;i<PST.length;i++){if(PST[i].uuid===uuid)pp=PST[i];}
+    if(!pp)return;
+    var exists=pp.remote_missing===false;
+    fetch(B+'/admin/ig-state/'+uuid,{method:'POST',headers:h,body:JSON.stringify({exists:!exists})}).then(function(r){return j(r);}).then(function(){done(!exists?'已标记：在 IG 上':'已标记：IG 已删');}).catch(fail);
+    return;
+  }
   if(action==='dequeue'){
     var pp=null;for(var i=0;i<PST.length;i++){if(PST[i].uuid===uuid)pp=PST[i];}
     var hh=pp&&pp.hid?pp.hid:'';
