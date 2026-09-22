@@ -483,6 +483,37 @@
           transition: .2s;
         }
         .splash-close:hover { background: rgba(200,30,30,.7); }
+        .splash-loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:8px; color:#fff; font-size:13px; background:rgba(0,0,0,.25); pointer-events:none; }
+        .splash-spin { width:18px; height:18px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; border-radius:50%; animation:splashspin .7s linear infinite; }
+        @keyframes splashspin { to { transform: rotate(360deg); } }
+
+        /* ✦ 投稿检查单浮窗 ✦ */
+        .ky-modal { position:fixed; inset:0; background:rgba(15,23,42,.55); z-index:12000; display:flex; align-items:center; justify-content:center; padding:20px; }
+        .ky-modal.hidden { display:none; }
+        .ky-modal-card { background:#fff; border-radius:24px; max-width:560px; width:100%; max-height:86vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 24px 70px rgba(0,0,0,.28); animation:kyPop .18s ease-out; }
+        @keyframes kyPop { from { transform: scale(.96); opacity:.4; } to { transform: scale(1); opacity:1; } }
+        .ky-modal-head { display:flex; align-items:center; justify-content:space-between; padding:18px 20px 8px; }
+        .ky-modal-head strong { font-size:1.1rem; font-weight:800; color:#0f2a40; letter-spacing:-.2px; }
+        .ky-modal-x { border:none; background:#eef2f6; color:#475569; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:15px; line-height:1; }
+        .ky-modal-x:hover { background:#e2eaf1; }
+        .ky-modal-sub { padding:0 20px 10px; font-size:.8rem; color:#7996ae; }
+        .ky-cl-items { padding:0 16px; overflow-y:auto; flex:1; }
+        .ky-cl-item { display:flex; gap:12px; align-items:flex-start; padding:13px 15px; margin:8px 0; border:1.5px solid #e2ecf5; border-radius:16px; cursor:pointer; transition:.15s; line-height:1.6; font-size:.9rem; color:#1f3a57; user-select:none; }
+        .ky-cl-item:hover { border-color:#91b8d9; background:#f7fbff; }
+        .ky-cl-item.on { border-color:#1a7a3a; background:#f0faf2; }
+        .ky-cl-box { width:20px; height:20px; border-radius:6px; border:2px solid #cbd5e1; flex-shrink:0; margin-top:2px; display:flex; align-items:center; justify-content:center; font-size:12px; color:#fff; transition:.15s; }
+        .ky-cl-item.on .ky-cl-box { background:#1a7a3a; border-color:#1a7a3a; }
+        .ky-cl-item.on .ky-cl-box::after { content:'✓'; }
+        .ky-modal-foot { padding:14px 20px 20px; border-top:1px solid #eef3fa; }
+        .ky-modal-hint { font-size:.78rem; color:#b45309; margin-bottom:10px; text-align:center; }
+        .ky-modal-btns { display:flex; gap:10px; }
+        .ky-modal-btns button { flex:1; padding:12px; border-radius:40px; font-size:.95rem; font-weight:650; cursor:pointer; border:none; transition:.15s; font-family:inherit; }
+        .ky-cl-back { background:#eef2f6; color:#334155; border:1px solid #dbe2ec !important; }
+        .ky-cl-back:hover { background:#e2eaf1; }
+        .ky-cl-ok { background:#0f172a; color:#fff; }
+        .ky-cl-ok:hover:not(:disabled) { background:#1e2f45; }
+        .ky-cl-ok:disabled { opacity:.45; cursor:not-allowed; }
+        @media(max-width:550px){ .ky-modal-card{max-height:90vh} }
 
         /* ===== 投稿表单 ===== */
 
@@ -710,8 +741,28 @@
       <div class="splash-box">
         <button class="splash-close" onclick="event.stopPropagation();closeSplash()">✕</button>
         <a id="splashLink" href="#" target="_blank">
+          <div id="splashLoading" class="splash-loading" style="display:none"><span class="splash-spin"></span> 广告加载中…</div>
           <img id="splashImg" src="" alt="广告" style="display:none">
         </a>
+      </div>
+    </div>
+
+    <!-- ✦ 投稿检查单浮窗 ✦ -->
+    <div id="kyChecklistModal" class="ky-modal hidden" onclick="kyCloseChecklist()">
+      <div class="ky-modal-card" onclick="event.stopPropagation()">
+        <div class="ky-modal-head">
+          <strong>📋 投稿前检查单</strong>
+          <button class="ky-modal-x" onclick="kyCloseChecklist()">✕</button>
+        </div>
+        <div class="ky-modal-sub">请逐条点击确认；全部确认后才可以提交投稿。</div>
+        <div id="kyChecklistItems" class="ky-cl-items"></div>
+        <div class="ky-modal-foot">
+          <div class="ky-modal-hint" id="kyChecklistHint"></div>
+          <div class="ky-modal-btns">
+            <button class="ky-cl-back" onclick="kyCloseChecklist()">返回</button>
+            <button class="ky-cl-ok" id="kyChecklistOk" disabled onclick="kyConfirmChecklist()">确认并提交</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -908,6 +959,7 @@
       var a=document.getElementById('splashLink');
       var img=document.getElementById('splashImg');
       var overlay=document.getElementById('splashOverlay');
+      var loadEl=document.getElementById('splashLoading');
       if(!a||!img||!overlay)return;
 
       function hideAd(){ overlay.classList.add('hidden'); }
@@ -931,11 +983,13 @@
             if(last && lastKey===adKey && (Date.now()-last)<delay) return;
           }catch(e){}
         }
-        // 图片加载成功才显示；失败只隐藏，不写时间戳（避免一次失败被压制一整个周期）
-        img.onload=function(){ img.style.display='block'; overlay.classList.remove('hidden'); };
+        // 立即显示弹窗（带加载指示），图片就绪后替换；失败只隐藏，不写时间戳
+        img.onload=function(){ img.style.display='block'; if(loadEl)loadEl.style.display='none'; };
         img.onerror=function(){ img.style.display='none'; hideAd(); };
         img.style.display='none';
-        img.src=base+c.image_url+'?t='+Date.now();
+        if(loadEl)loadEl.style.display='flex';
+        img.src=base+c.image_url;   // image_url 已带版本号，可长缓存
+        overlay.classList.remove('hidden');
       }
 
       function loadAd(tries){
@@ -944,7 +998,7 @@
         fetch(base+'/api/ad').then(function(r){return r.json()}).then(applyAd)
         .catch(function(){
           // 后端刚启动时可能失败，最多重试 3 次
-          if((tries||0)<3) setTimeout(function(){ loadAd((tries||0)+1); }, 2500);
+          if((tries||0)<3) setTimeout(function(){ loadAd((tries||0)+1); }, 1200);
         });
       }
 
@@ -956,12 +1010,18 @@
         }
       };
 
-      if(window.KY_CONFIG&&window.KY_CONFIG.backendUrl){loadAd(0);}
+      // 配置就绪即拉广告；若 configLoaded 事件已错过，用轮询兜底
+      var _adStarted=false;
+      function startAd(){ if(_adStarted)return; _adStarted=true; loadAd(0); }
+      if(window.KY_CONFIG&&window.KY_CONFIG.backendUrl){ startAd(); }
       else{
-        window.addEventListener('configLoaded',function(){
-          loadAd(0);
-          window.addEventListener('load',function(){setTimeout(function(){loadAd(0);},3000);});
-        },{once:true});
+        window.addEventListener('configLoaded', startAd, {once:true});
+        var _tries=0;
+        var _poll=setInterval(function(){
+          _tries++;
+          if(window.KY_CONFIG&&window.KY_CONFIG.backendUrl){ clearInterval(_poll); startAd(); }
+          else if(_tries>=30){ clearInterval(_poll); }
+        },200);
       }
     })();
 
@@ -1006,24 +1066,24 @@
                 // 构建 FormData
                 const formData = new FormData();
 
-                // 动态检查单：未展开 → 展开并提示；未全部勾选 → 阻止提交
+                // 动态检查单：未全部确认 → 弹出浮窗；浮窗确认后才真正提交
                 const cl = window._kyChecklist;
                 if (cl && !cl.loaded) {
                     alert('投稿检查单加载中，请稍候再试');
                     return;
                 }
                 if (cl && cl.enabled && cl.items.length) {
-                    if (!cl.shown) {
-                        window.kyShowChecklist();
+                    if (!cl.confirmed) {
+                        window.kyOpenChecklist();
                         return;
                     }
                     if (cl.ack.length !== cl.items.length) {
-                        alert('请逐条勾选确认投稿检查单');
-                        window.kyShowChecklist();
+                        cl.confirmed = false;
+                        window.kyOpenChecklist();
                         return;
                     }
                     formData.append('checklist_version', cl.version || 1);
-                    formData.append('checklist_ack', JSON.stringify(cl.ack));
+                    formData.append('checklist_ack', JSON.stringify(cl.ack.slice().sort(function(a, b) { return a - b; })));
                 }
                 
                 // 标题（选填）
@@ -1090,61 +1150,54 @@
         })();
     </script>
 <script>
-/* 投稿检查单：点击「匿名提交」后展开；全部勾选后才允许提交 → 按钮变为「确认并提交」 */
+/* 投稿检查单：点「匿名提交」弹出浮窗；全部确认后浮窗内按钮才可点，确认后真正提交 */
 (function(){
-  var form=document.getElementById('kySubmitForm'); if(!form)return;
-  var btn=form.querySelector('button[type=submit]');
-  var box=document.createElement('section');
-  box.id='kyChecklistPanel';
-  box.style.cssText='display:none;background:#fff8e1;border:1px solid #f0c36d;border-radius:12px;padding:14px;margin:0 0 16px;font-size:13px';
-  form.insertBefore(box, form.firstChild);
-
-  var st={enabled:false,version:1,items:[],ack:[],shown:false,loaded:false};
+  var st={enabled:false,version:1,items:[],ack:[],confirmed:false,loaded:false};
   window._kyChecklist=st;
 
   function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-  function render(){
-    if(!st.enabled||!st.items.length){box.style.display='none';return;}
-    box.innerHTML='<div style="font-weight:700;color:#92400e">📋 投稿前检查单</div>'
-      +'<div style="font-size:12px;color:#a16207;margin:4px 0 8px">请逐条阅读并勾选确认，全部勾选后才能提交</div>'
-      + st.items.map(function(x,i){
-          return '<label style="display:flex;gap:8px;align-items:flex-start;margin:8px 0;cursor:pointer;line-height:1.5">'
-            +'<input type="checkbox" data-index="'+i+'" style="margin-top:3px;flex-shrink:0"> <span>'+esc(x)+'</span></label>';
-        }).join('')
-      +'<div id="kyClHint" style="font-size:12px;color:#b45309;margin-top:8px">还需勾选 '+st.items.length+' 项</div>';
+  function syncButtons(){
+    var ok=st.items.length>0&&st.ack.length===st.items.length;
+    var b=document.getElementById('kyChecklistOk');if(b)b.disabled=!ok;
+    var h=document.getElementById('kyChecklistHint');if(h)h.textContent=ok?'✅ 已全部确认，可以提交':('还需确认 '+(st.items.length-st.ack.length)+' 项');
   }
 
-  function updateHint(){
-    var left=st.items.length-st.ack.length;
-    var hint=document.getElementById('kyClHint');
-    if(hint)hint.textContent=left>0?('还需勾选 '+left+' 项'):'✅ 已全部确认，可以提交';
-    if(btn){
-      var ok=st.items.length>0&&st.ack.length===st.items.length;
-      if(st.shown){
-        btn.disabled=!ok;
-        btn.innerHTML=ok?'<span>✅</span> 确认并提交':'<span>📋</span> 请先完成检查单';
-      }else{
-        btn.disabled=false;
-        btn.innerHTML='<span>✈️</span> 匿名提交';
-      }
-    }
-  }
-
-  box.addEventListener('change',function(e){
-    if(e.target&&e.target.type==='checkbox'){
-      st.ack=[];
-      box.querySelectorAll('input[type=checkbox]:checked').forEach(function(x){st.ack.push(Number(x.dataset.index));});
-      updateHint();
-    }
-  });
-
-  window.kyShowChecklist=function(){
+  window.kyOpenChecklist=function(){
     if(!st.enabled||!st.items.length)return;
-    st.shown=true;
-    box.style.display='block';
-    updateHint();
-    try{box.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
+    var m=document.getElementById('kyChecklistModal');if(!m)return;
+    var box=document.getElementById('kyChecklistItems');
+    box.innerHTML=st.items.map(function(x,i){
+      var on=st.ack.indexOf(i)>=0;
+      return '<div class="ky-cl-item'+(on?' on':'')+'" data-i="'+i+'" onclick="kyToggleChecklistItem('+i+')">'
+        +'<span class="ky-cl-box"></span><span>'+esc(x)+'</span></div>';
+    }).join('');
+    st.confirmed=false;
+    syncButtons();
+    m.classList.remove('hidden');
+    document.body.style.overflow='hidden';
+  };
+
+  window.kyCloseChecklist=function(){
+    var m=document.getElementById('kyChecklistModal');if(m)m.classList.add('hidden');
+    document.body.style.overflow='';
+  };
+
+  window.kyToggleChecklistItem=function(i){
+    var k=st.ack.indexOf(i);
+    if(k>=0)st.ack.splice(k,1);else st.ack.push(i);
+    st.confirmed=false;
+    var el=document.querySelector('#kyChecklistItems .ky-cl-item[data-i="'+i+'"]');
+    if(el)el.classList.toggle('on',st.ack.indexOf(i)>=0);
+    syncButtons();
+  };
+
+  window.kyConfirmChecklist=function(){
+    if(!st.enabled||!st.items.length)return;
+    if(st.ack.length!==st.items.length)return;
+    st.confirmed=true;
+    window.kyCloseChecklist();
+    if(typeof window.handleSubmit==='function')window.handleSubmit();
   };
 
   function load(){
@@ -1155,8 +1208,7 @@
       st.version=(c&&c.version)||1;
       st.items=(c&&Array.isArray(c.items))?c.items:[];
       st.ack=[];
-      render();
-      updateHint();
+      st.confirmed=false;
     }).catch(function(){st.loaded=true;});
   }
   if(window.KY_CONFIG&&window.KY_CONFIG.backendUrl)load();
@@ -1432,12 +1484,15 @@
       var x=Math.max(0,fb[0]), y=Math.max(0,fb[1]);
       var w=Math.min(rs.w,fb[2])-x, h=Math.min(rs.h,fb[3])-y;
       if (w<=0||h<=0) return;
-      octx.save();
-      octx.beginPath(); octx.rect(x,y,w,h); octx.clip();
-      octx.filter = 'blur(' + Math.max(8, Math.round(Math.min(w,h)/6)) + 'px)';
-      octx.drawImage(base, 0, 0);
-      octx.restore();
-      octx.filter = 'none';
+      // 马赛克：先缩到很小的画布，再用最近邻放大
+      var cols=Math.max(2, Math.round(w/14)), rows=Math.max(2, Math.round(h/14));
+      var tmp=document.createElement('canvas'); tmp.width=cols; tmp.height=rows;
+      var tctx=tmp.getContext('2d');
+      tctx.imageSmoothingEnabled=true;
+      tctx.drawImage(base, x, y, w, h, 0, 0, cols, rows);
+      octx.imageSmoothingEnabled=false;
+      octx.drawImage(tmp, 0, 0, cols, rows, x, y, w, h);
+      octx.imageSmoothingEnabled=true;
     });
 
     var size = Math.max(rs.w, rs.h);
