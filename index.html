@@ -615,7 +615,7 @@
             <div class="nav-buttons">
                 <a href="./status/index.html" class="nav-btn">📊 状态</a>
                 <a href="./status/history.html" class="nav-btn">📋 历史</a>
-                <a href="" class="nav-btn active">✉️ 投稿</a>
+                <a href="./index.html" class="nav-btn active">✉️ 投稿</a>
                 <a href="./result.html" class="nav-btn">🔍 查询</a>
                 <a href="./complaints.html" class="nav-btn">📣 投诉</a>
                 <a href="./issues.html" class="nav-btn">💡 建议</a>
@@ -989,17 +989,24 @@
                 // 构建 FormData
                 const formData = new FormData();
 
-                // 动态检查单字段：后端会校验版本和逐条确认结果
-                const checkPanel = document.getElementById('kyChecklistPanel');
-                if (checkPanel && checkPanel.style.display !== 'none') {
-                    const checkboxes = Array.from(checkPanel.querySelectorAll('input[type="checkbox"]'));
-                    const checked = checkboxes.filter(function (x) { return x.checked; });
-                    if (checked.length !== checkboxes.length) {
-                        alert('请先逐条确认投稿检查单');
+                // 动态检查单：未展开 → 展开并提示；未全部勾选 → 阻止提交
+                const cl = window._kyChecklist;
+                if (cl && !cl.loaded) {
+                    alert('投稿检查单加载中，请稍候再试');
+                    return;
+                }
+                if (cl && cl.enabled && cl.items.length) {
+                    if (!cl.shown) {
+                        window.kyShowChecklist();
                         return;
                     }
-                    formData.append('checklist_version', checkPanel.dataset.version || '1');
-                    formData.append('checklist_ack', JSON.stringify(checked.map(function (x) { return Number(x.dataset.index); })));
+                    if (cl.ack.length !== cl.items.length) {
+                        alert('请逐条勾选确认投稿检查单');
+                        window.kyShowChecklist();
+                        return;
+                    }
+                    formData.append('checklist_version', cl.version || 1);
+                    formData.append('checklist_ack', JSON.stringify(cl.ack));
                 }
                 
                 // 标题（选填）
@@ -1066,14 +1073,77 @@
         })();
     </script>
 <script>
+/* 投稿检查单：点击「匿名提交」后展开；全部勾选后才允许提交 → 按钮变为「确认并提交」 */
 (function(){
   var form=document.getElementById('kySubmitForm'); if(!form)return;
-  var box=document.createElement('section'); box.id='kyChecklistPanel'; box.style='background:#fff8e1;border:1px solid #f0c36d;border-radius:12px;padding:12px;margin:12px 0;font-size:13px';
-  var btn=form.querySelector('button[type=submit]'); form.insertBefore(box,form.firstChild); var state={version:0,ack:[]};
-  function show(c){ if(!c||!c.enabled){box.style.display='none';return;} state.version=c.version||1; box.dataset.version=String(state.version); box.style.display='block'; var html='<strong>投稿前检查单</strong>'; (c.items||[]).forEach(function(x,i){html+='<label style="display:block;margin:8px 0"><input type="checkbox" data-index="'+i+'"> '+x+'</label>';}); box.innerHTML=html; if(btn)btn.disabled=(c.items||[]).length>0; box.addEventListener('change',function(){state.ack=[];box.querySelectorAll('input:checked').forEach(function(x){state.ack.push(Number(x.dataset.index));}); if(btn)btn.disabled=state.ack.length!==(c.items||[]).length;});}
-  function load(){var b=window.KY_CONFIG&&window.KY_CONFIG.backendUrl;if(!b)return;fetch(b+'/api/checklist').then(function(r){return r.json();}).then(show).catch(function(){});}
-  if(window.KY_CONFIG&&window.KY_CONFIG.backendUrl)load(); else window.addEventListener('configLoaded',load,{once:true});
-  form.addEventListener('submit',function(){var v=form.querySelector('input[name=checklist_version]');var a=form.querySelector('input[name=checklist_ack]'); if(!v){v=document.createElement('input');v.type='hidden';v.name='checklist_version';form.appendChild(v);} if(!a){a=document.createElement('input');a.type='hidden';a.name='checklist_ack';form.appendChild(a);} v.value=String(state.version); a.value=JSON.stringify(state.ack);});
+  var btn=form.querySelector('button[type=submit]');
+  var box=document.createElement('section');
+  box.id='kyChecklistPanel';
+  box.style.cssText='display:none;background:#fff8e1;border:1px solid #f0c36d;border-radius:12px;padding:14px;margin:0 0 16px;font-size:13px';
+  form.insertBefore(box, form.firstChild);
+
+  var st={enabled:false,version:1,items:[],ack:[],shown:false,loaded:false};
+  window._kyChecklist=st;
+
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+  function render(){
+    if(!st.enabled||!st.items.length){box.style.display='none';return;}
+    box.innerHTML='<div style="font-weight:700;color:#92400e">📋 投稿前检查单</div>'
+      +'<div style="font-size:12px;color:#a16207;margin:4px 0 8px">请逐条阅读并勾选确认，全部勾选后才能提交</div>'
+      + st.items.map(function(x,i){
+          return '<label style="display:flex;gap:8px;align-items:flex-start;margin:8px 0;cursor:pointer;line-height:1.5">'
+            +'<input type="checkbox" data-index="'+i+'" style="margin-top:3px;flex-shrink:0"> <span>'+esc(x)+'</span></label>';
+        }).join('')
+      +'<div id="kyClHint" style="font-size:12px;color:#b45309;margin-top:8px">还需勾选 '+st.items.length+' 项</div>';
+  }
+
+  function updateHint(){
+    var left=st.items.length-st.ack.length;
+    var hint=document.getElementById('kyClHint');
+    if(hint)hint.textContent=left>0?('还需勾选 '+left+' 项'):'✅ 已全部确认，可以提交';
+    if(btn){
+      var ok=st.items.length>0&&st.ack.length===st.items.length;
+      if(st.shown){
+        btn.disabled=!ok;
+        btn.innerHTML=ok?'<span>✅</span> 确认并提交':'<span>📋</span> 请先完成检查单';
+      }else{
+        btn.disabled=false;
+        btn.innerHTML='<span>✈️</span> 匿名提交';
+      }
+    }
+  }
+
+  box.addEventListener('change',function(e){
+    if(e.target&&e.target.type==='checkbox'){
+      st.ack=[];
+      box.querySelectorAll('input[type=checkbox]:checked').forEach(function(x){st.ack.push(Number(x.dataset.index));});
+      updateHint();
+    }
+  });
+
+  window.kyShowChecklist=function(){
+    if(!st.enabled||!st.items.length)return;
+    st.shown=true;
+    box.style.display='block';
+    updateHint();
+    try{box.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
+  };
+
+  function load(){
+    var b=window.KY_CONFIG&&window.KY_CONFIG.backendUrl;if(!b)return;
+    fetch(b+'/api/checklist').then(function(r){return r.json();}).then(function(c){
+      st.loaded=true;
+      st.enabled=!!(c&&c.enabled);
+      st.version=(c&&c.version)||1;
+      st.items=(c&&Array.isArray(c.items))?c.items:[];
+      st.ack=[];
+      render();
+      updateHint();
+    }).catch(function(){st.loaded=true;});
+  }
+  if(window.KY_CONFIG&&window.KY_CONFIG.backendUrl)load();
+  else window.addEventListener('configLoaded',load,{once:true});
 })();
 </script>
 
