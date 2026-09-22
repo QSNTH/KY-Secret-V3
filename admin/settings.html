@@ -121,6 +121,7 @@ body{background:#f7fafc;color:#222;height:100vh;display:flex;flex-direction:colu
     <div class="nav-item" data-sec="sec-captcha" onclick="goTo('sec-captcha',this)"><span class="ic">🛡️</span><span class="tx">验证码</span></div>
     <div class="nav-item" data-sec="sec-reconcile" onclick="goTo('sec-reconcile',this)"><span class="ic">🔍</span><span class="tx">IG 状态同步</span></div>
     <div class="nav-item" data-sec="sec-site" onclick="goTo('sec-site',this)"><span class="ic">🏷️</span><span class="tx">站点信息</span></div>
+    <div class="nav-item" data-sec="sec-posts" onclick="goTo('sec-posts',this);loadPosts()"><span class="ic">📮</span><span class="tx">帖子发布状态</span></div>
     <div class="grp">权限</div>
     <div class="nav-item" data-sec="sec-acct" onclick="goTo('sec-acct',this)"><span class="ic">👑</span><span class="tx">管理员账号</span><span class="lk">超管</span></div>
   </div>
@@ -298,6 +299,31 @@ body{background:#f7fafc;color:#222;height:100vh;display:flex;flex-direction:colu
       <div class="row"><div class="lb">显示标语条<span class="hint">导航栏下方显示橙色椭圆提示</span></div><div class="tg" id="site_notice_enabled" onclick="tg(this)"></div></div>
       <div class="field"><label>标语内容</label><input type="text" id="site_notice" placeholder="例：新版本 KYSV3_V5_Flash 更新了" maxlength="200"></div>
       <div class="save-bar"><button onclick="saveSite()">保存站点信息</button><span class="note" id="siteNote"></span></div>
+    </div>
+    <!-- ✦ 帖子发布状态 ✦ -->
+    <div class="sec" id="sec-posts">
+      <h3>📮 帖子发布状态总览</h3>
+      <div class="sub">逐条核对：审核状态、是否已发送、是否被拦截、IG 远端是否还在。可直接在这里通过/取消通过、推送或拦截，效果和审核台一致。</div>
+      <div class="queue-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px">
+        <select id="pstFilter" onchange="renderPosts()" style="padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;outline:0">
+          <option value="">全部</option><option value="published">已发送</option><option value="unpub">未发送</option>
+          <option value="hold">已拦截</option><option value="missing">IG 远端缺失</option><option value="pass">已通过</option><option value="fail">发送失败</option>
+        </select>
+        <button class="chip" onclick="loadPosts()">刷新</button>
+        <span class="note" id="pstNote"></span>
+      </div>
+      <div style="overflow:auto;max-height:460px;border:1px solid #eef3fa;border-radius:10px">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr>
+            <th style="text-align:left;padding:7px 8px;border-bottom:1px solid #e2e8f0;background:#f8fafc">HID</th>
+            <th style="text-align:left;padding:7px 8px;border-bottom:1px solid #e2e8f0;background:#f8fafc">标题</th>
+            <th style="padding:7px 8px;border-bottom:1px solid #e2e8f0;background:#f8fafc">审核</th>
+            <th style="padding:7px 8px;border-bottom:1px solid #e2e8f0;background:#f8fafc">发送</th>
+            <th style="padding:7px 8px;border-bottom:1px solid #e2e8f0;background:#f8fafc">操作</th>
+          </tr></thead>
+          <tbody id="pstRows"><tr><td colspan="5" style="padding:12px;text-align:center;color:#94a3b8">点「刷新」或从左侧进入本页加载</td></tr></tbody>
+        </table>
+      </div>
     </div>
     <!-- ✦ 管理员账号 ✦ -->
     <div class="sec acct-panel" id="sec-acct">
@@ -745,6 +771,65 @@ function fillSite(){
 }
 function saveSite(){
   postSettings({site:{version:val('site_version'),notice:val('site_notice'),notice_enabled:isTg('site_notice_enabled')}},'siteNote');
+}
+var PST=[];
+function loadPosts(){
+  if(!B)return;
+  document.getElementById('pstNote').textContent='加载中...';
+  Promise.all([
+    fetch(B+'/admin/submissions?size=1000&page=1',{headers:hd()}).then(function(r){return j(r);}),
+    fetch(B+'/admin/publisher/status',{headers:hd()}).then(function(r){return j(r);}).catch(function(){return {pending_hids:[]};})
+  ]).then(function(a){
+    PST=(a[0].items||[]);
+    var q={};(a[1].pending_hids||[]).forEach(function(h){q[String(h).toUpperCase()]=1;});
+    window._PSTQ=q;
+    document.getElementById('pstNote').textContent='共 '+PST.length+' 条';
+    renderPosts();
+  }).catch(function(e){document.getElementById('pstNote').textContent='加载失败：'+(e.message||'');});
+}
+function renderPosts(){
+  var f=document.getElementById('pstFilter').value;
+  var rows=PST.filter(function(p){
+    if(f==='published')return !!p.published;
+    if(f==='unpub')return !p.published;
+    if(f==='hold')return !!p.on_hold;
+    if(f==='missing')return !!p.remote_missing;
+    if(f==='pass')return p.status==='pass';
+    if(f==='fail')return !!p.publish_error;
+    return true;
+  });
+  document.getElementById('pstNote').textContent='显示 '+rows.length+' / 共 '+PST.length+' 条';
+  document.getElementById('pstRows').innerHTML=rows.map(function(p){
+    var hid=p.hid||'?', st=p.status||'reviewing', queued=!!window._PSTQ[String(hid).toUpperCase()];
+    var stTxt=st==='pass'?'已通过':st==='reject'?'已驳回':'待审核';
+    var pubTxt=p.published?'<span style="color:#1a7a3a">已发送</span>':(p.on_hold?'<span style="color:#b91c1c">已拦截</span>':(queued?'<span style="color:#b45309">排队中</span>':(p.publish_error?'<span style="color:#b91c1c">失败</span>':'<span style="color:#94a3b8">未发送</span>')));
+    if(p.remote_missing)pubTxt+=' <span style="color:#b91c1c">IG已删</span>';
+    var revBtn=(st==='pass')?'<button class="chip" onclick="pstReview(\''+p.uuid+'\',\'reject\')">取消通过</button>':'<button class="chip" onclick="pstReview(\''+p.uuid+'\',\'pass\')">通过</button>';
+    var pubBtn='';
+    if(st==='pass'&&!p.published){
+      pubBtn=queued?'<button class="chip" onclick="pstCancel(\''+hid+'\')">拦截</button>':'<button class="chip" onclick="pstPush(\''+p.uuid+'\')">推送</button>';
+    }
+    return '<tr><td style="padding:6px;font-family:monospace">'+recEsc(hid)+'</td>'
+      +'<td style="padding:6px">'+recEsc((p.title||'').substring(0,24))+'</td>'
+      +'<td style="padding:6px;text-align:center">'+stTxt+'</td>'
+      +'<td style="padding:6px;text-align:center">'+pubTxt+'</td>'
+      +'<td style="padding:6px;text-align:center;white-space:nowrap">'+revBtn+' '+pubBtn+'</td></tr>';
+  }).join('')||'<tr><td colspan="5" style="padding:12px;text-align:center;color:#94a3b8">没有符合条件的帖子</td></tr>';
+}
+function pstReview(uuid,st){
+  fetch(B+'/admin/review',{method:'POST',headers:Object.assign({},hd(),{'Content-Type':'application/json'}),body:JSON.stringify({uuid:uuid,status:st})})
+  .then(function(r){return j(r);}).then(function(){t(st==='pass'?'已通过':'已取消通过');loadPosts();})
+  .catch(function(e){t('操作失败：'+(e.message||''));});
+}
+function pstPush(uuid){
+  fetch(B+'/admin/push/'+uuid,{method:'POST',headers:hd()}).then(function(r){return j(r);})
+  .then(function(){t('已加入队列');loadPosts();}).catch(function(e){t('推送失败：'+(e.message||''));});
+}
+function pstCancel(hid){
+  if(!confirm('拦截 '+hid+'？会移出队列并写 hold 标记，重启也不会自动补发。'))return;
+  fetch(B+'/admin/publisher/cancel',{method:'POST',headers:Object.assign({},hd(),{'Content-Type':'application/json'}),body:JSON.stringify({hid:hid})})
+  .then(function(r){return j(r);}).then(function(){t('已拦截 '+hid);loadPosts();})
+  .catch(function(e){t('拦截失败：'+(e.message||''));});
 }
 </script>
 </body>
