@@ -11,8 +11,8 @@ body{background:#f7fafc;color:#222;height:100vh;display:flex;flex-direction:colu
 .tb .nv{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .tb a,.tb button{border:1px solid #e2e8f0;border-radius:40px;background:#fff;color:#334155;padding:6px 16px;cursor:pointer;font-size:13px;font-weight:550;text-decoration:none;white-space:nowrap;transition:.15s}
 .tb a:hover,.tb button:hover{background:#eef2f6;border-color:#cbd5e1}
-.wrap{flex:1;display:flex;min-height:0}
-.side{width:250px;min-width:220px;background:#fff;border-right:1px solid #e2ecf5;overflow-y:auto;padding:16px 12px;flex-shrink:0}
+.wrap{flex:1;display:flex;min-height:0;overflow-y:auto}
+.side{width:250px;min-width:220px;background:#fff;border-right:1px solid #e2ecf5;padding:16px 12px;flex-shrink:0}
 .side .grp{font-size:11px;color:#94a3b8;font-weight:700;letter-spacing:.06em;padding:14px 10px 6px;text-transform:uppercase}
 .side .grp:first-child{padding-top:4px}
 .side .nav-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;cursor:pointer;font-size:14px;color:#334155;transition:.15s;border:1.5px solid transparent;user-select:none;margin-bottom:2px}
@@ -20,8 +20,8 @@ body{background:#f7fafc;color:#222;height:100vh;display:flex;flex-direction:colu
 .side .nav-item.on{background:#edf7f0;border-color:#1a7a3a;color:#1a5a2a;font-weight:650}
 .side .nav-item .ic{font-size:16px;width:22px;text-align:center}
 .side .nav-item .lk{position:relative;top:-5px;font-size:10px;margin-left:-2px;color:#e74c3c}
-.main{flex:1;overflow-y:auto;scroll-behavior:smooth;padding:20px 24px 60px}
-.sec{background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.04);padding:24px;margin-bottom:20px;max-width:760px;transition:box-shadow .3s}
+.main{flex:1;min-width:0;scroll-behavior:smooth;padding:20px 24px 60px}
+.sec{background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.04);padding:24px;margin-bottom:20px;max-width:none;transition:box-shadow .3s}
 .sec h3{font-size:16px;color:#1a5a2a;margin-bottom:6px;display:flex;align-items:center;gap:8px}
 .sec .sub{font-size:12px;color:#94a3b8;margin-bottom:18px}
 @keyframes flashSec{0%,100%{box-shadow:0 1px 4px rgba(0,0,0,.04)}25%,75%{box-shadow:0 0 0 5px rgba(26,122,58,.30)}}
@@ -55,6 +55,9 @@ body{background:#f7fafc;color:#222;height:100vh;display:flex;flex-direction:colu
 .tg.on{background:#34c759}
 .tg.on::after{left:23px}
 .tg.dis{opacity:.45;pointer-events:none}
+.tg.sm{width:44px;height:26px}
+.tg.sm::after{width:22px;height:22px}
+.tg.sm.on::after{left:20px}
 /* 互斥玻璃选项卡 */
 .opts{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
 .opt-card{border:1.5px solid #e2e8f0;border-radius:14px;padding:14px 16px;cursor:pointer;transition:.18s;background:rgba(255,255,255,.7);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);flex:1;min-width:170px;user-select:none;position:relative}
@@ -320,8 +323,9 @@ body{background:#f7fafc;color:#222;height:100vh;display:flex;flex-direction:colu
           <thead><tr>
             <th style="text-align:left;padding:7px 8px;border-bottom:1px solid #e2e8f0;background:#f8fafc">HID / 标题</th>
             <th style="padding:7px 8px;border-bottom:1px solid #e2e8f0;background:#f8fafc">审核</th>
-            <th style="padding:7px 8px;border-bottom:1px solid #e2e8f0;background:#f8fafc">后端</th>
+            <th style="padding:7px 8px;border-bottom:1px solid #e2e8f0;background:#f8fafc">后端发送</th>
             <th style="padding:7px 8px;border-bottom:1px solid #e2e8f0;background:#f8fafc">队列</th>
+            <th style="padding:7px 8px;border-bottom:1px solid #e2e8f0;background:#f8fafc">拦截</th>
             <th style="padding:7px 8px;border-bottom:1px solid #e2e8f0;background:#f8fafc">IG</th>
             <th style="padding:7px 8px;border-bottom:1px solid #e2e8f0;background:#f8fafc">操作</th>
           </tr></thead>
@@ -812,31 +816,36 @@ function renderPosts(){
   });
   document.getElementById('pstNote').textContent='显示 '+rows.length+' / 共 '+PST.length+' 条';
   document.getElementById('pstRows').innerHTML=rows.map(function(p){
-    var hid=p.hid||'?', st=p.status||'reviewing', queued=!!window._PSTQ[String(hid).toUpperCase()];
+    var hid=p.hid||'?', st=p.status||'reviewing', queued=!!window._PSTQ[String(hid).toUpperCase()], notPass=st!=='pass';
     var stTxt=st==='pass'?'已通过':st==='reject'?'已驳回':'待审核';
-    var stBtn=(st==='pass')?'<button class="chip" onclick="pstSetState(\''+p.uuid+'\',\'reject\')">已通过·驳回</button>':'<button class="chip" onclick="pstSetState(\''+p.uuid+'\',\'approve\')">通过</button>';
-    var backTxt=p.published?'<button class="chip" onclick="pstSetState(\''+p.uuid+'\',\'unsent\')">已发送·标记未发</button>':'<button class="chip" onclick="pstSetState(\''+p.uuid+'\',\'sent\')">未发送·标记已发</button>';
-    var qBtn='—';
-    if(st==='pass'&&!p.published){
-      if(p.on_hold) qBtn='<button class="chip" onclick="pstSetState(\''+p.uuid+'\',\'unhold\')">已拦截·解除</button>';
-      else if(queued) qBtn='<button class="chip" onclick="pstSetState(\''+p.uuid+'\',\'hold\')">排队中·拦截</button>';
-      else qBtn='<button class="chip" onclick="pstSetState(\''+p.uuid+'\',\'push\')">排队·推送</button>';
-    }
+    var revTg='<div class="tg sm'+(st==='pass'?' on':'')+'" onclick="pstSetState(\''+p.uuid+'\',\''+(st==='pass'?'reject':'approve')+'\')"></div>';
+    var pubTg='<div class="tg sm'+(p.published?' on':'')+'" onclick="pstSetState(\''+p.uuid+'\',\''+(p.published?'unsent':'sent')+'\')"></div>';
+    var qTg='<div class="tg sm'+(queued?' on':'')+(notPass?' dis':'')+'" onclick="pstSetState(\''+p.uuid+'\',\''+(queued?'dequeue':'push')+'\')"></div>';
+    var holdTg='<div class="tg sm'+(p.on_hold?' on':'')+(p.published?' dis':'')+'" onclick="pstSetState(\''+p.uuid+'\',\''+(p.on_hold?'unhold':'hold')+'\')"></div>';
     var igTxt=p.remote_missing?'<span style="color:#b91c1c">已删</span>':(p.remote_missing===false?'<span style="color:#1a7a3a">在</span>':'<span style="color:#94a3b8">未扫</span>');
     var errBtn=p.publish_error?'<button class="chip" onclick="pstSetState(\''+p.uuid+'\',\'repush\')" title="'+recEsc(p.publish_error)+'">失败·重推</button>':'—';
     return '<tr><td style="padding:6px"><div style="font-family:monospace">'+recEsc(hid)+'</div><div style="color:#475569">'+recEsc((p.title||'').substring(0,26))+'</div></td>'
-      +'<td style="padding:6px;text-align:center">'+stTxt+'<div>'+stBtn+'</div></td>'
-      +'<td style="padding:6px;text-align:center">'+(p.published?'已发送':'未发送')+'<div>'+backTxt+'</div></td>'
-      +'<td style="padding:6px;text-align:center">'+qBtn+'</td>'
+      +'<td style="padding:6px;text-align:center"><div style="font-size:11px;color:#64748b">'+stTxt+'</div>'+revTg+'</td>'
+      +'<td style="padding:6px;text-align:center"><div style="font-size:11px;color:#64748b">'+(p.published?'已发送':'未发送')+'</div>'+pubTg+'</td>'
+      +'<td style="padding:6px;text-align:center"><div style="font-size:11px;color:#64748b">'+(queued?'排队中':'未排队')+'</div>'+qTg+'</td>'
+      +'<td style="padding:6px;text-align:center"><div style="font-size:11px;color:#64748b">'+(p.on_hold?'已拦截':'未拦截')+'</div>'+holdTg+'</td>'
       +'<td style="padding:6px;text-align:center">'+igTxt+'</td>'
       +'<td style="padding:6px;text-align:center">'+errBtn+'</td></tr>';
-  }).join('')||'<tr><td colspan="6" style="padding:12px;text-align:center;color:#94a3b8">没有符合条件的帖子</td></tr>';
+  }).join('')||'<tr><td colspan="7" style="padding:12px;text-align:center;color:#94a3b8">没有符合条件的帖子</td></tr>';
 }
 function pstSetState(uuid, action, sel){
   if(!action){ if(sel)sel.value=''; return; }
   var h=Object.assign({},hd(),{'Content-Type':'application/json'});
   function done(msg){t(msg);loadPosts();}
   function fail(e){t('失败：'+(e.message||''));if(sel)sel.value='';}
+  if(action==='dequeue'){
+    var pp=null;for(var i=0;i<PST.length;i++){if(PST[i].uuid===uuid)pp=PST[i];}
+    var hh=pp&&pp.hid?pp.hid:'';
+    if(!hh){t('缺少 HID');return;}
+    if(!confirm('退出队列 '+hh+'？只移出队列，不写拦截标记（重启后可能重新入队）。')){return;}
+    fetch(B+'/admin/publisher/cancel',{method:'POST',headers:h,body:JSON.stringify({hid:hh,hold:false})}).then(function(r){return j(r);}).then(function(){done('已退出队列');}).catch(fail);
+    return;
+  }
   if(action==='push'){fetch(B+'/admin/push/'+uuid,{method:'POST',headers:hd()}).then(function(r){return j(r);}).then(function(){done('已加入队列');}).catch(fail);return;}
   if(action==='repush'){if(!confirm('强制重新推送？')){if(sel)sel.value='';return;}fetch(B+'/admin/repush/'+uuid,{method:'POST',headers:hd()}).then(function(r){return j(r);}).then(function(){done('已加入重推');}).catch(fail);return;}
   if(action==='approve'||action==='reject'){fetch(B+'/admin/review',{method:'POST',headers:h,body:JSON.stringify({uuid:uuid,status:action==='reject'?'reject':'pass'})}).then(function(r){return j(r);}).then(function(){done(action==='reject'?'已驳回':'已通过并入队');}).catch(fail);return;}
