@@ -1,5 +1,5 @@
 {
-    "backend": "https://api.trycloudflare.com",
+    "backend": "https://getting-eddie-wto-crucial.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
