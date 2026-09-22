@@ -864,6 +864,7 @@
                 previewContainer.innerHTML = '';
                 currentPreviewFile = null;
                 window._kyImageFile = null;
+                window._kyOriginalFile = null;
                 window._kyFaceBlur = true;
                 updateRequiredFields();
             }
@@ -1177,6 +1178,7 @@
                 // 图片（最多1张，已在编辑器内打码）
                 if (hasImage) {
                     formData.append('user_image', currentPreviewFile);
+                    if (window._kyOriginalFile) formData.append('user_image_original', window._kyOriginalFile);
                     formData.append('face_blur', window._kyFaceBlur === false ? 'false' : 'true');
                     formData.append('manual_masks', '[]');
                 }
@@ -1302,9 +1304,8 @@
 /* ============ KY Secret V3 · 图片隐私编辑器 ============ */
 (function(){
   var st = null;
-  var overlay, cv, ctx, busyEl, faceChk, drawChk, countEl, warnEl, modeSel;
-  var disp = { scale: 1, rotW: 0, rotH: 0 };
-  var drag = null;
+  var overlay, cv, ctx, busyEl, faceChk, drawChk, countEl, warnEl, sizeRange, brushDot, stageEl;
+  var disp = { scale: 1, rotW: 0, rotH: 0, base: null, mosaic: null };
 
   function backendBase(){
     var b = (window.KY_CONFIG && window.KY_CONFIG.backendUrl) || '';
@@ -1372,21 +1373,22 @@
       +     '<button id="kyEdClose" style="border:none;background:#eef2f6;border-radius:20px;padding:5px 14px;cursor:pointer;font-size:13px">取消</button>'
       +   '</div>'
       +   '<div id="kyEdWarn" style="font-size:12px;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 10px;margin-bottom:8px">二维码将强制打码；人脸默认打码，可取消。照片歪了可点旋转。</div>'
-      +   '<div style="position:relative;background:#111;border-radius:10px;overflow:hidden;display:flex;justify-content:center;align-items:center;min-height:180px">'
-      +     '<canvas id="kyEdCanvas" style="max-width:100%;max-height:50vh;touch-action:none"></canvas>'
+      +   '<div id="kyEdStage" style="position:relative;background:#111;border-radius:10px;overflow:hidden;display:flex;justify-content:center;align-items:center;min-height:180px">'
+      +     '<canvas id="kyEdCanvas" style="max-width:100%;max-height:50vh;touch-action:none;display:block"></canvas>'
+      +     '<div id="kyEdBrushDot" style="display:none;position:absolute;border:2px solid #2563eb;border-radius:50%;pointer-events:none;box-sizing:border-box"></div>'
       +     '<div id="kyEdBusy" style="position:absolute;color:#fff;font-size:13px;text-shadow:0 1px 3px #000">识别中…</div>'
       +   '</div>'
       +   '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px;font-size:13px">'
       +     '<button data-a="rotL" class="kyEdBtn">↺ 左转</button>'
       +     '<button data-a="rotR" class="kyEdBtn">↻ 右转</button>'
       +     '<label style="display:flex;align-items:center;gap:5px;user-select:none"><input type="checkbox" id="kyEdFace" checked> 自动人脸打码</label>'
-      +     '<label style="display:flex;align-items:center;gap:5px;user-select:none"><input type="checkbox" id="kyEdDraw"> 画笔涂抹</label>'
-      +     '<select id="kyEdMode" class="kyEdBtn" aria-label="打码模式"><option value="pixelate">Pixelate</option><option value="blur">Blur</option><option value="solid">Solid</option></select>'
-      +     '<button data-a="clear" class="kyEdBtn">清除手动画框</button>'
+      +     '<label style="display:flex;align-items:center;gap:5px;user-select:none"><input type="checkbox" id="kyEdDraw"> 马赛克画笔</label>'
+      +     '<label style="display:flex;align-items:center;gap:6px;user-select:none">画笔大小<input type="range" id="kyEdSize" min="12" max="90" value="32" style="width:110px"></label>'
+      +     '<button data-a="clear" class="kyEdBtn">清除涂抹</button>'
       +     '<span id="kyEdCount" style="color:#666"></span>'
       +   '</div>'
       +   '<button id="kyEdOk" style="width:100%;margin-top:12px;padding:11px;border:none;border-radius:10px;background:#0f172a;color:#fff;font-weight:600;cursor:pointer">完成并使用此图片</button>'
-      +   '<div style="font-size:11px;color:#94a3b8;margin-top:8px">红框=二维码（强制打码）· 橙框=人脸 · 蓝色笔迹=手动涂抹 · 关闭画笔后单击框可删除</div>'
+      +   '<div style="font-size:11px;color:#94a3b8;margin-top:8px">红框=二维码（强制打码）· 橙框=人脸 · 画笔涂抹即时显示马赛克 · 关闭画笔后单击红/橙框可删除人脸框</div>'
       + '</div>';
     document.body.appendChild(overlay);
 
@@ -1397,27 +1399,34 @@
     drawChk = overlay.querySelector('#kyEdDraw');
     countEl = overlay.querySelector('#kyEdCount');
     warnEl = overlay.querySelector('#kyEdWarn');
-    modeSel = overlay.querySelector('#kyEdMode');
+    sizeRange = overlay.querySelector('#kyEdSize');
+    brushDot = overlay.querySelector('#kyEdBrushDot');
+    stageEl = overlay.querySelector('#kyEdStage');
 
     overlay.querySelector('#kyEdClose').onclick = cancel;
     overlay.querySelector('#kyEdOk').onclick = confirmOk;
     faceChk.onchange = function(){ if(st){ st.faceOn = faceChk.checked; redraw(); } };
-    modeSel.onchange = function(){ if(st){ st.mode = modeSel.value; } };
+    drawChk.onchange = function(){ if(st){ st.brushOn = drawChk.checked; showBrushDot(); } };
+    sizeRange.oninput = function(){ if(st){ st.brushW = parseInt(sizeRange.value,10)||32; showBrushDot(); } };
+    sizeRange.onchange = function(){ setTimeout(function(){ if(brushDot) brushDot.style.display='none'; }, 900); };
     overlay.querySelector('[data-a=rotL]').onclick = function(){ if(st){ st.rot = (st.rot + 270) % 360; drawToCanvas(); } };
     overlay.querySelector('[data-a=rotR]').onclick = function(){ if(st){ st.rot = (st.rot + 90) % 360; drawToCanvas(); } };
-    overlay.querySelector('[data-a=clear]').onclick = function(){ if(st){ st.manual = []; st.strokes = []; redraw(); } };
+    overlay.querySelector('[data-a=clear]').onclick = function(){ if(st){ st.strokes = []; redraw(); } };
 
     cv.addEventListener('pointerdown', onDown);
     cv.addEventListener('pointermove', onMove);
-    window.addEventListener('pointerup', onUp);
+    cv.addEventListener('pointerup', onUp);
+    cv.addEventListener('pointercancel', onUp);
+    cv.addEventListener('pointerleave', function(){ if(brushDot) brushDot.style.display='none'; });
   }
 
   function openImageEditor(file, onDone, onCancel){
     ensureUI();
-    st = { file: file, img: null, rot: 0, qr: [], faces: [], manual: [], strokes: [], faceOn: true, mode: 'pixelate' };
+    st = { file: file, img: null, rot: 0, qr: [], faces: [], strokes: [], faceOn: true, brushOn: false, brushW: parseInt(sizeRange.value,10)||32, drawing: null };
+    window._kyOriginalFile = file;
     overlay._onDone = onDone; overlay._onCancel = onCancel;
     overlay.style.display = 'flex';
-    faceChk.checked = true; drawChk.checked = false; modeSel.value = 'pixelate';
+    faceChk.checked = true; drawChk.checked = false; sizeRange.value = st.brushW;
     warnEl.textContent = '二维码将强制打码；人脸默认打码，可取消。照片歪了可点旋转。';
     warnEl.style.color='#b45309'; warnEl.style.background='#fffbeb'; warnEl.style.borderColor='#fde68a';
     busyEl.style.display = 'block';
@@ -1433,24 +1442,103 @@
     im.src = URL.createObjectURL(file);
   }
 
+  function iou(a, b){
+    var x1=Math.max(a[0],b[0]), y1=Math.max(a[1],b[1]), x2=Math.min(a[2],b[2]), y2=Math.min(a[3],b[3]);
+    var inter=Math.max(0,x2-x1)*Math.max(0,y2-y1);
+    var ua=Math.max(1,(a[2]-a[0])*(a[3]-a[1])), ub=Math.max(1,(b[2]-b[0])*(b[3]-b[1]));
+    return inter/(ua+ub-inter);
+  }
+
+  function addQrBox(box){
+    box = clampBox(box);
+    if (box[2]-box[0] < 12 && box[3]-box[1] < 12) return;
+    for (var i=0;i<st.qr.length;i++){ if (iou(st.qr[i], box) > 0.35) return; }
+    st.qr.push(box);
+  }
+
+  function findQrPatterns(c){
+    var w=c.width, h=c.height, data;
+    try { data = c.getContext('2d').getImageData(0,0,w,h).data; } catch(e){ return []; }
+    var gray = new Float32Array(w*h), sum = 0, i, p;
+    for (i=0,p=0;i<data.length;i+=4,p++){ var g=data[i]*0.299+data[i+1]*0.587+data[i+2]*0.114; gray[p]=g; sum+=g; }
+    var th = sum/(w*h), cands=[];
+    for (var y=0;y<h;y++){
+      var x=0;
+      while (x<w){
+        while (x<w && gray[y*w+x]>=th) x++;
+        var s1=x; while (x<w && gray[y*w+x]<th) x++; var b1=x-s1;
+        var s2=x; while (x<w && gray[y*w+x]>=th) x++; var w1=x-s2;
+        var s3=x; while (x<w && gray[y*w+x]<th) x++; var b2=x-s3;
+        var s4=x; while (x<w && gray[y*w+x]>=th) x++; var w2=x-s4;
+        var s5=x; while (x<w && gray[y*w+x]<th) x++; var b3=x-s5;
+        if (b1<2||w1<2||b2<3||w2<2||b3<2) continue;
+        var u=(b1+w1+b2+w2+b3)/7;
+        if (Math.abs(b1-u)>u*0.7||Math.abs(w1-u)>u*0.7||Math.abs(b2-3*u)>3*u*0.75||Math.abs(w2-u)>u*0.7||Math.abs(b3-u)>u*0.7) continue;
+        if ((b1+w1+b2+w2+b3) < w*0.03) continue;
+        cands.push([s1+b1+w1+b2/2, y, u]);
+      }
+    }
+    var clusters=[];
+    cands.forEach(function(cd){
+      for (var j=0;j<clusters.length;j++){
+        var cl=clusters[j];
+        if (Math.abs(cl[0]-cd[0])<cd[2]*7 && Math.abs(cl[1]-cd[1])<cd[2]*7){
+          cl[0]=(cl[0]*cl[3]+cd[0])/(cl[3]+1); cl[1]=(cl[1]*cl[3]+cd[1])/(cl[3]+1);
+          cl[2]=Math.max(cl[2],cd[2]); cl[3]++; return;
+        }
+      }
+      clusters.push([cd[0],cd[1],cd[2],1]);
+    });
+    var good = clusters.filter(function(c){ return c[3]>=3; });
+    if (good.length < 3) return [];
+    var xs=good.map(function(c){return c[0];}), ys=good.map(function(c){return c[1];});
+    var m=good.reduce(function(a,c){return a+c[2];},0)/good.length;
+    var pad=m*4.5;
+    return [[Math.min.apply(null,xs)-pad, Math.min.apply(null,ys)-pad, Math.max.apply(null,xs)+pad, Math.max.apply(null,ys)+pad]];
+  }
+
+  function detectQrFrontend(){
+    if (!st || !st.img) return;
+    var w=st.img.width, h=st.img.height, sc=Math.min(1, 720/Math.max(w,h));
+    var c=document.createElement('canvas');
+    c.width=Math.max(1,Math.round(w*sc)); c.height=Math.max(1,Math.round(h*sc));
+    c.getContext('2d').drawImage(st.img,0,0,c.width,c.height);
+    function apply(boxes){
+      boxes.forEach(function(b){ addQrBox([b[0]/sc, b[1]/sc, b[2]/sc, b[3]/sc]); });
+      redraw();
+    }
+    try {
+      if (window.BarcodeDetector){
+        new BarcodeDetector({formats:['qr_code']}).detect(c).then(function(codes){
+          var boxes=[];
+          (codes||[]).forEach(function(code){ var r=code.boundingBox; if(r) boxes.push([r.x,r.y,r.x+r.width,r.y+r.height]); });
+          if (boxes.length) apply(boxes); else redraw();
+        }).catch(function(){ redraw(); });
+      } else {
+        apply(findQrPatterns(c));
+      }
+    } catch(e){ apply(findQrPatterns(c)); }
+  }
+
   function scan(){
+    detectQrFrontend();
     var base = backendBase();
-    if (!base) { busyEl.style.display='none'; showWarn('离线：未连接后端，仅可手动打码'); redraw(); return; }
+    if (!base) { busyEl.style.display='none'; showWarn('离线：未连接后端，仅本地识别与手动打码'); redraw(); return; }
     var fd = new FormData();
     fd.append('user_image', st.file);
     fetch(api('/api/privacy/scan'), { method:'POST', body: fd })
       .then(function(r){ if(!r.ok) return r.text().then(function(t){ throw new Error(t); }); return r.json(); })
       .then(function(d){
-        st.qr = (d.qr || []).map(clampBox);
         st.faces = (d.faces || []).map(clampBox);
+        (d.qr || []).forEach(function(b){ addQrBox(b); });
         busyEl.style.display = 'none';
         var n = st.qr.length + st.faces.length;
-        showWarn(n ? ('已识别：二维码 ' + st.qr.length + ' 个，人脸 ' + st.faces.length + ' 个。二维码强制打码，人脸可取消。') : '未识别到二维码或人脸，可手动框选打码。');
+        showWarn(n ? ('已识别：二维码 ' + st.qr.length + ' 个，人脸 ' + st.faces.length + ' 个。二维码强制打码，人脸可取消。') : '未识别到二维码或人脸，可用马赛克画笔涂抹要遮挡的位置。');
         redraw();
       })
       .catch(function(e){
         busyEl.style.display='none';
-        showWarn('自动识别失败（' + (e.message||e) + '），可手动框选打码');
+        showWarn('后端自动识别失败（' + (e.message||e) + '），已用本地识别，可再用画笔涂抹');
         redraw();
       });
   }
@@ -1473,6 +1561,7 @@
     cv.width = Math.max(1, Math.round(rotW * scale));
     cv.height = Math.max(1, Math.round(rotH * scale));
     disp.scale = scale; disp.rotW = rotW; disp.rotH = rotH;
+    disp.base = null; disp.mosaic = null;
   }
 
   function drawToCanvas(){
@@ -1484,25 +1573,88 @@
 
   function boxesForDraw(){
     var list = [];
-    st.qr.forEach(function(b){ list.push({b:boxFwd(b), color:'rgba(220,38,38,.85)', fill:'rgba(220,38,38,.22)'}); });
-    if (st.faceOn) st.faces.forEach(function(b){ list.push({b:boxFwd(b), color:'rgba(234,88,12,.9)', fill:'rgba(234,88,12,.22)'}); });
-    st.manual.forEach(function(b){ list.push({b:boxFwd(b), color:'rgba(37,99,235,.9)', fill:'rgba(37,99,235,.20)'}); });
-    if (drag) list.push({b:drag.rect, color:'rgba(16,185,129,.9)', fill:'rgba(16,185,129,.18)'});
+    st.qr.forEach(function(b){ list.push({b:boxFwd(b), color:'rgba(220,38,38,.9)'}); });
+    if (st.faceOn) st.faces.forEach(function(b){ list.push({b:boxFwd(b), color:'rgba(234,88,12,.95)'}); });
     return list;
+  }
+
+  function makeMosaic(srcCanvas, cell){
+    cell = Math.max(6, cell|0);
+    var t=document.createElement('canvas');
+    t.width=Math.max(1,Math.round(srcCanvas.width/cell));
+    t.height=Math.max(1,Math.round(srcCanvas.height/cell));
+    t.getContext('2d').drawImage(srcCanvas,0,0,t.width,t.height);
+    var u=document.createElement('canvas');
+    u.width=srcCanvas.width; u.height=srcCanvas.height;
+    var uc=u.getContext('2d'); uc.imageSmoothingEnabled=false;
+    uc.drawImage(t,0,0,t.width,t.height,0,0,u.width,u.height);
+    return u;
+  }
+
+  function ensureDisplayBase(){
+    if (!disp.base || disp.base.width!==cv.width || disp.base.height!==cv.height){
+      disp.base=document.createElement('canvas');
+      disp.base.width=cv.width; disp.base.height=cv.height;
+      var bc=disp.base.getContext('2d');
+      bc.fillStyle='#111'; bc.fillRect(0,0,cv.width,cv.height);
+      paintRotated(bc, cv.width, cv.height);
+      disp.mosaic=makeMosaic(disp.base, Math.max(8, Math.round(cv.width/60)));
+    }
+  }
+
+  function paintBlocks(c, mosaic, pts, block){
+    if (!pts || !pts.length || !mosaic) return;
+    block=Math.max(4, block);
+    var step=Math.max(2, block/2), snap=4;
+    for (var i=1;i<pts.length;i++){
+      var ax=pts[i-1][0], ay=pts[i-1][1], bx=pts[i][0], by=pts[i][1];
+      var dist=Math.sqrt((bx-ax)*(bx-ax)+(by-ay)*(by-ay));
+      var n=Math.max(1, Math.ceil(dist/step));
+      for (var k=0;k<=n;k++){
+        var x=ax+(bx-ax)*k/n, y=ay+(by-ay)*k/n;
+        var sx=Math.floor((x-block/2)/snap)*snap, sy=Math.floor((y-block/2)/snap)*snap;
+        c.imageSmoothingEnabled=false;
+        c.drawImage(mosaic, sx, sy, block, block, sx, sy, block, block);
+        c.imageSmoothingEnabled=true;
+      }
+    }
+  }
+
+  function strokePointsDisplay(sk){
+    return sk.points.map(function(p){ var q=fwd(p[0],p[1]); return [q.x*disp.scale, q.y*disp.scale]; });
+  }
+
+  function showBrushDot(p){
+    if (!brushDot || !st || !drawChk.checked){ if (brushDot) brushDot.style.display='none'; return; }
+    var w=Math.max(6, st.brushW*2*disp.scale);
+    brushDot.style.display='block';
+    brushDot.style.width=w+'px'; brushDot.style.height=w+'px';
+    var cx=(p&&typeof p.x==='number')?p.x:cv.width/2;
+    var cy=(p&&typeof p.y==='number')?p.y:cv.height/2;
+    brushDot.style.left=(cv.offsetLeft+cx-w/2)+'px';
+    brushDot.style.top=(cv.offsetTop+cy-w/2)+'px';
   }
 
   function redraw(){
     if (!st || !st.img) return;
     var s = disp.scale;
+    ensureDisplayBase();
     ctx.clearRect(0,0,cv.width,cv.height);
-    ctx.fillStyle = '#111'; ctx.fillRect(0,0,cv.width,cv.height);
-    paintRotated(ctx, cv.width, cv.height);
+    ctx.drawImage(disp.base, 0, 0);
     boxesForDraw().forEach(function(o){
-      var x=o.b[0]*s, y=o.b[1]*s, w=(o.b[2]-o.b[0])*s, h=(o.b[3]-o.b[1])*s;
-      ctx.fillStyle = o.fill; ctx.fillRect(x,y,w,h);
-      ctx.strokeStyle = o.color; ctx.lineWidth = 2; ctx.strokeRect(x,y,w,h);
+      var x=Math.max(0,o.b[0]*s), y=Math.max(0,o.b[1]*s);
+      var w=Math.min(cv.width,o.b[2]*s)-x, h=Math.min(cv.height,o.b[3]*s)-y;
+      if (w<=0||h<=0) return;
+      ctx.imageSmoothingEnabled=false;
+      ctx.drawImage(disp.mosaic, x, y, w, h, x, y, w, h);
+      ctx.imageSmoothingEnabled=true;
+      ctx.strokeStyle=o.color; ctx.lineWidth=2; ctx.strokeRect(x,y,w,h);
     });
-    countEl.textContent = '二维码 ' + st.qr.length + ' · 人脸 ' + (st.faceOn?st.faces.length:0) + ' · 手动 ' + st.manual.length;
+    st.strokes.forEach(function(sk){
+      paintBlocks(ctx, disp.mosaic, strokePointsDisplay(sk), Math.max(4, sk.width*s));
+    });
+    countEl.textContent = '二维码 ' + st.qr.length + ' · 人脸 ' + (st.faceOn?st.faces.length:0) + ' · 涂抹 ' + st.strokes.length;
+    if (st.drawing) paintBlocks(ctx, disp.mosaic, st.drawing, Math.max(4, st.brushW*s));
   }
 
   function pt(e){
@@ -1512,45 +1664,48 @@
 
   function onDown(e){
     if (!st || !st.img) return;
+    var p = pt(e);
     if (drawChk.checked) {
-      var p = pt(e);
-      drag = { x0: p.x, y0: p.y, rect: [p.x, p.y, p.x, p.y], points: [[p.x, p.y]] };
       try { cv.setPointerCapture(e.pointerId); } catch(err){}
-    } else {
-      var q = pt(e), s = disp.scale;
-      var all = [];
-      st.qr.forEach(function(b,i){ all.push({list:'qr', i:i, b:boxFwd(b)}); });
-      if (st.faceOn) st.faces.forEach(function(b,i){ all.push({list:'faces', i:i, b:boxFwd(b)}); });
-      st.manual.forEach(function(b,i){ all.push({list:'manual', i:i, b:boxFwd(b)}); });
-      for (var i=all.length-1;i>=0;i--){
-        var b=all[i].b;
-        if (q.x>=b[0]*s && q.x<=b[2]*s && q.y>=b[1]*s && q.y<=b[3]*s){
-          if (all[i].list==='qr'){ warnEl.textContent='二维码为强制打码，不能删除'; return; }
-          st[all[i].list].splice(all[i].i,1); redraw(); return;
-        }
+      st.drawing = [[p.x, p.y]];
+      paintBlocks(ctx, disp.mosaic, st.drawing, Math.max(4, st.brushW*disp.scale));
+      showBrushDot(p);
+      return;
+    }
+    var s = disp.scale, all = [];
+    st.qr.forEach(function(b,i){ all.push({list:'qr', i:i, b:boxFwd(b)}); });
+    if (st.faceOn) st.faces.forEach(function(b,i){ all.push({list:'faces', i:i, b:boxFwd(b)}); });
+    for (var i=all.length-1;i>=0;i--){
+      var b=all[i].b;
+      if (p.x>=b[0]*s && p.x<=b[2]*s && p.y>=b[1]*s && p.y<=b[3]*s){
+        if (all[i].list==='qr'){ warnEl.textContent='二维码为强制打码，不能删除'; return; }
+        st.faces.splice(all[i].i,1); redraw(); return;
       }
     }
   }
 
   function onMove(e){
-    if (!drag) return;
     var p = pt(e);
-    drag.points.push([p.x,p.y]);
-    drag.rect = [Math.min(drag.x0,p.x), Math.min(drag.y0,p.y), Math.max(drag.x0,p.x), Math.max(drag.y0,p.y)];
-    redraw();
+    if (st && st.drawing && drawChk.checked){
+      var last = st.drawing[st.drawing.length-1];
+      if (Math.abs(p.x-last[0])+Math.abs(p.y-last[1]) > 2){
+        st.drawing.push([p.x,p.y]);
+        paintBlocks(ctx, disp.mosaic, [last, [p.x,p.y]], Math.max(4, st.brushW*disp.scale));
+      }
+    }
+    showBrushDot(p);
   }
 
   function onUp(){
-    if (!drag || !st) { drag = null; return; }
-    var r = drag.rect, s = disp.scale, pts = drag.points; drag = null;
-    if (pts.length > 2) {
-      st.strokes.push({points: pts.map(function(p){ var q = inv(p[0]/s, p[1]/s); return [q.x,q.y]; }), width: Math.max(18, 28/s), mode: st.mode});
-      redraw(); return;
+    if (!st) return;
+    if (st.drawing){
+      var s = disp.scale;
+      if (st.drawing.length > 1){
+        st.strokes.push({ points: st.drawing.map(function(p){ var q=inv(p[0]/s, p[1]/s); return [q.x,q.y]; }), width: st.brushW });
+      }
+      st.drawing = null;
+      redraw();
     }
-    if ((r[2]-r[0]) < 8 || (r[3]-r[1]) < 8){ redraw(); return; }
-    var a = inv(r[0]/s, r[1]/s), c = inv(r[2]/s, r[3]/s);
-    st.manual.push([Math.min(a.x,c.x), Math.min(a.y,c.y), Math.max(a.x,c.x), Math.max(a.y,c.y)]);
-    redraw();
   }
 
   function renderFinal(){
@@ -1561,34 +1716,25 @@
     bctx.fillStyle='#000'; bctx.fillRect(0,0,rs.w,rs.h);
     paintRotated(bctx, rs.w, rs.h);
 
-    var boxes = st.qr.slice();
-    if (st.faceOn) boxes = boxes.concat(st.faces);
-    boxes = boxes.concat(st.manual);
+    var mosaic = makeMosaic(base, Math.max(6, Math.round(Math.min(rs.w, rs.h)/120)));
 
     var out = document.createElement('canvas');
     out.width = rs.w; out.height = rs.h;
     var octx = out.getContext('2d');
     octx.drawImage(base, 0, 0);
-    function applyBox(b, mode){
-      var fb = boxFwd(b), x=Math.max(0,fb[0]), y=Math.max(0,fb[1]);
-      var w=Math.min(rs.w,fb[2])-x, h=Math.min(rs.h,fb[3])-y;
-      if (w<=0||h<=0) return;
-      if (mode === 'solid') { octx.fillStyle='#111'; octx.fillRect(x,y,w,h); return; }
-      if (mode === 'blur') { octx.save(); octx.filter='blur(14px)'; octx.drawImage(base,x,y,w,h,x,y,w,h); octx.restore(); return; }
-      var cols=Math.max(2, Math.round(w/14)), rows=Math.max(2, Math.round(h/14));
-      var tmp=document.createElement('canvas'); tmp.width=cols; tmp.height=rows;
-      var tctx=tmp.getContext('2d'); tctx.drawImage(base,x,y,w,h,0,0,cols,rows);
-      octx.imageSmoothingEnabled=false; octx.drawImage(tmp,0,0,cols,rows,x,y,w,h); octx.imageSmoothingEnabled=true;
-    }
+    var boxes = st.qr.slice();
+    if (st.faceOn) boxes = boxes.concat(st.faces);
     boxes.forEach(function(b){
-      applyBox(b, st.mode);
+      var fb = boxFwd(b), x=Math.max(0,Math.floor(fb[0])), y=Math.max(0,Math.floor(fb[1]));
+      var w=Math.min(rs.w,Math.ceil(fb[2]))-x, h=Math.min(rs.h,Math.ceil(fb[3]))-y;
+      if (w<=0||h<=0) return;
+      octx.imageSmoothingEnabled=false;
+      octx.drawImage(mosaic, x, y, w, h, x, y, w, h);
+      octx.imageSmoothingEnabled=true;
     });
-    st.strokes.forEach(function(s){
-      octx.save(); octx.lineCap='round'; octx.lineJoin='round'; octx.lineWidth=s.width; octx.beginPath();
-      s.points.forEach(function(p,i){ var q= fwd(p[0],p[1]); if(i===0)octx.moveTo(q.x,q.y); else octx.lineTo(q.x,q.y); });
-      if (s.mode==='solid') { octx.strokeStyle='#111'; octx.stroke(); }
-      else { octx.strokeStyle='rgba(20,20,20,.92)'; octx.filter=s.mode==='blur'?'blur(10px)':'blur(2px)'; octx.stroke(); }
-      octx.restore();
+    st.strokes.forEach(function(sk){
+      var pts = sk.points.map(function(p){ var q=fwd(p[0],p[1]); return [q.x, q.y]; });
+      paintBlocks(octx, mosaic, pts, Math.max(4, sk.width));
     });
 
     var size = Math.max(rs.w, rs.h);
@@ -1628,7 +1774,7 @@
   function close(){
     if (overlay) overlay.style.display = 'none';
     var ok = document.getElementById('kyEdOk'); if (ok) ok.disabled = false;
-    st = null; drag = null;
+    st = null;
   }
 
   window.openImageEditor = openImageEditor;

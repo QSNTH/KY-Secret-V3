@@ -294,7 +294,7 @@ function showDetail(i){
   document.getElementById('bd').style.display=(st==='pass'&&p.published)?'':'none';
   if(window.innerWidth<=768){document.body.classList.remove('m-list');document.body.classList.add('m-detail');}
   var im=document.getElementById('im');im.innerHTML='<span style="color:#aaa;font-size:12px">加载图片...</span>';
-  fetch(B+'/lookup/'+p.uuid,{headers:hd()}).then(function(r){return r.json()}).then(function(d){if(d.images&&d.images.length){im.innerHTML=d.images.map(function(img){return '<img src="'+B+img.url+'" title="'+img.name+'" class="lb-img">';}).join('');}else{im.innerHTML='<span style="color:#aaa;font-size:12px">无图片</span>';}}).catch(function(){im.innerHTML='<span style="color:#aaa;font-size:12px">加载失败</span>';});
+  fetch(B+'/lookup/'+p.uuid+'?token='+encodeURIComponent(T),{headers:hd()}).then(function(r){return r.json()}).then(function(d){if(d.images&&d.images.length){im.innerHTML=d.images.map(function(img){var orig=img.name.indexOf('original')>=0;return '<img src="'+B+img.url+'" title="'+(orig?'原图（仅管理员可见）':'处理后')+' · '+img.name+'" class="lb-img"'+(orig?' style="border:2px solid #dc2626"':'')+'>';}).join('');}else{im.innerHTML='<span style="color:#aaa;font-size:12px">无图片</span>';}}).catch(function(){im.innerHTML='<span style="color:#aaa;font-size:12px">加载失败</span>';});
 }
 
 function showPlaceholder(){
