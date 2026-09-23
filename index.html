@@ -1,4 +1,4 @@
-5.<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -835,13 +835,34 @@
             updateContentCounter();
             updateRequiredFields();
 
-            // 渲染预览缩略图（带删除按钮）
+            // 渲染预览缩略图（带删除按钮；点击图片可重新编辑）
+            function applyProcessedImage(processed, faceBlur) {
+                currentPreviewFile = processed;
+                window._kyImageFile = processed;
+                window._kyFaceBlur = faceBlur !== false;
+                try {
+                    const dt = new DataTransfer();
+                    dt.items.add(processed);
+                    fileInput.files = dt.files;
+                } catch (err) { /* 部分旧浏览器不支持 DataTransfer，忽略 */ }
+                fileHint.innerText = '已处理 1 张图片（已隐私打码，点击缩略图可重新编辑）';
+                renderPreview(URL.createObjectURL(processed));
+                updateRequiredFields();
+            }
+
             function renderPreview(url) {
                 previewContainer.innerHTML = '';
                 const previewItem = document.createElement('div');
                 previewItem.className = 'preview-item';
                 const img = document.createElement('img');
                 img.src = url;
+                img.style.cursor = 'pointer';
+                img.title = '点击重新编辑打码';
+                img.onclick = function() {
+                    if (currentPreviewFile && window.openImageEditor) {
+                        window.openImageEditor(currentPreviewFile, applyProcessedImage, function(){});
+                    }
+                };
                 const removeBtn = document.createElement('button');
                 removeBtn.className = 'remove-btn';
                 removeBtn.innerHTML = '×';
@@ -851,6 +872,7 @@
                     fileHint.innerText = '未选择任何文件';
                     currentPreviewFile = null;
                     window._kyImageFile = null;
+                    window._kyOriginalFile = null;
                     window._kyFaceBlur = true;
                     updateRequiredFields();
                 };
@@ -893,19 +915,8 @@
                 }
 
                 if (window.openImageEditor) {
-                    window.openImageEditor(file, function(processed, faceBlur) {
-                        currentPreviewFile = processed;
-                        window._kyImageFile = processed;
-                        window._kyFaceBlur = faceBlur !== false;
-                        try {
-                            const dt = new DataTransfer();
-                            dt.items.add(processed);
-                            fileInput.files = dt.files;
-                        } catch (err) { /* 部分旧浏览器不支持 DataTransfer，忽略 */ }
-                        fileHint.innerText = '已处理 1 张图片（已隐私打码）';
-                        renderPreview(URL.createObjectURL(processed));
-                        updateRequiredFields();
-                    }, function() {
+                    window._kyOriginalFile = file;
+                    window.openImageEditor(file, applyProcessedImage, function() {
                         if (!currentPreviewFile) resetImageUI();
                     });
                 } else {
@@ -1382,7 +1393,7 @@
       +     '<button data-a="rotL" class="kyEdBtn">↺ 左转</button>'
       +     '<button data-a="rotR" class="kyEdBtn">↻ 右转</button>'
       +     '<label style="display:flex;align-items:center;gap:5px;user-select:none"><input type="checkbox" id="kyEdDraw"> 马赛克画笔</label>'
-      +     '<label style="display:flex;align-items:center;gap:6px;user-select:none">画笔大小<input type="range" id="kyEdSize" min="12" max="90" value="32" style="width:110px"></label>'
+      +     '<label style="display:flex;align-items:center;gap:6px;user-select:none">画笔大小<input type="range" id="kyEdSize" min="8" max="400" value="40" style="width:130px"></label>'
       +     '<button data-a="clear" class="kyEdBtn">清除涂抹</button>'
       +     '<span id="kyEdCount" style="color:#666"></span>'
       +   '</div>'
@@ -1422,7 +1433,6 @@
   function openImageEditor(file, onDone, onCancel){
     ensureUI();
     st = { file: file, img: null, rot: 0, qr: [], faces: [], strokes: [], faceOn: true, brushOn: false, brushW: parseInt(sizeRange.value,10)||32, drawing: null };
-    window._kyOriginalFile = file;
     overlay._onDone = onDone; overlay._onCancel = onCancel;
     overlay.style.display = 'flex';
     if (faceChk) faceChk.checked = true; drawChk.checked = false; sizeRange.value = st.brushW;
@@ -1433,6 +1443,11 @@
     var im = new Image();
     im.onload = function(){
       st.img = im;
+      // 画笔直径跟着图片尺寸走：默认约短边/40，最大可到短边/4
+      var maxB = Math.max(160, Math.round(Math.min(im.width, im.height) / 4));
+      sizeRange.max = maxB;
+      st.brushW = Math.max(16, Math.min(maxB, Math.round(Math.min(im.width, im.height) / 40)));
+      sizeRange.value = st.brushW;
       drawToCanvas();
       busyEl.style.display = 'none';
     };
@@ -1553,8 +1568,8 @@
   }
 
   function fitCanvas(rotW, rotH){
-    var maxW = Math.min(window.innerWidth - 80, 700);
-    var maxH = Math.min(window.innerHeight * 0.5, 460);
+    var maxW = Math.min(window.innerWidth - 40, 900);
+    var maxH = Math.min(window.innerHeight * 0.62, 580);
     var scale = Math.min(maxW / rotW, maxH / rotH, 1);
     cv.width = Math.max(1, Math.round(rotW * scale));
     cv.height = Math.max(1, Math.round(rotH * scale));
@@ -1586,6 +1601,15 @@
     u.width=srcCanvas.width; u.height=srcCanvas.height;
     var uc=u.getContext('2d'); uc.imageSmoothingEnabled=false;
     uc.drawImage(t,0,0,t.width,t.height,0,0,u.width,u.height);
+    // 撒盐：随机黑白噪点打散原有色块，避免马赛克颜色和原图对得上还能辨认
+    var dot=Math.max(1, Math.round(cell/6));
+    var dots=Math.round(u.width*u.height/(cell*cell)*0.35);
+    uc.globalAlpha=0.6;
+    for (var i=0;i<dots;i++){
+      uc.fillStyle = Math.random()<0.5 ? '#000' : '#fff';
+      uc.fillRect(Math.floor(Math.random()*u.width), Math.floor(Math.random()*u.height), dot, dot);
+    }
+    uc.globalAlpha=1;
     return u;
   }
 
