@@ -1601,15 +1601,14 @@
     u.width=srcCanvas.width; u.height=srcCanvas.height;
     var uc=u.getContext('2d'); uc.imageSmoothingEnabled=false;
     uc.drawImage(t,0,0,t.width,t.height,0,0,u.width,u.height);
-    // 撒盐：随机黑白噪点打散原有色块，避免马赛克颜色和原图对得上还能辨认
-    var dot=Math.max(1, Math.round(cell/6));
-    var dots=Math.round(u.width*u.height/(cell*cell)*0.35);
-    uc.globalAlpha=0.6;
-    for (var i=0;i<dots;i++){
-      uc.fillStyle = Math.random()<0.5 ? '#000' : '#fff';
-      uc.fillRect(Math.floor(Math.random()*u.width), Math.floor(Math.random()*u.height), dot, dot);
+    // 直接把每个马赛克格子的颜色随机成新 HEX，而不是在照片上撒点
+    var id=uc.getImageData(0,0,u.width,u.height), d=id.data;
+    for (var i=0;i<d.length;i+=4){
+      d[i]=Math.floor(Math.random()*256);
+      d[i+1]=Math.floor(Math.random()*256);
+      d[i+2]=Math.floor(Math.random()*256);
     }
-    uc.globalAlpha=1;
+    uc.putImageData(id,0,0);
     return u;
   }
 
@@ -1627,19 +1626,27 @@
 
   function paintBlocks(c, mosaic, pts, block, tile){
     if (!pts || !pts.length || !mosaic) return;
+    if (pts.length === 1) pts = [pts[0], pts[0]];
     block=Math.max(4, block);
     tile=Math.max(8, Math.round(tile||block));
-    var step=Math.max(2, Math.min(block, tile)/2);
+    var rad=block/2, half=Math.ceil(rad/tile);
     for (var i=1;i<pts.length;i++){
       var ax=pts[i-1][0], ay=pts[i-1][1], bx=pts[i][0], by=pts[i][1];
       var dist=Math.sqrt((bx-ax)*(bx-ax)+(by-ay)*(by-ay));
-      var n=Math.max(1, Math.ceil(dist/step));
+      var n=Math.max(1, Math.ceil(dist/(tile/2)));
       for (var k=0;k<=n;k++){
         var x=ax+(bx-ax)*k/n, y=ay+(by-ay)*k/n;
-        var sx=Math.floor((x-tile/2)/tile)*tile, sy=Math.floor((y-tile/2)/tile)*tile;
-        c.imageSmoothingEnabled=false;
-        c.drawImage(mosaic, sx, sy, tile, tile, sx, sy, tile, tile);
-        c.imageSmoothingEnabled=true;
+        var cx=Math.floor(x/tile), cy=Math.floor(y/tile);
+        for (var gx=cx-half; gx<=cx+half; gx++){
+          for (var gy=cy-half; gy<=cy+half; gy++){
+            var tx=gx*tile, ty=gy*tile;
+            var dx=tx+tile/2-x, dy=ty+tile/2-y;
+            if (dx*dx+dy*dy > rad*rad) continue;
+            c.imageSmoothingEnabled=false;
+            c.drawImage(mosaic, tx, ty, tile, tile, tx, ty, tile, tile);
+            c.imageSmoothingEnabled=true;
+          }
+        }
       }
     }
   }
@@ -1650,13 +1657,15 @@
 
   function showBrushDot(p){
     if (!brushDot || !st || !drawChk.checked){ if (brushDot) brushDot.style.display='none'; return; }
-    var w=Math.max(6, st.brushW*2*disp.scale);
+    var r=cv.getBoundingClientRect(), sr=stageEl.getBoundingClientRect();
+    var sx=r.width/cv.width, sy=r.height/cv.height;
+    var w=Math.max(6, st.brushW*disp.scale*sx*2);
     brushDot.style.display='block';
     brushDot.style.width=w+'px'; brushDot.style.height=w+'px';
     var cx=(p&&typeof p.x==='number')?p.x:cv.width/2;
     var cy=(p&&typeof p.y==='number')?p.y:cv.height/2;
-    brushDot.style.left=(cv.offsetLeft+cx-w/2)+'px';
-    brushDot.style.top=(cv.offsetTop+cy-w/2)+'px';
+    brushDot.style.left=((r.left-sr.left)+cx*sx-w/2)+'px';
+    brushDot.style.top=((r.top-sr.top)+cy*sy-w/2)+'px';
   }
 
   function redraw(){
