@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+5.<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -1305,7 +1305,7 @@
 (function(){
   var st = null;
   var overlay, cv, ctx, busyEl, faceChk, drawChk, countEl, warnEl, sizeRange, brushDot, stageEl;
-  var disp = { scale: 1, rotW: 0, rotH: 0, base: null, mosaic: null };
+  var disp = { scale: 1, rotW: 0, rotH: 0, base: null, mosaic: null, cell: 0 };
 
   function backendBase(){
     var b = (window.KY_CONFIG && window.KY_CONFIG.backendUrl) || '';
@@ -1596,23 +1596,25 @@
       var bc=disp.base.getContext('2d');
       bc.fillStyle='#111'; bc.fillRect(0,0,cv.width,cv.height);
       paintRotated(bc, cv.width, cv.height);
-      disp.mosaic=makeMosaic(disp.base, Math.max(8, Math.round(cv.width/60)));
+      disp.cell=Math.max(10, Math.round(cv.width/35));
+      disp.mosaic=makeMosaic(disp.base, disp.cell);
     }
   }
 
-  function paintBlocks(c, mosaic, pts, block){
+  function paintBlocks(c, mosaic, pts, block, tile){
     if (!pts || !pts.length || !mosaic) return;
     block=Math.max(4, block);
-    var step=Math.max(2, block/2), snap=4;
+    tile=Math.max(8, Math.round(tile||block));
+    var step=Math.max(2, Math.min(block, tile)/2);
     for (var i=1;i<pts.length;i++){
       var ax=pts[i-1][0], ay=pts[i-1][1], bx=pts[i][0], by=pts[i][1];
       var dist=Math.sqrt((bx-ax)*(bx-ax)+(by-ay)*(by-ay));
       var n=Math.max(1, Math.ceil(dist/step));
       for (var k=0;k<=n;k++){
         var x=ax+(bx-ax)*k/n, y=ay+(by-ay)*k/n;
-        var sx=Math.floor((x-block/2)/snap)*snap, sy=Math.floor((y-block/2)/snap)*snap;
+        var sx=Math.floor((x-tile/2)/tile)*tile, sy=Math.floor((y-tile/2)/tile)*tile;
         c.imageSmoothingEnabled=false;
-        c.drawImage(mosaic, sx, sy, block, block, sx, sy, block, block);
+        c.drawImage(mosaic, sx, sy, tile, tile, sx, sy, tile, tile);
         c.imageSmoothingEnabled=true;
       }
     }
@@ -1649,10 +1651,10 @@
       ctx.strokeStyle=o.color; ctx.lineWidth=2; ctx.strokeRect(x,y,w,h);
     });
     st.strokes.forEach(function(sk){
-      paintBlocks(ctx, disp.mosaic, strokePointsDisplay(sk), Math.max(4, sk.width*s));
+      paintBlocks(ctx, disp.mosaic, strokePointsDisplay(sk), Math.max(4, sk.width*s), disp.cell);
     });
     countEl.textContent = '涂抹 ' + st.strokes.length + ' 笔';
-    if (st.drawing) paintBlocks(ctx, disp.mosaic, st.drawing, Math.max(4, st.brushW*s));
+    if (st.drawing) paintBlocks(ctx, disp.mosaic, st.drawing, Math.max(4, st.brushW*s), disp.cell);
   }
 
   function pt(e){
@@ -1666,7 +1668,7 @@
     if (drawChk.checked) {
       try { cv.setPointerCapture(e.pointerId); } catch(err){}
       st.drawing = [[p.x, p.y]];
-      paintBlocks(ctx, disp.mosaic, st.drawing, Math.max(4, st.brushW*disp.scale));
+      paintBlocks(ctx, disp.mosaic, st.drawing, Math.max(4, st.brushW*disp.scale), disp.cell);
       showBrushDot(p);
       return;
     }
@@ -1688,7 +1690,7 @@
       var last = st.drawing[st.drawing.length-1];
       if (Math.abs(p.x-last[0])+Math.abs(p.y-last[1]) > 2){
         st.drawing.push([p.x,p.y]);
-        paintBlocks(ctx, disp.mosaic, [last, [p.x,p.y]], Math.max(4, st.brushW*disp.scale));
+        paintBlocks(ctx, disp.mosaic, [last, [p.x,p.y]], Math.max(4, st.brushW*disp.scale), disp.cell);
       }
     }
     showBrushDot(p);
@@ -1714,7 +1716,8 @@
     bctx.fillStyle='#000'; bctx.fillRect(0,0,rs.w,rs.h);
     paintRotated(bctx, rs.w, rs.h);
 
-    var mosaic = makeMosaic(base, Math.max(6, Math.round(Math.min(rs.w, rs.h)/120)));
+    var cell = Math.max(14, Math.round(Math.min(rs.w, rs.h)/70));
+    var mosaic = makeMosaic(base, cell);
 
     var out = document.createElement('canvas');
     out.width = rs.w; out.height = rs.h;
@@ -1732,7 +1735,7 @@
     });
     st.strokes.forEach(function(sk){
       var pts = sk.points.map(function(p){ var q=fwd(p[0],p[1]); return [q.x, q.y]; });
-      paintBlocks(octx, mosaic, pts, Math.max(4, sk.width));
+      paintBlocks(octx, mosaic, pts, Math.max(4, sk.width), cell);
     });
 
     var size = Math.max(rs.w, rs.h);
