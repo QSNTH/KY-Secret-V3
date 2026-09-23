@@ -1190,6 +1190,7 @@
                 if (hasImage) {
                     formData.append('user_image', currentPreviewFile);
                     if (window._kyOriginalFile) formData.append('user_image_original', window._kyOriginalFile);
+                    else showToast('提示：未找到原始图片，本次只会上传打码图');
                     formData.append('face_blur', window._kyFaceBlur === false ? 'false' : 'true');
                     formData.append('manual_masks', '[]');
                 }
