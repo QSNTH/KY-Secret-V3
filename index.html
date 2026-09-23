@@ -1740,7 +1740,7 @@
     bctx.fillStyle='#000'; bctx.fillRect(0,0,rs.w,rs.h);
     paintRotated(bctx, rs.w, rs.h);
 
-    var cell = Math.max(14, Math.round(Math.min(rs.w, rs.h)/70));
+    var cell = Math.max(10, Math.round(Math.min(rs.w, rs.h)/35));
     var mosaic = makeMosaic(base, cell);
 
     var out = document.createElement('canvas');
