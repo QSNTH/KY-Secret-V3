@@ -1,5 +1,5 @@
 {
-    "backend": "https://printed-sampling-eos-authors.trycloudflare.com",
+    "backend": "https://mag-either-worcester-context.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
