@@ -1,5 +1,5 @@
 {
-    "backend": "https://joins-abc-tar-beats.trycloudflare.com",
+    "backend": "https://preservation-suzuki-acre-bibliography.trycloudflare.com",
     "api": "/api",
     "status": "/status",
     "submit": "/submit",
